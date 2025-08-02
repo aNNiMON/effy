@@ -1,11 +1,14 @@
 use ratatui::{
     layout::{Constraint, Direction, Layout},
-    style::{Style, Stylize},
+    style::{Color, Style, Stylize},
     text::Line,
-    widgets::{Block, Borders, Paragraph, Widget},
+    widgets::{Block, Borders, List, Paragraph, StatefulWidget, Widget},
 };
 
-use crate::app::{App, Pane};
+use crate::{
+    app::App,
+    model::{Pane, Param},
+};
 
 impl Widget for &App {
     fn render(self, area: ratatui::prelude::Rect, buf: &mut ratatui::prelude::Buffer)
@@ -42,19 +45,33 @@ impl Widget for &App {
             .constraints([Constraint::Fill(1), Constraint::Fill(3)])
             .areas(main);
         {
-            let style = if matches!(self.current_pane, Pane::Params) {
-                highlighted_style
+            let (style, list_sel_color) = if matches!(self.current_pane, Pane::Params) {
+                (highlighted_style, Color::Blue)
             } else {
-                default_style
+                (default_style, Color::Gray)
             };
-            Paragraph::new("Params")
-                .block(
-                    Block::default()
-                        .borders(Borders::ALL)
-                        .border_style(style)
-                        .title_top(Line::from(" Params ").blue().left_aligned()),
-                )
-                .render(params, buf);
+            let items = self.params.iter().map(|param| {
+                let text = match param {
+                    Param::DisableAudio(disabled) => format!("Disable Audio: {}", disabled),
+                    Param::AudioBitrate(bitrate) => format!("Audio Bitrate: {}", bitrate.as_str()),
+                    Param::VideoBitrate(bitrate) => format!("Video Bitrate: {}", bitrate.as_str()),
+                };
+                Line::from(text).dim()
+            });
+            StatefulWidget::render(
+                List::new(items)
+                    .block(
+                        Block::default()
+                            .borders(Borders::ALL)
+                            .border_style(style)
+                            .title_top(Line::from(" Params ").blue().left_aligned()),
+                    )
+                    .style(Style::default().fg(Color::White))
+                    .highlight_style(Style::default().bold().fg(Color::Black).bg(list_sel_color)),
+                params,
+                buf,
+                &mut self.params_list_state.clone(),
+            );
         }
 
         {

@@ -1,23 +1,22 @@
 use color_eyre::Result;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
-use ratatui::{DefaultTerminal, Frame};
+use ratatui::{DefaultTerminal, Frame, widgets::ListState};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Pane {
-    Info,
-    Params,
-    Config,
-}
+use crate::model::{AudioBitrate, Pane, Param, VideoBitrate};
 
-pub struct App {
-    running: bool,
-    pub current_pane: Pane,
-    pub info_text: String,
-    pub info_pane_current_line: u16,
+pub(crate) struct App {
+    pub(crate) running: bool,
+    pub(crate) current_pane: Pane,
+    pub(crate) info_text: String,
+    pub(crate) info_pane_current_line: u16,
+    pub(crate) params: Vec<Param>,
+    pub(crate) params_list_state: ListState,
 }
 
 impl App {
     pub fn new() -> Self {
+        let mut list_state = ListState::default();
+        list_state.select(Some(0));
         App {
             running: false,
             current_pane: Pane::Info,
@@ -35,6 +34,12 @@ impl App {
                  Audio Channels: 2"
                 .to_string(),
             info_pane_current_line: 0,
+            params: vec![
+                Param::DisableAudio(false),
+                Param::AudioBitrate(AudioBitrate::Auto),
+                Param::VideoBitrate(VideoBitrate::Auto),
+            ],
+            params_list_state: list_state,
         }
     }
 
@@ -66,6 +71,8 @@ impl App {
             (_, _, KeyCode::Tab) => self.next_pane(),
             (Pane::Info, _, KeyCode::Down | KeyCode::Char('j')) => self.scroll_info_pane_down(),
             (Pane::Info, _, KeyCode::Up | KeyCode::Char('k')) => self.scroll_info_pane_up(),
+            (Pane::Params, _, KeyCode::Down | KeyCode::Char('j')) => self.select_next_param(),
+            (Pane::Params, _, KeyCode::Up | KeyCode::Char('k')) => self.select_prev_param(),
             _ => {}
         }
     }
@@ -78,6 +85,24 @@ impl App {
 
     fn scroll_info_pane_up(&mut self) {
         self.info_pane_current_line = self.info_pane_current_line.saturating_sub(1);
+    }
+
+    fn select_prev_param(&mut self) {
+        if let Some(selected) = self.params_list_state.selected() {
+            let prev = if selected == 0 {
+                self.params.len() - 1
+            } else {
+                selected - 1
+            };
+            self.params_list_state.select(Some(prev));
+        }
+    }
+
+    fn select_next_param(&mut self) {
+        if let Some(selected) = self.params_list_state.selected() {
+            let next = (selected + 1) % self.params.len();
+            self.params_list_state.select(Some(next));
+        }
     }
 
     fn next_pane(&mut self) {

@@ -7,7 +7,7 @@ use ratatui::{
 
 use crate::{
     app::App,
-    model::{Pane, Param},
+    model::{Pane, Parameter},
 };
 
 impl Widget for &App {
@@ -50,14 +50,10 @@ impl Widget for &App {
             } else {
                 (default_style, Color::Gray)
             };
-            let items = self.params.iter().map(|param| {
-                let text = match param {
-                    Param::DisableAudio(disabled) => format!("Disable Audio: {}", disabled),
-                    Param::AudioBitrate(bitrate) => format!("Audio Bitrate: {}", bitrate.as_str()),
-                    Param::VideoBitrate(bitrate) => format!("Video Bitrate: {}", bitrate.as_str()),
-                };
-                Line::from(text).dim()
-            });
+            let items = self
+                .params
+                .iter()
+                .map(|param| Line::from(param.describe()).dim());
             StatefulWidget::render(
                 List::new(items)
                     .block(

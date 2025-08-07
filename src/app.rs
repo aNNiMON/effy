@@ -2,7 +2,7 @@ use color_eyre::Result;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::{DefaultTerminal, Frame, widgets::ListState};
 
-use crate::model::{AudioBitrate, Pane, Param, VideoBitrate};
+use crate::model::{AudioBitrate, Pane, Param, Parameter, VideoBitrate};
 
 pub(crate) struct App {
     pub(crate) running: bool,
@@ -73,6 +73,8 @@ impl App {
             (Pane::Info, _, KeyCode::Up | KeyCode::Char('k')) => self.scroll_info_pane_up(),
             (Pane::Params, _, KeyCode::Down | KeyCode::Char('j')) => self.select_next_param(),
             (Pane::Params, _, KeyCode::Up | KeyCode::Char('k')) => self.select_prev_param(),
+            (Pane::Params, _, KeyCode::Left | KeyCode::Char('h')) => self.prev_option(),
+            (Pane::Params, _, KeyCode::Right | KeyCode::Char('l')) => self.next_option(),
             _ => {}
         }
     }
@@ -102,6 +104,24 @@ impl App {
         if let Some(selected) = self.params_list_state.selected() {
             let next = (selected + 1) % self.params.len();
             self.params_list_state.select(Some(next));
+        }
+    }
+
+    fn prev_option(&mut self) {
+        if let Some(selected) = self.params_list_state.selected() {
+            if let Some(param) = self.params.get(selected).cloned() {
+                let new_param = param.toggle_prev();
+                self.params[selected] = new_param;
+            }
+        }
+    }
+
+    fn next_option(&mut self) {
+        if let Some(selected) = self.params_list_state.selected() {
+            if let Some(param) = self.params.get(selected).cloned() {
+                let new_param = param.toggle_next();
+                self.params[selected] = new_param;
+            }
         }
     }
 

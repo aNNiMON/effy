@@ -1,3 +1,6 @@
+use strum::VariantArray;
+use strum_macros::VariantArray;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Pane {
     Info,
@@ -6,14 +9,41 @@ pub(crate) enum Pane {
 }
 
 pub(crate) trait Parameter {
-    fn toggle_prev(&self) -> Self;
-    fn toggle_next(&self) -> Self;
+    fn variants(&self) -> &'static [Self]
+    where
+        Self: Sized;
+
+    fn toggle_prev(&self) -> Self
+    where
+        Self: 'static + Sized + PartialEq + Clone,
+    {
+        self.variants()
+            .iter()
+            .cycle()
+            .take_while(|&v| *v != *self)
+            .last()
+            .cloned()
+            .unwrap_or_else(|| self.variants()[self.variants().len() - 1].clone())
+    }
+
+    fn toggle_next(&self) -> Self
+    where
+        Self: 'static + Sized + PartialEq + Clone,
+    {
+        self.variants()
+            .iter()
+            .cycle()
+            .skip_while(|&v| *v != *self)
+            .nth(1)
+            .cloned()
+            .unwrap_or_else(|| self.variants()[0].clone())
+    }
 
     fn as_str(&self) -> &'static str;
-    fn describe(&self) -> String;
+    fn describe_self(&self) -> &'static str;
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, VariantArray, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum AudioBitrate {
     K32,
     K80,
@@ -24,26 +54,11 @@ pub(crate) enum AudioBitrate {
 }
 
 impl Parameter for AudioBitrate {
-    fn toggle_prev(&self) -> Self {
-        match self {
-            AudioBitrate::K32 => AudioBitrate::Auto,
-            AudioBitrate::K80 => AudioBitrate::K32,
-            AudioBitrate::K128 => AudioBitrate::K80,
-            AudioBitrate::K192 => AudioBitrate::K128,
-            AudioBitrate::K256 => AudioBitrate::K192,
-            AudioBitrate::Auto => AudioBitrate::K256,
-        }
-    }
-
-    fn toggle_next(&self) -> Self {
-        match self {
-            AudioBitrate::K32 => AudioBitrate::K80,
-            AudioBitrate::K80 => AudioBitrate::K128,
-            AudioBitrate::K128 => AudioBitrate::K192,
-            AudioBitrate::K192 => AudioBitrate::K256,
-            AudioBitrate::K256 => AudioBitrate::Auto,
-            AudioBitrate::Auto => AudioBitrate::K32,
-        }
+    fn variants(&self) -> &'static [Self]
+    where
+        Self: Sized,
+    {
+        AudioBitrate::VARIANTS
     }
 
     fn as_str(&self) -> &'static str {
@@ -57,12 +72,12 @@ impl Parameter for AudioBitrate {
         }
     }
 
-    fn describe(&self) -> String {
-        format!("Audio Bitrate: {}", self.as_str())
+    fn describe_self(&self) -> &'static str {
+        "Audio Bitrate"
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, VariantArray, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum VideoBitrate {
     K768,
     M1,
@@ -72,24 +87,11 @@ pub(crate) enum VideoBitrate {
 }
 
 impl Parameter for VideoBitrate {
-    fn toggle_next(&self) -> Self {
-        match self {
-            VideoBitrate::K768 => VideoBitrate::M1,
-            VideoBitrate::M1 => VideoBitrate::M2,
-            VideoBitrate::M2 => VideoBitrate::M4,
-            VideoBitrate::M4 => VideoBitrate::Auto,
-            VideoBitrate::Auto => VideoBitrate::K768,
-        }
-    }
-
-    fn toggle_prev(&self) -> Self {
-        match self {
-            VideoBitrate::K768 => VideoBitrate::Auto,
-            VideoBitrate::M1 => VideoBitrate::K768,
-            VideoBitrate::M2 => VideoBitrate::M1,
-            VideoBitrate::M4 => VideoBitrate::M2,
-            VideoBitrate::Auto => VideoBitrate::M4,
-        }
+    fn variants(&self) -> &'static [Self]
+    where
+        Self: Sized,
+    {
+        VideoBitrate::VARIANTS
     }
 
     fn as_str(&self) -> &'static str {
@@ -102,8 +104,8 @@ impl Parameter for VideoBitrate {
         }
     }
 
-    fn describe(&self) -> String {
-        format!("Video Bitrate: {}", self.as_str())
+    fn describe_self(&self) -> &'static str {
+        "Video Bitrate"
     }
 }
 
@@ -114,8 +116,8 @@ pub(crate) enum Param {
     VideoBitrate(VideoBitrate),
 }
 
-impl Parameter for Param {
-    fn toggle_prev(&self) -> Self {
+impl Param {
+    pub(crate) fn toggle_prev(&self) -> Self {
         match self {
             Param::DisableAudio(val) => Param::DisableAudio(!val),
             Param::AudioBitrate(bitrate) => Param::AudioBitrate(bitrate.toggle_prev()),
@@ -123,7 +125,7 @@ impl Parameter for Param {
         }
     }
 
-    fn toggle_next(&self) -> Self {
+    pub(crate) fn toggle_next(&self) -> Self {
         match self {
             Param::DisableAudio(val) => Param::DisableAudio(!val),
             Param::AudioBitrate(bitrate) => Param::AudioBitrate(bitrate.toggle_next()),
@@ -145,11 +147,12 @@ impl Parameter for Param {
         }
     }
 
-    fn describe(&self) -> String {
-        match self {
-            Param::DisableAudio(_) => format!("Disable Audio: {}", self.as_str()),
-            Param::AudioBitrate(bitrate) => bitrate.describe(),
-            Param::VideoBitrate(bitrate) => bitrate.describe(),
-        }
+    pub(crate) fn describe(&self) -> String {
+        let param = match self {
+            Param::DisableAudio(_) => "Disable Audio",
+            Param::AudioBitrate(bitrate) => bitrate.describe_self(),
+            Param::VideoBitrate(bitrate) => bitrate.describe_self(),
+        };
+        format!("{}: {}", param, self.as_str())
     }
 }

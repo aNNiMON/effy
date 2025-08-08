@@ -76,7 +76,7 @@ impl Widget for &App {
             } else {
                 default_style
             };
-            Paragraph::new("Config area")
+            Paragraph::new(self.command.clone())
                 .block(
                     Block::default()
                         .borders(Borders::ALL)

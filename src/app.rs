@@ -9,6 +9,7 @@ pub(crate) struct App {
     pub(crate) current_pane: Pane,
     pub(crate) info_text: String,
     pub(crate) info_pane_current_line: u16,
+    pub(crate) command: String,
     pub(crate) params: Vec<Param>,
     pub(crate) params_list_state: ListState,
 }
@@ -34,6 +35,7 @@ impl App {
                  Audio Channels: 2"
                 .to_string(),
             info_pane_current_line: 0,
+            command: "".to_string(),
             params: vec![
                 Param::DisableAudio(false),
                 Param::AudioBitrate(AudioBitrate::Auto),
@@ -69,6 +71,7 @@ impl App {
             (_, _, KeyCode::Esc | KeyCode::Char('q'))
             | (_, KeyModifiers::CONTROL, KeyCode::Char('c') | KeyCode::Char('C')) => self.quit(),
             (_, _, KeyCode::Tab) => self.next_pane(),
+            (_, KeyModifiers::CONTROL, KeyCode::Char('s')) => self.save(),
             (Pane::Info, _, KeyCode::Down | KeyCode::Char('j')) => self.scroll_info_pane_down(),
             (Pane::Info, _, KeyCode::Up | KeyCode::Char('k')) => self.scroll_info_pane_up(),
             (Pane::Params, _, KeyCode::Down | KeyCode::Char('j')) => self.select_next_param(),
@@ -131,6 +134,31 @@ impl App {
             Pane::Params => Pane::Config,
             Pane::Config => Pane::Info,
         };
+    }
+
+    fn save(&mut self) {
+        let mut command = "ffmpeg -i input.mp4".to_string();
+        for param in &self.params {
+            match param {
+                Param::DisableAudio(disable) => {
+                    if *disable {
+                        command.push_str(" -an");
+                    }
+                }
+                Param::AudioBitrate(bitrate) => {
+                    if bitrate != &AudioBitrate::Auto {
+                        command.push_str(&format!(" -b:a {}", bitrate.as_str()));
+                    }
+                }
+                Param::VideoBitrate(bitrate) => {
+                    if bitrate != &VideoBitrate::Auto {
+                        command.push_str(&format!(" -b:v {}", bitrate.as_str()));
+                    }
+                }
+            }
+        }
+        command.push_str(" out.mp4");
+        self.command = command.clone();
     }
 
     fn quit(&mut self) {

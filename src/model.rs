@@ -147,7 +147,7 @@ impl Parameter for Param {
 
     fn describe(&self) -> String {
         match self {
-            Param::DisableAudio(val) => format!("Disable Audio: {}", self.as_str()),
+            Param::DisableAudio(_) => format!("Disable Audio: {}", self.as_str()),
             Param::AudioBitrate(bitrate) => bitrate.describe(),
             Param::VideoBitrate(bitrate) => bitrate.describe(),
         }

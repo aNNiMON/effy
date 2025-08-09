@@ -1,13 +1,16 @@
 use std::process::{Command, Stdio};
+use std::sync::mpsc::{Receiver, Sender};
+use std::thread;
 
 use color_eyre::Result;
-use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::{DefaultTerminal, Frame, widgets::ListState};
 
-use crate::model::{AudioBitrate, Pane, Param, Parameter, VideoBitrate};
+use crate::model::{AppEvent, AudioBitrate, Pane, Param, Parameter, VideoBitrate};
 
 pub(crate) struct App {
-    pub(crate) running: bool,
+    running: bool,
+    event_sender: Sender<AppEvent>,
     pub(crate) current_pane: Pane,
     pub(crate) input_file: String,
     pub(crate) info_text: String,
@@ -18,11 +21,12 @@ pub(crate) struct App {
 }
 
 impl App {
-    pub fn new(input_file: String) -> Self {
+    pub fn new(tx: Sender<AppEvent>, input_file: String) -> Self {
         let mut list_state = ListState::default();
         list_state.select(Some(0));
         App {
             running: false,
+            event_sender: tx,
             current_pane: Pane::Params,
             input_file: input_file.clone(),
             info_text: format!(
@@ -51,25 +55,22 @@ impl App {
         }
     }
 
-    pub fn run(mut self, mut terminal: DefaultTerminal) -> Result<()> {
+    pub fn run(mut self, mut terminal: DefaultTerminal, rx: Receiver<AppEvent>) -> Result<()> {
         self.running = true;
         while self.running {
             terminal.draw(|frame| self.render(frame))?;
-            self.handle_crossterm_events()?;
+            match rx.recv() {
+                Ok(AppEvent::Input(key)) => self.on_key_event(key),
+                Ok(AppEvent::SetOutput(output)) => self.output = output,
+                Ok(AppEvent::AddOutput(output)) => self.output.push_str(&output),
+                Err(_) => {}
+            }
         }
         Ok(())
     }
 
     fn render(&self, frame: &mut Frame) {
         frame.render_widget(self, frame.area())
-    }
-
-    fn handle_crossterm_events(&mut self) -> Result<()> {
-        match event::read()? {
-            Event::Key(key) if key.kind == KeyEventKind::Press => self.on_key_event(key),
-            _ => {}
-        }
-        Ok(())
     }
 
     fn on_key_event(&mut self, key: KeyEvent) {
@@ -166,22 +167,30 @@ impl App {
             }
         }
 
-        let output = Command::new("ffmpeg")
-            .arg("-y")
-            .arg("-hide_banner")
-            .arg("-i")
-            .arg(&self.input_file)
-            .args(&args)
-            .arg(format!("{}_out.mp4", self.input_file))
-            .stderr(Stdio::piped())
-            .output();
-        if let Ok(output) = output
-            && output.status.success()
-        {
-            self.output = String::from_utf8_lossy(&output.stderr).to_string();
-        } else {
-            self.output = "Failed to execute command".to_string();
-        }
+        self.output = "Running ffmpeg...".to_string();
+
+        let input_file = self.input_file.clone();
+        let tx = self.event_sender.clone();
+        thread::spawn(move || {
+            let output = Command::new("ffmpeg")
+                .arg("-y")
+                .arg("-hide_banner")
+                .arg("-i")
+                .arg(&input_file)
+                .args(&args)
+                .arg(format!("{}_out.mp4", input_file))
+                .stderr(Stdio::piped())
+                .output();
+            let result = if let Ok(output) = output
+                && output.status.success()
+            {
+                String::from_utf8_lossy(&output.stderr).to_string()
+            } else {
+                "Failed to execute command".to_string()
+            };
+
+            let _ = tx.send(AppEvent::SetOutput(result.clone()));
+        });
     }
 
     fn quit(&mut self) {

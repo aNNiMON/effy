@@ -156,3 +156,9 @@ impl Param {
         format!("{}: {}", param, self.as_str())
     }
 }
+
+pub(crate) enum AppEvent {
+    Input(crossterm::event::KeyEvent),
+    SetOutput(String),
+    AddOutput(String),
+}

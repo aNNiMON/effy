@@ -1,4 +1,12 @@
+use std::{
+    sync::mpsc::{self, Sender},
+    thread,
+};
+
 use app::App;
+use crossterm::event::{Event, KeyEventKind};
+
+use crate::model::AppEvent;
 
 mod app;
 mod model;
@@ -19,7 +27,22 @@ fn main() -> color_eyre::Result<()> {
     }
 
     let terminal = ratatui::init();
-    let result = App::new(input.clone()).run(terminal);
+    
+    let (tx, rx) = mpsc::channel();
+    let event_tx = tx.clone();
+    thread::spawn(move || handle_crossterm_events(event_tx));
+
+    let result = App::new(tx, input.clone()).run(terminal, rx);
     ratatui::restore();
     result
+}
+
+fn handle_crossterm_events(tx: Sender<AppEvent>) {
+    loop {
+        if let Ok(Event::Key(key)) = crossterm::event::read()
+            && key.kind == KeyEventKind::Press
+        {
+            let _ = tx.send(AppEvent::Input(key));
+        }
+    }
 }

@@ -7,6 +7,7 @@ use crate::model::{AudioBitrate, Pane, Param, Parameter, VideoBitrate};
 pub(crate) struct App {
     pub(crate) running: bool,
     pub(crate) current_pane: Pane,
+    pub(crate) input_file: String,
     pub(crate) info_text: String,
     pub(crate) info_pane_current_line: u16,
     pub(crate) command: String,
@@ -15,13 +16,15 @@ pub(crate) struct App {
 }
 
 impl App {
-    pub fn new() -> Self {
+    pub fn new(input_file: String) -> Self {
         let mut list_state = ListState::default();
         list_state.select(Some(0));
         App {
             running: false,
             current_pane: Pane::Params,
-            info_text: "Input file: abc.mp4\n\
+            input_file: input_file.clone(),
+            info_text: format!(
+                "Input file: {}\n\
                  File size: 1.1MiB\n\
                  Duration: 05:16\n\
                  Has Audio: Yes\n\
@@ -32,8 +35,9 @@ impl App {
                  Video Bitrate: 4500kbps\n\
                  Audio Bitrate: 192kbps\n\
                  Video FPS: 30\n\
-                 Audio Channels: 2"
-                .to_string(),
+                 Audio Channels: 2",
+                input_file
+            ),
             info_pane_current_line: 0,
             command: "".to_string(),
             params: vec![
@@ -137,7 +141,7 @@ impl App {
     }
 
     fn save(&mut self) {
-        let mut command = "ffmpeg -i input.mp4".to_string();
+        let mut command = format!("ffmpeg -i \"{}\"", self.input_file);
         for param in &self.params {
             match param {
                 Param::DisableAudio(disable) => {

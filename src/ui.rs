@@ -73,14 +73,20 @@ impl Widget for &App {
             } else {
                 default_style
             };
+
+            let output_lines = self.output.lines().count() as u16;
+            let pane_height = config.height.saturating_sub(2);
+            let offset = output_lines.saturating_sub(pane_height);
+
             Paragraph::new(self.output.clone())
                 .block(
                     Block::default()
                         .borders(Borders::ALL)
                         .border_style(style)
                         .title_top(Line::from(" Output ").blue().left_aligned())
-                        .title_bottom(Line::from(" [ctrl+s] process / [q] quit ").dim().left_aligned()),
+                        .title_bottom(Line::from(" [ctrl+s] process / [q] quit ").dim()),
                 )
+                .scroll((offset, 0))
                 .render(config, buf);
         }
     }

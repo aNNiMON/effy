@@ -1,3 +1,5 @@
+use std::process::{Command, Stdio};
+
 use color_eyre::Result;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use ratatui::{DefaultTerminal, Frame, widgets::ListState};
@@ -10,7 +12,7 @@ pub(crate) struct App {
     pub(crate) input_file: String,
     pub(crate) info_text: String,
     pub(crate) info_pane_current_line: u16,
-    pub(crate) command: String,
+    pub(crate) output: String,
     pub(crate) params: Vec<Param>,
     pub(crate) params_list_state: ListState,
 }
@@ -39,7 +41,7 @@ impl App {
                 input_file
             ),
             info_pane_current_line: 0,
-            command: "".to_string(),
+            output: "".to_string(),
             params: vec![
                 Param::DisableAudio(false),
                 Param::AudioBitrate(AudioBitrate::Auto),
@@ -141,28 +143,45 @@ impl App {
     }
 
     fn save(&mut self) {
-        let mut command = format!("ffmpeg -i \"{}\"", self.input_file);
+        let mut args: Vec<&str> = Vec::new();
         for param in &self.params {
             match param {
                 Param::DisableAudio(disable) => {
                     if *disable {
-                        command.push_str(" -an");
+                        args.push("-an");
                     }
                 }
                 Param::AudioBitrate(bitrate) => {
                     if bitrate != &AudioBitrate::Auto {
-                        command.push_str(&format!(" -b:a {}", bitrate.as_str()));
+                        args.push("-b:a");
+                        args.push(bitrate.as_str());
                     }
                 }
                 Param::VideoBitrate(bitrate) => {
                     if bitrate != &VideoBitrate::Auto {
-                        command.push_str(&format!(" -b:v {}", bitrate.as_str()));
+                        args.push("-b:v");
+                        args.push(bitrate.as_str());
                     }
                 }
             }
         }
-        command.push_str(" out.mp4");
-        self.command = command.clone();
+
+        let output = Command::new("ffmpeg")
+            .arg("-y")
+            .arg("-hide_banner")
+            .arg("-i")
+            .arg(&self.input_file)
+            .args(&args)
+            .arg(format!("{}_out.mp4", self.input_file))
+            .stderr(Stdio::piped())
+            .output();
+        if let Ok(output) = output
+            && output.status.success()
+        {
+            self.output = String::from_utf8_lossy(&output.stderr).to_string();
+        } else {
+            self.output = "Failed to execute command".to_string();
+        }
     }
 
     fn quit(&mut self) {

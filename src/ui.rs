@@ -73,7 +73,7 @@ impl Widget for &App {
             } else {
                 default_style
             };
-            Paragraph::new(self.command.clone())
+            Paragraph::new(self.output.clone())
                 .block(
                     Block::default()
                         .borders(Borders::ALL)

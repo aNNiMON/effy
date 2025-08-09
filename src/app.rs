@@ -20,7 +20,7 @@ impl App {
         list_state.select(Some(0));
         App {
             running: false,
-            current_pane: Pane::Info,
+            current_pane: Pane::Params,
             info_text: "Input file: abc.mp4\n\
                  File size: 1.1MiB\n\
                  Duration: 05:16\n\
@@ -131,8 +131,8 @@ impl App {
     fn next_pane(&mut self) {
         self.current_pane = match self.current_pane {
             Pane::Info => Pane::Params,
-            Pane::Params => Pane::Config,
-            Pane::Config => Pane::Info,
+            Pane::Params => Pane::Output,
+            Pane::Output => Pane::Info,
         };
     }
 

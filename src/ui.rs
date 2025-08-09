@@ -5,10 +5,7 @@ use ratatui::{
     widgets::{Block, Borders, List, Paragraph, StatefulWidget, Widget},
 };
 
-use crate::{
-    app::App,
-    model::{Pane, Parameter},
-};
+use crate::{app::App, model::Pane};
 
 impl Widget for &App {
     fn render(self, area: ratatui::prelude::Rect, buf: &mut ratatui::prelude::Buffer)
@@ -71,7 +68,7 @@ impl Widget for &App {
         }
 
         {
-            let style = if matches!(self.current_pane, Pane::Config) {
+            let style = if matches!(self.current_pane, Pane::Output) {
                 highlighted_style
             } else {
                 default_style
@@ -81,8 +78,8 @@ impl Widget for &App {
                     Block::default()
                         .borders(Borders::ALL)
                         .border_style(style)
-                        .title_top(Line::from(" Config ").blue().left_aligned())
-                        .title_bottom(Line::from(" Press 'q' to quit ").dim().left_aligned()),
+                        .title_top(Line::from(" Output ").blue().left_aligned())
+                        .title_bottom(Line::from(" [ctrl+s] process / [q] quit ").dim().left_aligned()),
                 )
                 .render(config, buf);
         }

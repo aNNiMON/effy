@@ -5,7 +5,7 @@ use strum_macros::VariantArray;
 pub(crate) enum Pane {
     Info,
     Params,
-    Config,
+    Output,
 }
 
 pub(crate) trait Parameter {

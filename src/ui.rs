@@ -1,8 +1,11 @@
 use ratatui::{
-    layout::{Constraint, Direction, Layout},
+    layout::{Constraint, Direction, Layout, Margin},
     style::{Color, Style, Stylize},
     text::Line,
-    widgets::{Block, Borders, List, Paragraph, StatefulWidget, Widget},
+    widgets::{
+        Block, Borders, List, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState,
+        StatefulWidget, Widget,
+    },
 };
 
 use crate::{app::App, model::Pane};
@@ -76,7 +79,16 @@ impl Widget for &App {
 
             let output_lines = self.output.lines().count() as u16;
             let pane_height = config.height.saturating_sub(2);
-            let offset = output_lines.saturating_sub(pane_height);
+            let content_max_length = if output_lines > pane_height {
+                output_lines.saturating_sub(pane_height)
+            } else {
+                0
+            };
+            let offset = if content_max_length > 0 {
+                self.output_pane_current_line.saturating_sub(pane_height)
+            } else {
+                0
+            };
 
             Paragraph::new(self.output.clone())
                 .block(
@@ -88,6 +100,22 @@ impl Widget for &App {
                 )
                 .scroll((offset, 0))
                 .render(config, buf);
+
+            if content_max_length > 0 {
+                let mut scrollbar_state = ScrollbarState::new(content_max_length as usize)
+                    .position(offset as usize);
+                Scrollbar::new(ScrollbarOrientation::VerticalRight)
+                    .begin_symbol(Some("↑"))
+                    .end_symbol(Some("↓"))
+                    .render(
+                        config.inner(Margin {
+                            vertical: 1,
+                            horizontal: 0,
+                        }),
+                        buf,
+                        &mut scrollbar_state,
+                    );
+            }
         }
     }
 }

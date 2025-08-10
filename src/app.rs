@@ -18,6 +18,7 @@ pub(crate) struct App {
     pub(crate) info_text: String,
     pub(crate) info_pane_current_line: u16,
     pub(crate) output: String,
+    pub(crate) output_pane_current_line: u16,
     pub(crate) params: Vec<Param>,
     pub(crate) params_list_state: ListState,
 }
@@ -48,6 +49,7 @@ impl App {
             ),
             info_pane_current_line: 0,
             output: "".to_string(),
+            output_pane_current_line: 0,
             params: vec![
                 Param::DisableAudio(false),
                 Param::AudioBitrate(AudioBitrate::Auto),
@@ -63,12 +65,29 @@ impl App {
             terminal.draw(|frame| self.render(frame))?;
             match rx.recv_timeout(Duration::from_secs(2)) {
                 Ok(AppEvent::Input(key)) => self.on_key_event(key),
-                Ok(AppEvent::SetOutput(output)) => self.output = output,
-                Ok(AppEvent::AddOutput(output)) => self.output.push_str(&output),
+                Ok(AppEvent::SetOutput(output)) => self.set_output(output),
+                Ok(AppEvent::AddOutput(output)) => self.add_output(output),
                 Err(_) => {}
             }
         }
         Ok(())
+    }
+
+    fn set_output(&mut self, output: String) {
+        self.output = output;
+        let count = self.output.lines().count() as u16;
+        if count > 0 {
+            self.output_pane_current_line = 0u16.saturating_add(count);
+        } else {
+            self.output_pane_current_line = 0;
+        }
+    }
+
+    fn add_output(&mut self, output: String) {
+        self.output.push_str(&output);
+        self.output_pane_current_line = self
+            .output_pane_current_line
+            .saturating_add(output.lines().count() as u16)
     }
 
     fn render(&self, frame: &mut Frame) {
@@ -83,6 +102,8 @@ impl App {
             (_, KeyModifiers::CONTROL, KeyCode::Char('s')) => self.save(),
             (Pane::Info, _, KeyCode::Down | KeyCode::Char('j')) => self.scroll_info_pane_down(),
             (Pane::Info, _, KeyCode::Up | KeyCode::Char('k')) => self.scroll_info_pane_up(),
+            (Pane::Output, _, KeyCode::Down | KeyCode::Char('j')) => self.scroll_output_pane_down(),
+            (Pane::Output, _, KeyCode::Up | KeyCode::Char('k')) => self.scroll_output_pane_up(),
             (Pane::Params, _, KeyCode::Down | KeyCode::Char('j')) => self.select_next_param(),
             (Pane::Params, _, KeyCode::Up | KeyCode::Char('k')) => self.select_prev_param(),
             (Pane::Params, _, KeyCode::Left | KeyCode::Char('h')) => self.prev_option(),
@@ -92,13 +113,29 @@ impl App {
     }
 
     fn scroll_info_pane_down(&mut self) {
-        if self.info_pane_current_line < self.info_text.lines().count() as u16 - 1 {
-            self.info_pane_current_line += 1;
+        let count = self.info_text.lines().count() as u16;
+        if self.info_pane_current_line < count - 1 {
+            self.info_pane_current_line = self.info_pane_current_line.saturating_add(1);
         }
     }
 
     fn scroll_info_pane_up(&mut self) {
-        self.info_pane_current_line = self.info_pane_current_line.saturating_sub(1);
+        if self.info_pane_current_line > 0 {
+            self.info_pane_current_line = self.info_pane_current_line.saturating_sub(1);
+        }
+    }
+
+    fn scroll_output_pane_down(&mut self) {
+        let count = self.output.lines().count() as u16;
+        if count > 0 && self.output_pane_current_line < count - 1 {
+            self.output_pane_current_line = self.output_pane_current_line.saturating_add(1);
+        }
+    }
+
+    fn scroll_output_pane_up(&mut self) {
+        if self.output_pane_current_line > 0 {
+            self.output_pane_current_line = self.output_pane_current_line.saturating_sub(1);
+        }
     }
 
     fn select_prev_param(&mut self) {
@@ -169,6 +206,7 @@ impl App {
             }
         }
 
+        self.output_pane_current_line = 0;
         self.output = "Starting FFmpeg...\n".to_string();
 
         let input_file = self.input_file.clone();
@@ -208,9 +246,9 @@ impl App {
             let msg = if let Ok(status) = child.wait()
                 && status.success()
             {
-                "FFmpeg finished successfully!\n"
+                "FFmpeg finished successfully!\n\n"
             } else {
-                "FFmpeg encountered an error.\n"
+                "FFmpeg encountered an error.\n\n"
             };
             let _ = tx.send(AppEvent::AddOutput(msg.to_string()));
         });

@@ -2,6 +2,7 @@ use std::io::{BufRead, BufReader};
 use std::process::{Command, Stdio};
 use std::sync::mpsc::{Receiver, Sender};
 use std::thread;
+use std::time::Duration;
 
 use color_eyre::Result;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
@@ -60,7 +61,7 @@ impl App {
         self.running = true;
         while self.running {
             terminal.draw(|frame| self.render(frame))?;
-            match rx.recv() {
+            match rx.recv_timeout(Duration::from_secs(2)) {
                 Ok(AppEvent::Input(key)) => self.on_key_event(key),
                 Ok(AppEvent::SetOutput(output)) => self.output = output,
                 Ok(AppEvent::AddOutput(output)) => self.output.push_str(&output),

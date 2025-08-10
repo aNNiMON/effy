@@ -1,3 +1,4 @@
+use std::io::{BufRead, BufReader};
 use std::process::{Command, Stdio};
 use std::sync::mpsc::{Receiver, Sender};
 use std::thread;
@@ -167,12 +168,12 @@ impl App {
             }
         }
 
-        self.output = "Running ffmpeg...".to_string();
+        self.output = "Starting FFmpeg...\n".to_string();
 
         let input_file = self.input_file.clone();
         let tx = self.event_sender.clone();
         thread::spawn(move || {
-            let output = Command::new("ffmpeg")
+            let mut child = match Command::new("ffmpeg")
                 .arg("-y")
                 .arg("-hide_banner")
                 .arg("-i")
@@ -180,16 +181,37 @@ impl App {
                 .args(&args)
                 .arg(format!("{}_out.mp4", input_file))
                 .stderr(Stdio::piped())
-                .output();
-            let result = if let Ok(output) = output
-                && output.status.success()
+                .spawn()
             {
-                String::from_utf8_lossy(&output.stderr).to_string()
-            } else {
-                "Failed to execute command".to_string()
+                Ok(child) => child,
+                Err(e) => {
+                    let _ = tx.send(AppEvent::AddOutput(format!(
+                        "Failed to start FFmpeg: {}\n",
+                        e
+                    )));
+                    return;
+                }
             };
 
-            let _ = tx.send(AppEvent::SetOutput(result.clone()));
+            if let Some(stderr) = child.stderr.take() {
+                let reader = BufReader::new(stderr);
+                for line in reader.lines() {
+                    if let Ok(line) = line {
+                        let _ = tx.send(AppEvent::AddOutput(format!(
+                            "{}\n",
+                            line.replace('\r', "\n")
+                        )));
+                    }
+                }
+            }
+            let msg = if let Ok(status) = child.wait()
+                && status.success()
+            {
+                "FFmpeg finished successfully!\n"
+            } else {
+                "FFmpeg encountered an error.\n"
+            };
+            let _ = tx.send(AppEvent::AddOutput(msg.to_string()));
         });
     }
 

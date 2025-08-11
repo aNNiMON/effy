@@ -1,4 +1,4 @@
-use std::io::{BufRead, BufReader};
+use std::io::{BufReader, Read};
 use std::process::{Command, Stdio};
 use std::sync::mpsc::{Receiver, Sender};
 use std::thread;
@@ -219,6 +219,8 @@ impl App {
                 .arg(&input_file)
                 .args(&args)
                 .arg(format!("{}_out.mp4", input_file))
+                .stdin(Stdio::null())
+                .stdout(Stdio::null())
                 .stderr(Stdio::piped())
                 .spawn()
             {
@@ -233,14 +235,16 @@ impl App {
             };
 
             if let Some(stderr) = child.stderr.take() {
-                let reader = BufReader::new(stderr);
-                for line in reader.lines() {
-                    if let Ok(line) = line {
-                        let _ = tx.send(AppEvent::AddOutput(format!(
-                            "{}\n",
-                            line.replace('\r', "\n")
-                        )));
+                let mut reader = BufReader::new(stderr);
+                let mut buf = vec![0; 1024];
+                while let Ok(read) = reader.read(&mut buf) {
+                    if read == 0 {
+                        break;
                     }
+                    let line = String::from_utf8_lossy(&buf[..read])
+                        .replace("\r\n", "\n")
+                        .replace('\r', "\n");
+                    let _ = tx.send(AppEvent::AddOutput(line));
                 }
             }
             let msg = if let Ok(status) = child.wait()

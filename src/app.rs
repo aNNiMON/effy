@@ -24,7 +24,7 @@ pub(crate) struct App {
 }
 
 impl App {
-    pub fn new(tx: Sender<AppEvent>, input_file: String) -> Self {
+    pub fn new(tx: Sender<AppEvent>, info: String, input_file: String) -> Self {
         let mut list_state = ListState::default();
         list_state.select(Some(0));
         App {
@@ -32,21 +32,7 @@ impl App {
             event_sender: tx,
             current_pane: Pane::Params,
             input_file: input_file.clone(),
-            info_text: format!(
-                "Input file: {}\n\
-                 File size: 1.1MiB\n\
-                 Duration: 05:16\n\
-                 Has Audio: Yes\n\
-                 Has Video: Yes\n\
-                 Video Codec: h264\n\
-                 Audio Codec: aac\n\
-                 Video Resolution: 1920x1080\n\
-                 Video Bitrate: 4500kbps\n\
-                 Audio Bitrate: 192kbps\n\
-                 Video FPS: 30\n\
-                 Audio Channels: 2",
-                input_file
-            ),
+            info_text: format!("Input file: {}\n{}", input_file, info),
             info_pane_current_line: 0,
             output: "".to_string(),
             output_pane_current_line: 0,

@@ -9,6 +9,7 @@ use crossterm::event::{Event, KeyEventKind};
 use crate::model::AppEvent;
 
 mod app;
+mod info;
 mod model;
 mod ui;
 
@@ -25,14 +26,20 @@ fn main() -> color_eyre::Result<()> {
         eprintln!("Error: File '{}' does not exist", input);
         std::process::exit(1);
     }
+    let ffprobe_output = match info::get_info(input.clone()) {
+        Ok(info) => info,
+        Err(e) => {
+            eprintln!("Error getting ffprobe info: {}", e);
+            std::process::exit(1);
+        }
+    };
 
     let terminal = ratatui::init();
-    
     let (tx, rx) = mpsc::channel();
     let event_tx = tx.clone();
     thread::spawn(move || handle_crossterm_events(event_tx));
 
-    let result = App::new(tx, input.clone()).run(terminal, rx);
+    let result = App::new(tx, ffprobe_output, input.clone()).run(terminal, rx);
     ratatui::restore();
     result
 }

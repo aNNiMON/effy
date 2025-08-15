@@ -75,19 +75,12 @@ impl App {
 
     fn set_output(&mut self, output: String) {
         self.output = output;
-        let count = self.output.lines().count() as u16;
-        if count > 0 {
-            self.output_pane_current_line = 0u16.saturating_add(count);
-        } else {
-            self.output_pane_current_line = 0;
-        }
+        self.output_pane_current_line = 0;
     }
 
     fn add_output(&mut self, output: String) {
         self.output.push_str(&output);
-        self.output_pane_current_line = self
-            .output_pane_current_line
-            .saturating_add(output.lines().count() as u16)
+        self.output_pane_current_line = 0;
     }
 
     fn render(&self, frame: &mut Frame) {
@@ -127,14 +120,16 @@ impl App {
 
     fn scroll_output_pane_down(&mut self) {
         let count = self.output.lines().count() as u16;
-        if count > 0 && self.output_pane_current_line < count - 1 {
-            self.output_pane_current_line = self.output_pane_current_line.saturating_add(1);
+        if count > 0 {
+            self.output_pane_current_line = self.output_pane_current_line.saturating_sub(1).max(0);
         }
     }
 
     fn scroll_output_pane_up(&mut self) {
-        if self.output_pane_current_line > 0 {
-            self.output_pane_current_line = self.output_pane_current_line.saturating_sub(1);
+        let count = self.output.lines().count() as u16;
+        if self.output_pane_current_line < count {
+            self.output_pane_current_line =
+                self.output_pane_current_line.saturating_add(1).min(count);
         }
     }
 

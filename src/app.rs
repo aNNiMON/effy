@@ -32,7 +32,7 @@ impl App {
             event_sender: tx,
             current_pane: Pane::Params,
             input_file: input_file.clone(),
-            info_text: format!("Input file: {}\n{}", input_file, info),
+            info_text: info,
             info_pane_current_line: 0,
             output: "".to_string(),
             output_pane_current_line: 0,

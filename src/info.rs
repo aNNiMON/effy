@@ -13,7 +13,7 @@ pub(crate) struct Info {
 }
 
 #[derive(Deserialize, Clone, Debug)]
-pub struct InfoFormat {
+pub(crate) struct InfoFormat {
     pub filename: String,
     pub nb_streams: u32,
     pub duration: Option<String>,
@@ -22,7 +22,7 @@ pub struct InfoFormat {
 }
 
 #[derive(Deserialize, Clone, Debug)]
-pub struct InfoStream {
+pub(crate) struct InfoStream {
     pub index: u32,
     pub codec_type: Option<String>,
     // video
@@ -50,15 +50,17 @@ impl Info {
         let format = &self.format;
         r.push(format!("filename: {}", format.filename));
         r.push(format!("nb_streams: {}", format.nb_streams));
-        if let Some(v) = format.duration.clone() {
-            r.push(format!("duration: {}", v));
+        macro_rules! format_val {
+            ($field:expr, $name:expr) => {
+                if let Some(ref v) = $field {
+                    r.push(format!("{}: {}", $name, v));
+                }
+            };
         }
-        if let Some(v) = format.size.clone() {
-            r.push(format!("size: {}", v));
-        }
-        if let Some(v) = format.bit_rate.clone() {
-            r.push(format!("bitrate: {}", v));
-        }
+        format_val!(format.duration, "duration");
+        format_val!(format.size, "size");
+        format_val!(format.bit_rate, "bit_rate");
+
         for stream in &self.streams {
             let index = stream.index;
             let stream_type = format!(
@@ -70,27 +72,22 @@ impl Info {
                     .unwrap_or_default(),
                 index
             );
-            if let Some(v) = stream.width.clone() {
-                r.push(format!("{}_{}: {}", stream_type, "width", v));
+
+            macro_rules! stream_val {
+                ($field:expr, $name:expr) => {
+                    if let Some(ref v) = $field {
+                        r.push(format!("{}_{}: {}", stream_type, $name, v));
+                    }
+                };
             }
-            if let Some(v) = stream.height.clone() {
-                r.push(format!("{}_{}: {}", stream_type, "height", v));
-            }
-            if let Some(v) = stream.sample_rate.clone() {
-                r.push(format!("{}_{}: {}", stream_type, "sample_rate", v));
-            }
-            if let Some(v) = stream.channels.clone() {
-                r.push(format!("{}_{}: {}", stream_type, "channels", v));
-            }
-            if let Some(v) = stream.duration.clone() {
-                r.push(format!("{}_{}: {}", stream_type, "duration", v));
-            }
-            if let Some(v) = stream.bit_rate.clone() {
-                r.push(format!("{}_{}: {}", stream_type, "bit_rate", v));
-            }
-            if let Some(v) = stream.max_bit_rate.clone() {
-                r.push(format!("{}_{}: {}", stream_type, "max_bit_rate", v));
-            }
+
+            stream_val!(stream.width, "width");
+            stream_val!(stream.height, "height");
+            stream_val!(stream.sample_rate, "sample_rate");
+            stream_val!(stream.channels, "channels");
+            stream_val!(stream.duration, "duration");
+            stream_val!(stream.bit_rate, "bit_rate");
+            stream_val!(stream.max_bit_rate, "max_bit_rate");
             for (tag, value) in &stream.other {
                 match value {
                     serde_json::Value::String(s) => {

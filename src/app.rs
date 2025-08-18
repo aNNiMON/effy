@@ -8,6 +8,7 @@ use color_eyre::Result;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::{DefaultTerminal, Frame, widgets::ListState};
 
+use crate::info::Info;
 use crate::model::{AppEvent, AudioBitrate, Pane, Param, Parameter, VideoBitrate};
 
 pub(crate) struct App {
@@ -24,23 +25,31 @@ pub(crate) struct App {
 }
 
 impl App {
-    pub fn new(tx: Sender<AppEvent>, info: String, input_file: String) -> Self {
+    pub fn new(tx: Sender<AppEvent>, info: Info, input_file: String) -> Self {
         let mut list_state = ListState::default();
         list_state.select(Some(0));
+
+        let mut params = Vec::new();
+        if info.has_audio() && info.has_video(){
+            params.push(Param::DisableAudio(false));
+        }
+        if info.has_audio() {
+            params.push(Param::AudioBitrate(AudioBitrate::Auto));
+        }
+        if info.has_video() {
+            params.push(Param::VideoBitrate(VideoBitrate::Auto));
+        }
+
         App {
             running: false,
             event_sender: tx,
             current_pane: Pane::Params,
             input_file: input_file.clone(),
-            info_text: info,
+            info_text: info.format(),
             info_pane_current_line: 0,
             output: "".to_string(),
             output_pane_current_line: 0,
-            params: vec![
-                Param::DisableAudio(false),
-                Param::AudioBitrate(AudioBitrate::Auto),
-                Param::VideoBitrate(VideoBitrate::Auto),
-            ],
+            params,
             params_list_state: list_state,
         }
     }

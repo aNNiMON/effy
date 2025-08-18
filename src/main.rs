@@ -26,7 +26,7 @@ fn main() -> color_eyre::Result<()> {
         eprintln!("Error: File '{}' does not exist", input);
         std::process::exit(1);
     }
-    let ffprobe_output = match info::get_info(input.clone()) {
+    let ffprobe_info = match info::get_info(input.clone()) {
         Ok(info) => info,
         Err(e) => {
             eprintln!("Error getting ffprobe info: {}", e);
@@ -39,7 +39,7 @@ fn main() -> color_eyre::Result<()> {
     let event_tx = tx.clone();
     thread::spawn(move || handle_crossterm_events(event_tx));
 
-    let result = App::new(tx, ffprobe_output, input.clone()).run(terminal, rx);
+    let result = App::new(tx, ffprobe_info, input.clone()).run(terminal, rx);
     ratatui::restore();
     result
 }

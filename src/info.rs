@@ -40,9 +40,26 @@ pub(crate) struct InfoStream {
 }
 
 impl Info {
-    pub fn parse(json: &str) -> Result<String, Error> {
-        let data: Info = serde_json::from_str(json).map_err(|e| Error::new(ErrorKind::Other, e))?;
-        Ok(data.format())
+    pub fn parse(json: &str) -> Result<Self, Error> {
+        serde_json::from_str(json).map_err(|e| Error::new(ErrorKind::Other, e))
+    }
+
+    pub fn has_audio(&self) -> bool {
+        self.has_stream_type("audio")
+    }
+
+    pub fn has_video(&self) -> bool {
+        self.has_stream_type("video")
+    }
+
+    fn has_stream_type(&self, stream_type: &str) -> bool {
+        if self.format.nb_streams == 0 {
+            false
+        } else {
+            self.streams
+                .iter()
+                .any(|s| matches!(s.codec_type, Some(ref t) if t == stream_type))
+        }
     }
 
     pub fn format(&self) -> String {
@@ -105,7 +122,7 @@ impl Info {
     }
 }
 
-pub(crate) fn get_info(input_file: String) -> Result<String, Error> {
+pub(crate) fn get_info(input_file: String) -> Result<Info, Error> {
     let mut child = match Command::new("ffprobe")
         .args(&[
             "-v",

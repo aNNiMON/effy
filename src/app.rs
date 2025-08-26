@@ -20,7 +20,7 @@ pub(crate) struct App {
     pub(crate) info_pane_current_line: u16,
     pub(crate) output: String,
     pub(crate) output_pane_current_line: u16,
-    pub(crate) params: Vec<Param>,
+    pub(crate) params: Vec<(bool, Param)>,
     pub(crate) params_list_state: ListState,
 }
 
@@ -30,14 +30,14 @@ impl App {
         list_state.select(Some(0));
 
         let mut params = Vec::new();
-        if info.has_audio() && info.has_video(){
-            params.push(Param::DisableAudio(false));
+        if info.has_audio() && info.has_video() {
+            params.push((true, Param::DisableAudio(false)));
         }
         if info.has_audio() {
-            params.push(Param::AudioBitrate(AudioBitrate::Auto));
+            params.push((true, Param::AudioBitrate(AudioBitrate::Auto)));
         }
         if info.has_video() {
-            params.push(Param::VideoBitrate(VideoBitrate::Auto));
+            params.push((true, Param::VideoBitrate(VideoBitrate::Auto)));
         }
 
         App {
@@ -148,18 +148,20 @@ impl App {
 
     fn prev_option(&mut self) {
         if let Some(selected) = self.params_list_state.selected() {
-            if let Some(param) = self.params.get(selected).cloned() {
+            if let Some((true, param)) = self.params.get(selected).cloned() {
                 let new_param = param.toggle_prev();
-                self.params[selected] = new_param;
+                self.recheck_params(&new_param);
+                self.params[selected] = (true, new_param);
             }
         }
     }
 
     fn next_option(&mut self) {
         if let Some(selected) = self.params_list_state.selected() {
-            if let Some(param) = self.params.get(selected).cloned() {
+            if let Some((true, param)) = self.params.get(selected).cloned() {
                 let new_param = param.toggle_next();
-                self.params[selected] = new_param;
+                self.recheck_params(&new_param);
+                self.params[selected] = (true, new_param);
             }
         }
     }
@@ -172,9 +174,25 @@ impl App {
         };
     }
 
+    fn recheck_params(&mut self, changed_param: &Param) {
+        match changed_param {
+            Param::DisableAudio(disable) => {
+                self.params.iter_mut().for_each(|(enabled, param)| {
+                    if matches!(param, Param::AudioBitrate(_)) {
+                        *enabled = !*disable;
+                    }
+                });
+            }
+            _ => {}
+        }
+    }
+
     fn save(&mut self) {
         let mut args: Vec<&str> = Vec::new();
-        for param in &self.params {
+        for (enabled, param) in &self.params {
+            if !*enabled {
+                continue;
+            }
             match param {
                 Param::DisableAudio(disable) => {
                     if *disable {

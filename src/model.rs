@@ -147,13 +147,16 @@ impl Param {
         }
     }
 
-    pub(crate) fn describe(&self) -> String {
-        let param = match self {
+    pub(crate) fn get_name(&self) -> &str {
+        match self {
             Param::DisableAudio(_) => "Disable Audio",
             Param::AudioBitrate(bitrate) => bitrate.describe_self(),
             Param::VideoBitrate(bitrate) => bitrate.describe_self(),
-        };
-        format!("{}: {}", param, self.as_str())
+        }
+    }
+
+    pub(crate) fn describe(&self) -> String {
+        format!("{}: {}", self.get_name(), self.as_str())
     }
 }
 

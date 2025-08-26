@@ -50,10 +50,13 @@ impl Widget for &App {
             } else {
                 (default_style, Color::Gray)
             };
-            let items = self
-                .params
-                .iter()
-                .map(|param| Line::from(param.describe()).dim());
+            let items = self.params.iter().map(|(enabled, param)| {
+                Line::from(param.describe()).style(if *enabled {
+                    highlighted_style
+                } else {
+                    default_style.dim()
+                })
+            });
             StatefulWidget::render(
                 List::new(items)
                     .block(

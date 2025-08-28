@@ -82,12 +82,11 @@ impl Widget for &App {
 
             let output_lines = self.output.lines().count() as u16;
             let pane_height = config.height.saturating_sub(2);
-            let max_length = output_lines.saturating_sub(pane_height) as u16;
+            let max_length = output_lines.saturating_sub(pane_height);
             let offset = if output_lines > pane_height {
                 max_length
                     .saturating_sub(self.output_pane_current_line)
                     .min(max_length)
-                    .max(0)
             } else {
                 0
             };

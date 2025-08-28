@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::io::{Error, ErrorKind, Read};
+use std::io::{Error, Read};
 use std::process::{Command, Stdio};
 
 use serde::Deserialize;
@@ -41,7 +41,7 @@ pub(crate) struct InfoStream {
 
 impl Info {
     pub fn parse(json: &str) -> Result<Self, Error> {
-        serde_json::from_str(json).map_err(|e| Error::new(ErrorKind::Other, e))
+        serde_json::from_str(json).map_err(Error::other)
     }
 
     pub fn has_audio(&self) -> bool {
@@ -108,10 +108,10 @@ impl Info {
             for (tag, value) in &stream.other {
                 match value {
                     serde_json::Value::String(s) => {
-                        r.push(format!("{}_{}: {}", stream_type, tag, s));
+                        r.push(format!("{stream_type}_{tag}: {s}"));
                     }
                     serde_json::Value::Number(n) => {
-                        r.push(format!("{}_{}: {}", stream_type, tag, n));
+                        r.push(format!("{stream_type}_{tag}: {n}"));
                     }
                     _ => {}
                 }
@@ -123,8 +123,8 @@ impl Info {
 }
 
 pub(crate) fn get_info(input_file: String) -> Result<Info, Error> {
-    let mut child = match Command::new("ffprobe")
-        .args(&[
+    let mut child = Command::new("ffprobe")
+        .args([
             "-v",
             "quiet",
             "-of",
@@ -136,11 +136,7 @@ pub(crate) fn get_info(input_file: String) -> Result<Info, Error> {
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::null())
-        .spawn()
-    {
-        Ok(child) => child,
-        Err(e) => return Err(e.into()),
-    };
+        .spawn()?;
 
     let mut output = String::new();
     if let Some(mut stdout) = child.stdout.take() {
@@ -151,9 +147,8 @@ pub(crate) fn get_info(input_file: String) -> Result<Info, Error> {
     if status.success() {
         Info::parse(&output)
     } else {
-        Err(Error::new(
-            ErrorKind::Other,
-            format!("ffprobe exited with status: {}", status),
-        ))
+        Err(Error::other(format!(
+            "ffprobe exited with status: {status}"
+        )))
     }
 }

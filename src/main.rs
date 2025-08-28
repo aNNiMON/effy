@@ -22,14 +22,14 @@ fn main() -> color_eyre::Result<()> {
         std::process::exit(1);
     }
     let input = &args[1];
-    if !std::fs::metadata(input).is_ok() {
-        eprintln!("Error: File '{}' does not exist", input);
+    if std::fs::metadata(input).is_err() {
+        eprintln!("Error: File '{input}' does not exist");
         std::process::exit(1);
     }
     let ffprobe_info = match info::get_info(input.clone()) {
         Ok(info) => info,
         Err(e) => {
-            eprintln!("Error getting ffprobe info: {}", e);
+            eprintln!("Error getting ffprobe info: {e}");
             std::process::exit(1);
         }
     };

@@ -60,17 +60,11 @@ impl App {
             terminal.draw(|frame| self.render(frame))?;
             match rx.recv_timeout(Duration::from_secs(2)) {
                 Ok(AppEvent::Input(key)) => self.on_key_event(key),
-                Ok(AppEvent::SetOutput(output)) => self.set_output(output),
                 Ok(AppEvent::AddOutput(output)) => self.add_output(output),
                 Err(_) => {}
             }
         }
         Ok(())
-    }
-
-    fn set_output(&mut self, output: String) {
-        self.output = output;
-        self.output_pane_current_line = 0;
     }
 
     fn add_output(&mut self, output: String) {
@@ -116,7 +110,7 @@ impl App {
     fn scroll_output_pane_down(&mut self) {
         let count = self.output.lines().count() as u16;
         if count > 0 {
-            self.output_pane_current_line = self.output_pane_current_line.saturating_sub(1).max(0);
+            self.output_pane_current_line = self.output_pane_current_line.saturating_sub(1);
         }
     }
 
@@ -175,15 +169,12 @@ impl App {
     }
 
     fn recheck_params(&mut self, changed_param: &Param) {
-        match changed_param {
-            Param::DisableAudio(disable) => {
-                self.params.iter_mut().for_each(|(enabled, param)| {
-                    if matches!(param, Param::AudioBitrate(_)) {
-                        *enabled = !*disable;
-                    }
-                });
-            }
-            _ => {}
+        if let Param::DisableAudio(disable) = changed_param {
+            self.params.iter_mut().for_each(|(enabled, param)| {
+                if matches!(param, Param::AudioBitrate(_)) {
+                    *enabled = !disable;
+                }
+            });
         }
     }
 
@@ -226,7 +217,7 @@ impl App {
                 .arg("-i")
                 .arg(&input_file)
                 .args(&args)
-                .arg(format!("{}_out.mp4", input_file))
+                .arg(format!("{input_file}_out.mp4"))
                 .stdin(Stdio::null())
                 .stdout(Stdio::null())
                 .stderr(Stdio::piped())
@@ -235,8 +226,7 @@ impl App {
                 Ok(child) => child,
                 Err(e) => {
                     let _ = tx.send(AppEvent::AddOutput(format!(
-                        "Failed to start FFmpeg: {}\n",
-                        e
+                        "Failed to start FFmpeg: {e}\n"
                     )));
                     return;
                 }

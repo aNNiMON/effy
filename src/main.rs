@@ -13,6 +13,7 @@ mod info;
 mod model;
 mod params;
 mod ui;
+mod visitors;
 
 fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;

@@ -10,7 +10,8 @@ use ratatui::{DefaultTerminal, Frame, widgets::ListState};
 
 use crate::info::Info;
 use crate::model::{AppEvent, Pane, Param};
-use crate::params::{create_params, recheck_params, to_ffmpeg_args};
+use crate::params::{apply_visitor, create_params, recheck_params};
+use crate::visitors::CommandBuilder;
 
 pub(crate) struct App {
     running: bool,
@@ -159,7 +160,8 @@ impl App {
     }
 
     fn save(&mut self) {
-        let args = to_ffmpeg_args(self.params.clone());
+        let mut command_builder = CommandBuilder::new();
+        apply_visitor(&mut command_builder, self.params.clone());
         self.output_pane_current_line = 0;
         self.output = "Starting FFmpeg...\n".to_string();
 
@@ -171,7 +173,7 @@ impl App {
                 .arg("-hide_banner")
                 .arg("-i")
                 .arg(&input_file)
-                .args(&args)
+                .args(command_builder.build())
                 .arg(format!("{input_file}_out.mp4"))
                 .stdin(Stdio::null())
                 .stdout(Stdio::null())

@@ -41,7 +41,11 @@ pub(crate) use audio_bitrate::*;
 pub(crate) use disable_audio::*;
 pub(crate) use video_bitrate::*;
 
-use crate::{info::Info, model::Param};
+use crate::{
+    info::Info,
+    model::Param,
+    visitors::{FFmpegParameter, FFmpegParameterVisitor},
+};
 
 pub(crate) fn create_params(info: &Info) -> Vec<(bool, Param)> {
     let mut params = Vec::new();
@@ -67,31 +71,14 @@ pub(crate) fn recheck_params(params: &mut [(bool, Param)], changed_param: &Param
     }
 }
 
-pub(crate) fn to_ffmpeg_args(params: Vec<(bool, Param)>) -> Vec<&'static str> {
-    let mut args: Vec<&str> = Vec::new();
+pub(crate) fn apply_visitor(visitor: &mut dyn FFmpegParameterVisitor, params: Vec<(bool, Param)>) {
     for (enabled, param) in &params {
-        if !*enabled {
-            continue;
-        }
-        match param {
-            Param::DisableAudio(state) => {
-                if *state == DisableAudio::On {
-                    args.push("-an");
-                }
-            }
-            Param::AudioBitrate(bitrate) => {
-                if bitrate != &AudioBitrate::Auto {
-                    args.push("-b:a");
-                    args.push(bitrate.as_str());
-                }
-            }
-            Param::VideoBitrate(bitrate) => {
-                if bitrate != &VideoBitrate::Auto {
-                    args.push("-b:v");
-                    args.push(bitrate.as_str());
-                }
+        if *enabled {
+            match param {
+                Param::DisableAudio(p) => p.accept(visitor),
+                Param::AudioBitrate(p) => p.accept(visitor),
+                Param::VideoBitrate(p) => p.accept(visitor),
             }
         }
     }
-    args
 }

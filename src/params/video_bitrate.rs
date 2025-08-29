@@ -1,7 +1,10 @@
 use strum::VariantArray;
 use strum_macros::VariantArray;
 
-use crate::params::SelectableOption;
+use crate::{
+    params::SelectableOption,
+    visitors::{FFmpegParameter, FFmpegParameterVisitor},
+};
 
 #[derive(Debug, VariantArray, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum VideoBitrate {
@@ -32,5 +35,11 @@ impl SelectableOption for VideoBitrate {
 
     fn describe_self(&self) -> &'static str {
         "Video Bitrate"
+    }
+}
+
+impl FFmpegParameter for VideoBitrate {
+    fn accept(&self, visitor: &mut dyn FFmpegParameterVisitor) {
+        visitor.visit_video_bitrate(self);
     }
 }

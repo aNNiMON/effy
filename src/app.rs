@@ -9,7 +9,8 @@ use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::{DefaultTerminal, Frame, widgets::ListState};
 
 use crate::info::Info;
-use crate::model::{AppEvent, AudioBitrate, Pane, Param, Parameter, VideoBitrate};
+use crate::model::{AppEvent, Pane, Param};
+use crate::params::{create_params, recheck_params, to_ffmpeg_args};
 
 pub(crate) struct App {
     running: bool,
@@ -29,17 +30,6 @@ impl App {
         let mut list_state = ListState::default();
         list_state.select(Some(0));
 
-        let mut params = Vec::new();
-        if info.has_audio() && info.has_video() {
-            params.push((true, Param::DisableAudio(false)));
-        }
-        if info.has_audio() {
-            params.push((true, Param::AudioBitrate(AudioBitrate::Auto)));
-        }
-        if info.has_video() {
-            params.push((true, Param::VideoBitrate(VideoBitrate::Auto)));
-        }
-
         App {
             running: false,
             event_sender: tx,
@@ -49,7 +39,7 @@ impl App {
             info_pane_current_line: 0,
             output: "".to_string(),
             output_pane_current_line: 0,
-            params,
+            params: create_params(&info),
             params_list_state: list_state,
         }
     }
@@ -144,7 +134,7 @@ impl App {
         if let Some(selected) = self.params_list_state.selected() {
             if let Some((true, param)) = self.params.get(selected).cloned() {
                 let new_param = param.toggle_prev();
-                self.recheck_params(&new_param);
+                recheck_params(&mut self.params, &new_param);
                 self.params[selected] = (true, new_param);
             }
         }
@@ -154,7 +144,7 @@ impl App {
         if let Some(selected) = self.params_list_state.selected() {
             if let Some((true, param)) = self.params.get(selected).cloned() {
                 let new_param = param.toggle_next();
-                self.recheck_params(&new_param);
+                recheck_params(&mut self.params, &new_param);
                 self.params[selected] = (true, new_param);
             }
         }
@@ -168,43 +158,8 @@ impl App {
         };
     }
 
-    fn recheck_params(&mut self, changed_param: &Param) {
-        if let Param::DisableAudio(disable) = changed_param {
-            self.params.iter_mut().for_each(|(enabled, param)| {
-                if matches!(param, Param::AudioBitrate(_)) {
-                    *enabled = !disable;
-                }
-            });
-        }
-    }
-
     fn save(&mut self) {
-        let mut args: Vec<&str> = Vec::new();
-        for (enabled, param) in &self.params {
-            if !*enabled {
-                continue;
-            }
-            match param {
-                Param::DisableAudio(disable) => {
-                    if *disable {
-                        args.push("-an");
-                    }
-                }
-                Param::AudioBitrate(bitrate) => {
-                    if bitrate != &AudioBitrate::Auto {
-                        args.push("-b:a");
-                        args.push(bitrate.as_str());
-                    }
-                }
-                Param::VideoBitrate(bitrate) => {
-                    if bitrate != &VideoBitrate::Auto {
-                        args.push("-b:v");
-                        args.push(bitrate.as_str());
-                    }
-                }
-            }
-        }
-
+        let args = to_ffmpeg_args(self.params.clone());
         self.output_pane_current_line = 0;
         self.output = "Starting FFmpeg...\n".to_string();
 

@@ -11,6 +11,7 @@ use crate::model::AppEvent;
 mod app;
 mod info;
 mod model;
+mod params;
 mod ui;
 
 fn main() -> color_eyre::Result<()> {

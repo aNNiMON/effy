@@ -8,12 +8,16 @@ use crate::{
 
 #[derive(Debug, VariantArray, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum AudioBitrate {
+    K4,
+    K16,
     K32,
-    K80,
+    Auto,
+    K64,
     K128,
     K192,
     K256,
-    Auto,
+    K320,
+    K512
 }
 
 impl SelectableOption for AudioBitrate {
@@ -26,12 +30,16 @@ impl SelectableOption for AudioBitrate {
 
     fn as_str(&self) -> &'static str {
         match self {
+            AudioBitrate::K4 => "4k",
+            AudioBitrate::K16 => "16k",
             AudioBitrate::K32 => "32k",
-            AudioBitrate::K80 => "80k",
+            AudioBitrate::Auto => "auto",
+            AudioBitrate::K64 => "64k",
             AudioBitrate::K128 => "128k",
             AudioBitrate::K192 => "192k",
             AudioBitrate::K256 => "256k",
-            AudioBitrate::Auto => "auto",
+            AudioBitrate::K320 => "320k",
+            AudioBitrate::K512 => "512k",
         }
     }
 

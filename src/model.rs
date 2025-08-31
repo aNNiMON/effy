@@ -15,6 +15,7 @@ pub(crate) enum Param {
     SpeedFactor(SpeedFactor),
     VideoBitrate(VideoBitrate),
     VideoFrameRate(VideoFrameRate),
+    VideoScale(VideoScale),
 }
 
 impl Param {
@@ -26,6 +27,7 @@ impl Param {
             Param::SpeedFactor(speed) => Param::SpeedFactor(speed.toggle_prev()),
             Param::VideoBitrate(bitrate) => Param::VideoBitrate(bitrate.toggle_prev()),
             Param::VideoFrameRate(fps) => Param::VideoFrameRate(fps.toggle_prev()),
+            Param::VideoScale(scale) => Param::VideoScale(scale.toggle_prev()),
         }
     }
 
@@ -37,6 +39,7 @@ impl Param {
             Param::SpeedFactor(speed) => Param::SpeedFactor(speed.toggle_next()),
             Param::VideoBitrate(bitrate) => Param::VideoBitrate(bitrate.toggle_next()),
             Param::VideoFrameRate(fps) => Param::VideoFrameRate(fps.toggle_next()),
+            Param::VideoScale(scale) => Param::VideoScale(scale.toggle_next()),
         }
     }
 
@@ -48,6 +51,7 @@ impl Param {
             Param::SpeedFactor(speed) => speed.as_str(),
             Param::VideoBitrate(bitrate) => bitrate.as_str(),
             Param::VideoFrameRate(fps) => fps.as_str(),
+            Param::VideoScale(scale) => scale.as_str(),
         }
     }
 
@@ -59,6 +63,7 @@ impl Param {
             Param::SpeedFactor(speed) => speed.describe_self(),
             Param::VideoBitrate(bitrate) => bitrate.describe_self(),
             Param::VideoFrameRate(fps) => fps.describe_self(),
+            Param::VideoScale(scale) => scale.describe_self(),
         }
     }
 

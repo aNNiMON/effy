@@ -78,4 +78,11 @@ impl<'a> FFmpegParameterVisitor for CommandBuilder<'a> {
             self.args.push(param.as_str());
         }
     }
+    
+    fn visit_video_scale(&mut self, param: &VideoScale) {
+        if *param != VideoScale::Original {
+            self.video_filters
+                .push(format!("scale=-2:{}", param.as_str().strip_suffix('p').unwrap()));
+        }
+    }
 }

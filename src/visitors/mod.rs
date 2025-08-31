@@ -7,6 +7,7 @@ pub(crate) trait FFmpegParameterVisitor {
     fn visit_speed_factor(&mut self, param: &SpeedFactor);
     fn visit_video_bitrate(&mut self, param: &VideoBitrate);
     fn visit_video_frame_rate(&mut self, param: &VideoFrameRate);
+    fn visit_video_scale(&mut self, param: &VideoScale);
 }
 
 pub(crate) trait FFmpegParameter {

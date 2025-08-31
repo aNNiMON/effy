@@ -39,6 +39,7 @@ mod disable_audio;
 mod speed_factor;
 mod video_bitrate;
 mod video_frame_rate;
+mod video_scale;
 
 pub(crate) use audio_bitrate::*;
 pub(crate) use audio_volume::*;
@@ -46,6 +47,7 @@ pub(crate) use disable_audio::*;
 pub(crate) use speed_factor::*;
 pub(crate) use video_bitrate::*;
 pub(crate) use video_frame_rate::*;
+pub(crate) use video_scale::*;
 
 use crate::{
     info::Info,
@@ -66,6 +68,7 @@ pub(crate) fn create_params(info: &Info) -> Vec<(bool, Param)> {
     if info.has_video() {
         params.push((true, Param::VideoBitrate(VideoBitrate::Auto)));
         params.push((true, Param::VideoFrameRate(VideoFrameRate::Original)));
+        params.push((true, Param::VideoScale(VideoScale::Original)));
     }
     params
 }
@@ -94,6 +97,7 @@ pub(crate) fn apply_visitor(visitor: &mut dyn FFmpegParameterVisitor, params: Ve
                 Param::SpeedFactor(p) => p.accept(visitor),
                 Param::VideoBitrate(p) => p.accept(visitor),
                 Param::VideoFrameRate(p) => p.accept(visitor),
+                Param::VideoScale(p) => p.accept(visitor),
             }
         }
     }

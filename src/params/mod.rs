@@ -36,12 +36,14 @@ pub(crate) trait SelectableOption {
 mod audio_bitrate;
 mod audio_volume;
 mod disable_audio;
+mod speed_factor;
 mod video_bitrate;
 mod video_frame_rate;
 
 pub(crate) use audio_bitrate::*;
 pub(crate) use audio_volume::*;
 pub(crate) use disable_audio::*;
+pub(crate) use speed_factor::*;
 pub(crate) use video_bitrate::*;
 pub(crate) use video_frame_rate::*;
 
@@ -60,6 +62,7 @@ pub(crate) fn create_params(info: &Info) -> Vec<(bool, Param)> {
         params.push((true, Param::AudioBitrate(AudioBitrate::Auto)));
         params.push((true, Param::AudioVolume(AudioVolume::Original)));
     }
+    params.push((true, Param::SpeedFactor(SpeedFactor::X1_00)));
     if info.has_video() {
         params.push((true, Param::VideoBitrate(VideoBitrate::Auto)));
         params.push((true, Param::VideoFrameRate(VideoFrameRate::Original)));
@@ -88,6 +91,7 @@ pub(crate) fn apply_visitor(visitor: &mut dyn FFmpegParameterVisitor, params: Ve
                 Param::DisableAudio(p) => p.accept(visitor),
                 Param::AudioBitrate(p) => p.accept(visitor),
                 Param::AudioVolume(p) => p.accept(visitor),
+                Param::SpeedFactor(p) => p.accept(visitor),
                 Param::VideoBitrate(p) => p.accept(visitor),
                 Param::VideoFrameRate(p) => p.accept(visitor),
             }

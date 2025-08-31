@@ -34,4 +34,11 @@ impl<'a> FFmpegParameterVisitor for CommandBuilder<'a> {
             self.args.push(param.as_str());
         }
     }
+
+    fn visit_video_frame_rate(&mut self, param: &VideoFrameRate) {
+        if *param != VideoFrameRate::Original {
+            self.args.push("-r");
+            self.args.push(param.as_str());
+        }
+    }
 }

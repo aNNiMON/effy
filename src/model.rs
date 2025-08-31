@@ -1,4 +1,4 @@
-use crate::params::{AudioBitrate, DisableAudio, SelectableOption, VideoBitrate};
+use crate::params::{AudioBitrate, DisableAudio, SelectableOption, VideoBitrate, VideoFrameRate};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Pane {
@@ -12,6 +12,7 @@ pub(crate) enum Param {
     DisableAudio(DisableAudio),
     AudioBitrate(AudioBitrate),
     VideoBitrate(VideoBitrate),
+    VideoFrameRate(VideoFrameRate),
 }
 
 impl Param {
@@ -20,6 +21,7 @@ impl Param {
             Param::DisableAudio(val) => Param::DisableAudio(val.toggle_prev()),
             Param::AudioBitrate(bitrate) => Param::AudioBitrate(bitrate.toggle_prev()),
             Param::VideoBitrate(bitrate) => Param::VideoBitrate(bitrate.toggle_prev()),
+            Param::VideoFrameRate(fps) => Param::VideoFrameRate(fps.toggle_prev()),
         }
     }
 
@@ -28,6 +30,7 @@ impl Param {
             Param::DisableAudio(val) => Param::DisableAudio(val.toggle_next()),
             Param::AudioBitrate(bitrate) => Param::AudioBitrate(bitrate.toggle_next()),
             Param::VideoBitrate(bitrate) => Param::VideoBitrate(bitrate.toggle_next()),
+            Param::VideoFrameRate(fps) => Param::VideoFrameRate(fps.toggle_next()),
         }
     }
 
@@ -36,6 +39,7 @@ impl Param {
             Param::DisableAudio(val) => val.as_str(),
             Param::AudioBitrate(bitrate) => bitrate.as_str(),
             Param::VideoBitrate(bitrate) => bitrate.as_str(),
+            Param::VideoFrameRate(fps) => fps.as_str(),
         }
     }
 
@@ -44,6 +48,7 @@ impl Param {
             Param::DisableAudio(val) => val.describe_self(),
             Param::AudioBitrate(bitrate) => bitrate.describe_self(),
             Param::VideoBitrate(bitrate) => bitrate.describe_self(),
+            Param::VideoFrameRate(fps) => fps.describe_self(),
         }
     }
 

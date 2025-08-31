@@ -61,6 +61,13 @@ impl<'a> FFmpegParameterVisitor for CommandBuilder<'a> {
         }
     }
 
+    fn visit_audio_pitch(&mut self, param: &AudioPitch) {
+        if !self.discard_audio && *param != AudioPitch::P1_00 {
+            self.audio_filters
+                .push(format!("rubberband=pitchq=quality:pitch={}", param.as_str()));
+        }
+    }
+
     fn visit_speed_factor(&mut self, param: &SpeedFactor) {
         if *param != SpeedFactor::X1_00 {
             if !self.discard_audio {

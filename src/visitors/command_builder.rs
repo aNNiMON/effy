@@ -47,6 +47,13 @@ impl<'a> FFmpegParameterVisitor for CommandBuilder<'a> {
         }
     }
 
+    fn visit_audio_crystalizer(&mut self, param: &AudioCrystalizer) {
+        if !self.discard_audio && *param != AudioCrystalizer::Zero {
+            self.audio_filters
+                .push(format!("crystalizer={}", param.as_str()));
+        }
+    }
+
     fn visit_audio_volume(&mut self, param: &AudioVolume) {
         if !self.discard_audio && *param != AudioVolume::Original {
             self.audio_filters

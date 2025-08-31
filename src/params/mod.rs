@@ -34,6 +34,7 @@ pub(crate) trait SelectableOption {
 }
 
 mod audio_bitrate;
+mod audio_crystalizer;
 mod audio_volume;
 mod disable_audio;
 mod speed_factor;
@@ -42,6 +43,7 @@ mod video_frame_rate;
 mod video_scale;
 
 pub(crate) use audio_bitrate::*;
+pub(crate) use audio_crystalizer::*;
 pub(crate) use audio_volume::*;
 pub(crate) use disable_audio::*;
 pub(crate) use speed_factor::*;
@@ -62,6 +64,7 @@ pub(crate) fn create_params(info: &Info) -> Vec<(bool, Param)> {
     }
     if info.has_audio() {
         params.push((true, Param::AudioBitrate(AudioBitrate::Auto)));
+        params.push((true, Param::AudioCrystalizer(AudioCrystalizer::Zero)));
         params.push((true, Param::AudioVolume(AudioVolume::Original)));
     }
     params.push((true, Param::SpeedFactor(SpeedFactor::X1_00)));
@@ -80,6 +83,9 @@ pub(crate) fn recheck_params(params: &mut [(bool, Param)], changed_param: &Param
             if matches!(param, Param::AudioBitrate(_)) {
                 *enabled = audio_enabled;
             }
+            if matches!(param, Param::AudioCrystalizer(_)) {
+                *enabled = audio_enabled;
+            }
             if matches!(param, Param::AudioVolume(_)) {
                 *enabled = audio_enabled;
             }
@@ -93,6 +99,7 @@ pub(crate) fn apply_visitor(visitor: &mut dyn FFmpegParameterVisitor, params: Ve
             match param {
                 Param::DisableAudio(p) => p.accept(visitor),
                 Param::AudioBitrate(p) => p.accept(visitor),
+                Param::AudioCrystalizer(p) => p.accept(visitor),
                 Param::AudioVolume(p) => p.accept(visitor),
                 Param::SpeedFactor(p) => p.accept(visitor),
                 Param::VideoBitrate(p) => p.accept(visitor),

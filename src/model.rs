@@ -11,6 +11,7 @@ pub(crate) enum Pane {
 pub(crate) enum Param {
     DisableAudio(DisableAudio),
     AudioBitrate(AudioBitrate),
+    AudioCrystalizer(AudioCrystalizer),
     AudioVolume(AudioVolume),
     SpeedFactor(SpeedFactor),
     VideoBitrate(VideoBitrate),
@@ -23,6 +24,7 @@ impl Param {
         match self {
             Param::DisableAudio(val) => Param::DisableAudio(val.toggle_prev()),
             Param::AudioBitrate(bitrate) => Param::AudioBitrate(bitrate.toggle_prev()),
+            Param::AudioCrystalizer(cr) => Param::AudioCrystalizer(cr.toggle_prev()),
             Param::AudioVolume(volume) => Param::AudioVolume(volume.toggle_prev()),
             Param::SpeedFactor(speed) => Param::SpeedFactor(speed.toggle_prev()),
             Param::VideoBitrate(bitrate) => Param::VideoBitrate(bitrate.toggle_prev()),
@@ -35,6 +37,7 @@ impl Param {
         match self {
             Param::DisableAudio(val) => Param::DisableAudio(val.toggle_next()),
             Param::AudioBitrate(bitrate) => Param::AudioBitrate(bitrate.toggle_next()),
+            Param::AudioCrystalizer(cr) => Param::AudioCrystalizer(cr.toggle_next()),
             Param::AudioVolume(volume) => Param::AudioVolume(volume.toggle_next()),
             Param::SpeedFactor(speed) => Param::SpeedFactor(speed.toggle_next()),
             Param::VideoBitrate(bitrate) => Param::VideoBitrate(bitrate.toggle_next()),
@@ -47,6 +50,7 @@ impl Param {
         match self {
             Param::DisableAudio(val) => val.as_str(),
             Param::AudioBitrate(bitrate) => bitrate.as_str(),
+            Param::AudioCrystalizer(cr) => cr.as_str(),
             Param::AudioVolume(volume) => volume.as_str(),
             Param::SpeedFactor(speed) => speed.as_str(),
             Param::VideoBitrate(bitrate) => bitrate.as_str(),
@@ -59,6 +63,7 @@ impl Param {
         match self {
             Param::DisableAudio(val) => val.describe_self(),
             Param::AudioBitrate(bitrate) => bitrate.describe_self(),
+            Param::AudioCrystalizer(cr) => cr.describe_self(),
             Param::AudioVolume(volume) => volume.describe_self(),
             Param::SpeedFactor(speed) => speed.describe_self(),
             Param::VideoBitrate(bitrate) => bitrate.describe_self(),

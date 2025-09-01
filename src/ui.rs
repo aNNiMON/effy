@@ -1,7 +1,8 @@
 use ratatui::{
     layout::{Constraint, Direction, Layout, Margin},
     style::{Color, Style, Stylize},
-    text::Line,
+    symbols,
+    text::{Line, Span},
     widgets::{
         Block, Borders, List, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState,
         StatefulWidget, Widget,
@@ -15,12 +16,12 @@ impl Widget for &App {
     where
         Self: Sized,
     {
-        let default_style = Style::new().white();
-        let highlighted_style = default_style.blue();
+        let default_style = Style::new().dark_gray();
+        let highlighted_style = default_style.white();
 
-        let [info, main] = Layout::default()
+        let [info, main, help] = Layout::default()
             .direction(Direction::Vertical)
-            .constraints([Constraint::Max(5), Constraint::Fill(1)])
+            .constraints([Constraint::Max(5), Constraint::Fill(1), Constraint::Max(3)])
             .areas(area);
         {
             let style = if matches!(self.current_pane, Pane::Info) {
@@ -32,9 +33,10 @@ impl Widget for &App {
                 .block(
                     Block::default()
                         .borders(Borders::ALL)
+                        .border_set(symbols::border::ROUNDED)
                         .border_style(style)
-                        .title_top(Line::from(" effy ").bold().blue().centered())
-                        .title_top(Line::from(" Info ").blue().left_aligned()),
+                        .title_top(Line::from("effy").bold().blue().centered())
+                        .title_top(Line::from("Info").blue().left_aligned()),
                 )
                 .scroll((self.info_pane_current_line, 0))
                 .render(info, buf);
@@ -46,27 +48,32 @@ impl Widget for &App {
             .areas(main);
         {
             let (style, list_sel_color) = if matches!(self.current_pane, Pane::Params) {
-                (highlighted_style, Color::Blue)
+                (highlighted_style, Color::White)
             } else {
                 (default_style, Color::Gray)
             };
             let items = self.params.iter().map(|(enabled, param)| {
-                Line::from(param.describe()).style(if *enabled {
-                    highlighted_style
+                if *enabled {
+                    Line::from(vec![
+                        Span::styled(param.get_name(), highlighted_style),
+                        Span::raw(": "),
+                        Span::styled(param.as_str(), Style::default().yellow()),
+                    ])
                 } else {
-                    default_style.dim()
-                })
+                    Line::styled(param.describe(), default_style)
+                }
             });
             StatefulWidget::render(
                 List::new(items)
                     .block(
                         Block::default()
                             .borders(Borders::ALL)
+                            .border_set(symbols::border::ROUNDED)
                             .border_style(style)
-                            .title_top(Line::from(" Params ").blue().left_aligned()),
+                            .title_top(Line::from("Params").blue().left_aligned()),
                     )
                     .style(Style::default().fg(Color::White))
-                    .highlight_style(Style::default().bold().fg(Color::Black).bg(list_sel_color)),
+                    .highlight_style(Style::default().fg(Color::Black).bg(list_sel_color)),
                 params,
                 buf,
                 &mut self.params_list_state.clone(),
@@ -95,9 +102,9 @@ impl Widget for &App {
                 .block(
                     Block::default()
                         .borders(Borders::ALL)
+                        .border_set(symbols::border::ROUNDED)
                         .border_style(style)
-                        .title_top(Line::from(" Output ").blue().left_aligned())
-                        .title_bottom(Line::from(" [ctrl+s] process / [q] quit ").dim()),
+                        .title_top(Line::from("Output").blue().left_aligned()),
                 )
                 .scroll((offset, 0))
                 .render(config, buf);
@@ -117,6 +124,35 @@ impl Widget for &App {
                         &mut scrollbar_state,
                     );
             }
+        }
+
+        {
+            let keystyle = Style::default().green();
+            let mut lines = vec![
+                Span::styled(" Tab", keystyle),
+                Span::raw(": switch tab  "),
+                Span::styled(" C-s", keystyle),
+                Span::raw(": render  "),
+                Span::styled(" ↑/↓/k/j", keystyle),
+                Span::raw(": navigate  "),
+            ];
+            if matches!(self.current_pane, Pane::Params) {
+                lines.push(Span::styled("←/→/h/l", keystyle));
+                lines.push(Span::raw(": toggle parameter  "));
+            }
+            lines.push(Span::styled("q/Esc", keystyle));
+            lines.push(Span::raw(": quit"));
+
+            let lines = Line::from(lines);
+            Paragraph::new(lines)
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .border_set(symbols::border::ROUNDED)
+                        .border_style(default_style)
+                        .title_top(Line::from("Help").blue().left_aligned()),
+                )
+                .render(help, buf);
         }
     }
 }

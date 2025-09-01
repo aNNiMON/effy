@@ -49,7 +49,7 @@ impl Param {
         }
     }
 
-    fn as_str(&self) -> &'static str {
+    pub(crate) fn as_str(&self) -> &'static str {
         match self {
             Param::DisableAudio(val) => val.as_str(),
             Param::AudioBitrate(bitrate) => bitrate.as_str(),

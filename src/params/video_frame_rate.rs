@@ -1,48 +1,30 @@
-use strum::VariantArray;
-use strum_macros::VariantArray;
-
 use crate::{
-    params::SelectableOption,
+    params::macros::struct_option,
     visitors::{FFmpegParameter, FFmpegParameterVisitor},
 };
 
-#[derive(Debug, VariantArray, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum VideoFrameRate {
-    Fps5,
-    Fps10,
-    Fps15,
-    Fps20,
-    Original,
-    Fps30,
-    Fps45,
-    Fps60,
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct VideoFrameRate {
+    pub(crate) value: &'static str,
 }
 
-impl SelectableOption for VideoFrameRate {
-    fn variants(&self) -> &'static [Self]
-    where
-        Self: Sized,
-    {
-        VideoFrameRate::VARIANTS
+impl VideoFrameRate {
+    pub(crate) const NAME: &'static str = "Video Frame Rate";
+    pub(crate) const DEFAULT: &'static str = "original";
+    pub(crate) const VARIANTS: [&str; 8] = ["5", "10", "15", "20", "original", "30", "45", "60"];
+
+    pub const fn new(value: &'static str) -> Self {
+        VideoFrameRate { value }
     }
 
-    fn as_str(&self) -> &'static str {
-        match self {
-            VideoFrameRate::Fps5 => "5",
-            VideoFrameRate::Fps10 => "10",
-            VideoFrameRate::Fps15 => "15",
-            VideoFrameRate::Fps20 => "20",
-            VideoFrameRate::Original => "original",
-            VideoFrameRate::Fps30 => "30",
-            VideoFrameRate::Fps45 => "45",
-            VideoFrameRate::Fps60 => "60",
+    pub const fn default() -> Self {
+        VideoFrameRate {
+            value: Self::DEFAULT,
         }
     }
-
-    fn describe_self(&self) -> &'static str {
-        "Video Frame Rate"
-    }
 }
+
+struct_option!(VideoFrameRate);
 
 impl FFmpegParameter for VideoFrameRate {
     fn accept(&self, visitor: &mut dyn FFmpegParameterVisitor) {

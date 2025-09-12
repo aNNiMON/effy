@@ -1,46 +1,30 @@
-use strum::VariantArray;
-use strum_macros::VariantArray;
-
 use crate::{
-    params::SelectableOption,
+    params::macros::struct_option,
     visitors::{FFmpegParameter, FFmpegParameterVisitor},
 };
 
-#[derive(Debug, VariantArray, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum AudioCrystalizer {
-    M8,
-    M4,
-    M2,
-    Zero,
-    P2,
-    P4,
-    P8,
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct AudioCrystalizer {
+    pub(crate) value: &'static str,
 }
 
-impl SelectableOption for AudioCrystalizer {
-    fn variants(&self) -> &'static [Self]
-    where
-        Self: Sized,
-    {
-        AudioCrystalizer::VARIANTS
+impl AudioCrystalizer {
+    pub(crate) const NAME: &'static str = "Audio Crystalizer";
+    pub(crate) const DEFAULT: &'static str = "0";
+    pub(crate) const VARIANTS: [&str; 7] = ["-8", "-4", "-2", "0", "2", "4", "8"];
+
+    pub const fn new(value: &'static str) -> Self {
+        AudioCrystalizer { value }
     }
 
-    fn as_str(&self) -> &'static str {
-        match self {
-            AudioCrystalizer::M8 => "-8",
-            AudioCrystalizer::M4 => "-4",
-            AudioCrystalizer::M2 => "-2",
-            AudioCrystalizer::Zero => "0",
-            AudioCrystalizer::P2 => "2",
-            AudioCrystalizer::P4 => "4",
-            AudioCrystalizer::P8 => "8",
+    pub const fn default() -> Self {
+        AudioCrystalizer {
+            value: Self::DEFAULT,
         }
     }
-
-    fn describe_self(&self) -> &'static str {
-        "Audio Crystalizer"
-    }
 }
+
+struct_option!(AudioCrystalizer);
 
 impl FFmpegParameter for AudioCrystalizer {
     fn accept(&self, visitor: &mut dyn FFmpegParameterVisitor) {

@@ -1,54 +1,32 @@
-use strum::VariantArray;
-use strum_macros::VariantArray;
-
 use crate::{
-    params::SelectableOption,
+    params::macros::struct_option,
     visitors::{FFmpegParameter, FFmpegParameterVisitor},
 };
 
-#[derive(Debug, VariantArray, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum AudioVolume {
-    M15,
-    M10,
-    M5,
-    M2,
-    Original,
-    P2,
-    P5,
-    P10,
-    P15,
-    P30,
-    P50,
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct AudioVolume {
+    pub(crate) value: &'static str,
 }
 
-impl SelectableOption for AudioVolume {
-    fn variants(&self) -> &'static [Self]
-    where
-        Self: Sized,
-    {
-        AudioVolume::VARIANTS
+impl AudioVolume {
+    pub(crate) const NAME: &'static str = "Audio Volume";
+    pub(crate) const DEFAULT: &'static str = "original";
+    pub(crate) const VARIANTS: [&str; 11] = [
+        "-15dB", "-10dB", "-5dB", "-2dB", "original", "2dB", "5dB", "10dB", "15dB", "30dB", "50dB",
+    ];
+
+    pub const fn new(value: &'static str) -> Self {
+        AudioVolume { value }
     }
 
-    fn as_str(&self) -> &'static str {
-        match self {
-            AudioVolume::M15 => "-15dB",
-            AudioVolume::M10 => "-10dB",
-            AudioVolume::M5 => "-5dB",
-            AudioVolume::M2 => "-2dB",
-            AudioVolume::Original => "original",
-            AudioVolume::P2 => "2dB",
-            AudioVolume::P5 => "5dB",
-            AudioVolume::P10 => "10dB",
-            AudioVolume::P15 => "15dB",
-            AudioVolume::P30 => "30dB",
-            AudioVolume::P50 => "50dB",
+    pub const fn default() -> Self {
+        AudioVolume {
+            value: Self::DEFAULT,
         }
     }
-
-    fn describe_self(&self) -> &'static str {
-        "Audio Volume"
-    }
 }
+
+struct_option!(AudioVolume);
 
 impl FFmpegParameter for AudioVolume {
     fn accept(&self, visitor: &mut dyn FFmpegParameterVisitor) {

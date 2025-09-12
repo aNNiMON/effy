@@ -1,46 +1,31 @@
-use strum::VariantArray;
-use strum_macros::VariantArray;
-
 use crate::{
-    params::SelectableOption,
+    params::macros::struct_option,
     visitors::{FFmpegParameter, FFmpegParameterVisitor},
 };
 
-#[derive(Debug, VariantArray, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum VideoScale {
-    K144,
-    K240,
-    K360,
-    Original,
-    K480,
-    K720,
-    K1080,
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct VideoScale {
+    pub(crate) value: &'static str,
 }
 
-impl SelectableOption for VideoScale {
-    fn variants(&self) -> &'static [Self]
-    where
-        Self: Sized,
-    {
-        VideoScale::VARIANTS
+impl VideoScale {
+    pub(crate) const NAME: &'static str = "Video Scale";
+    pub(crate) const DEFAULT: &'static str = "original";
+    pub(crate) const VARIANTS: [&str; 7] =
+        ["144p", "240p", "360p", "original", "480p", "720p", "1080p"];
+
+    pub const fn new(value: &'static str) -> Self {
+        VideoScale { value }
     }
 
-    fn as_str(&self) -> &'static str {
-        match self {
-            VideoScale::K144 => "144p",
-            VideoScale::K240 => "240p",
-            VideoScale::K360 => "360p",
-            VideoScale::Original => "original",
-            VideoScale::K480 => "480p",
-            VideoScale::K720 => "720p",
-            VideoScale::K1080 => "1080p",
+    pub const fn default() -> Self {
+        VideoScale {
+            value: Self::DEFAULT,
         }
     }
-
-    fn describe_self(&self) -> &'static str {
-        "Video Scale"
-    }
 }
+
+struct_option!(VideoScale);
 
 impl FFmpegParameter for VideoScale {
     fn accept(&self, visitor: &mut dyn FFmpegParameterVisitor) {

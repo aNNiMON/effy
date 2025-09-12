@@ -34,42 +34,44 @@ impl<'a> CommandBuilder<'a> {
 
 impl<'a> FFmpegParameterVisitor for CommandBuilder<'a> {
     fn visit_disable_audio(&mut self, param: &DisableAudio) {
-        if *param == DisableAudio::On {
+        if param.value == DisableAudio::ON {
             self.discard_audio = true;
             self.args.push("-an");
         }
     }
 
     fn visit_audio_bitrate(&mut self, param: &AudioBitrate) {
-        if !self.discard_audio && *param != AudioBitrate::Auto {
+        if !self.discard_audio && param.value != AudioBitrate::DEFAULT {
             self.args.push("-b:a");
             self.args.push(param.as_str());
         }
     }
 
     fn visit_audio_crystalizer(&mut self, param: &AudioCrystalizer) {
-        if !self.discard_audio && *param != AudioCrystalizer::Zero {
+        if !self.discard_audio && param.value != AudioCrystalizer::DEFAULT {
             self.audio_filters
                 .push(format!("crystalizer={}", param.as_str()));
         }
     }
 
     fn visit_audio_volume(&mut self, param: &AudioVolume) {
-        if !self.discard_audio && *param != AudioVolume::Original {
+        if !self.discard_audio && param.value != AudioVolume::DEFAULT {
             self.audio_filters
                 .push(format!("volume={}", param.as_str()));
         }
     }
 
     fn visit_audio_pitch(&mut self, param: &AudioPitch) {
-        if !self.discard_audio && *param != AudioPitch::P1_00 {
-            self.audio_filters
-                .push(format!("rubberband=pitchq=quality:pitch={}", param.as_str()));
+        if !self.discard_audio && param.value != AudioPitch::DEFAULT {
+            self.audio_filters.push(format!(
+                "rubberband=pitchq=quality:pitch={}",
+                param.as_str()
+            ));
         }
     }
 
     fn visit_speed_factor(&mut self, param: &SpeedFactor) {
-        if *param != SpeedFactor::X1_00 {
+        if param.value != SpeedFactor::DEFAULT {
             if !self.discard_audio {
                 self.audio_filters
                     .push(format!("atempo={}", param.as_str()));
@@ -80,23 +82,25 @@ impl<'a> FFmpegParameterVisitor for CommandBuilder<'a> {
     }
 
     fn visit_video_bitrate(&mut self, param: &VideoBitrate) {
-        if *param != VideoBitrate::Auto {
+        if param.value != VideoBitrate::DEFAULT {
             self.args.push("-b:v");
             self.args.push(param.as_str());
         }
     }
 
     fn visit_video_frame_rate(&mut self, param: &VideoFrameRate) {
-        if *param != VideoFrameRate::Original {
+        if param.value != VideoFrameRate::DEFAULT {
             self.args.push("-r");
             self.args.push(param.as_str());
         }
     }
-    
+
     fn visit_video_scale(&mut self, param: &VideoScale) {
-        if *param != VideoScale::Original {
-            self.video_filters
-                .push(format!("scale=-2:{}", param.as_str().strip_suffix('p').unwrap()));
+        if param.value != VideoScale::DEFAULT {
+            self.video_filters.push(format!(
+                "scale=-2:{}",
+                param.as_str().strip_suffix('p').unwrap()
+            ));
         }
     }
 }

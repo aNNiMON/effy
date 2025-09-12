@@ -23,29 +23,29 @@ pub(crate) enum Param {
 impl Param {
     pub(crate) fn toggle_prev(&self) -> Self {
         match self {
-            Param::DisableAudio(val) => Param::DisableAudio(val.toggle_prev()),
-            Param::AudioBitrate(bitrate) => Param::AudioBitrate(bitrate.toggle_prev()),
-            Param::AudioCrystalizer(cr) => Param::AudioCrystalizer(cr.toggle_prev()),
-            Param::AudioVolume(volume) => Param::AudioVolume(volume.toggle_prev()),
-            Param::AudioPitch(pitch) => Param::AudioPitch(pitch.toggle_prev()),
-            Param::SpeedFactor(speed) => Param::SpeedFactor(speed.toggle_prev()),
-            Param::VideoBitrate(bitrate) => Param::VideoBitrate(bitrate.toggle_prev()),
-            Param::VideoFrameRate(fps) => Param::VideoFrameRate(fps.toggle_prev()),
-            Param::VideoScale(scale) => Param::VideoScale(scale.toggle_prev()),
+            Param::DisableAudio(val) => Param::DisableAudio(SelectableOption::toggle_prev(val)),
+            Param::AudioBitrate(bitrate) => Param::AudioBitrate(SelectableOption::toggle_prev(bitrate)),
+            Param::AudioCrystalizer(cr) => Param::AudioCrystalizer(SelectableOption::toggle_prev(cr)),
+            Param::AudioVolume(volume) => Param::AudioVolume(SelectableOption::toggle_prev(volume)),
+            Param::AudioPitch(pitch) => Param::AudioPitch(SelectableOption::toggle_prev(pitch)),
+            Param::SpeedFactor(speed) => Param::SpeedFactor(SelectableOption::toggle_prev(speed)),
+            Param::VideoBitrate(bitrate) => Param::VideoBitrate(SelectableOption::toggle_prev(bitrate)),
+            Param::VideoFrameRate(fps) => Param::VideoFrameRate(SelectableOption::toggle_prev(fps)),
+            Param::VideoScale(scale) => Param::VideoScale(SelectableOption::toggle_prev(scale)),
         }
     }
 
     pub(crate) fn toggle_next(&self) -> Self {
         match self {
-            Param::DisableAudio(val) => Param::DisableAudio(val.toggle_next()),
-            Param::AudioBitrate(bitrate) => Param::AudioBitrate(bitrate.toggle_next()),
-            Param::AudioCrystalizer(cr) => Param::AudioCrystalizer(cr.toggle_next()),
-            Param::AudioVolume(volume) => Param::AudioVolume(volume.toggle_next()),
-            Param::AudioPitch(pitch) => Param::AudioPitch(pitch.toggle_next()),
-            Param::SpeedFactor(speed) => Param::SpeedFactor(speed.toggle_next()),
-            Param::VideoBitrate(bitrate) => Param::VideoBitrate(bitrate.toggle_next()),
-            Param::VideoFrameRate(fps) => Param::VideoFrameRate(fps.toggle_next()),
-            Param::VideoScale(scale) => Param::VideoScale(scale.toggle_next()),
+            Param::DisableAudio(val) => Param::DisableAudio(SelectableOption::toggle_next(val)),
+            Param::AudioBitrate(bitrate) => Param::AudioBitrate(SelectableOption::toggle_next(bitrate)),
+            Param::AudioCrystalizer(cr) => Param::AudioCrystalizer(SelectableOption::toggle_next(cr)),
+            Param::AudioVolume(volume) => Param::AudioVolume(SelectableOption::toggle_next(volume)),
+            Param::AudioPitch(pitch) => Param::AudioPitch(SelectableOption::toggle_next(pitch)),
+            Param::SpeedFactor(speed) => Param::SpeedFactor(SelectableOption::toggle_next(speed)),
+            Param::VideoBitrate(bitrate) => Param::VideoBitrate(SelectableOption::toggle_next(bitrate)),
+            Param::VideoFrameRate(fps) => Param::VideoFrameRate(SelectableOption::toggle_next(fps)),
+            Param::VideoScale(scale) => Param::VideoScale(SelectableOption::toggle_next(scale)),
         }
     }
 

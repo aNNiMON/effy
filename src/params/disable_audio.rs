@@ -1,36 +1,29 @@
-use strum::VariantArray;
-use strum_macros::VariantArray;
-
 use crate::{
-    params::SelectableOption,
+    params::macros::struct_option,
     visitors::{FFmpegParameter, FFmpegParameterVisitor},
 };
 
-#[derive(Debug, VariantArray, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum DisableAudio {
-    On,
-    Off,
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct DisableAudio {
+    pub(crate) value: &'static str,
 }
 
-impl SelectableOption for DisableAudio {
-    fn variants(&self) -> &'static [Self]
-    where
-        Self: Sized,
-    {
-        DisableAudio::VARIANTS
+impl DisableAudio {
+    pub(crate) const NAME: &'static str = "Disable Audio";
+    pub(crate) const OFF: &'static str = "off";
+    pub(crate) const ON: &'static str = "on";
+    pub(crate) const VARIANTS: [&str; 2] = [Self::OFF, Self::ON];
+
+    pub const fn new(value: &'static str) -> Self {
+        DisableAudio { value }
     }
 
-    fn as_str(&self) -> &'static str {
-        match self {
-            DisableAudio::On => "on",
-            DisableAudio::Off => "off",
-        }
-    }
-
-    fn describe_self(&self) -> &'static str {
-        "Disable Audio"
+    pub const fn default() -> Self {
+        DisableAudio { value: Self::OFF }
     }
 }
+
+struct_option!(DisableAudio);
 
 impl FFmpegParameter for DisableAudio {
     fn accept(&self, visitor: &mut dyn FFmpegParameterVisitor) {

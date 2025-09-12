@@ -1,52 +1,32 @@
-use strum::VariantArray;
-use strum_macros::VariantArray;
-
 use crate::{
-    params::SelectableOption,
+    params::macros::struct_option,
     visitors::{FFmpegParameter, FFmpegParameterVisitor},
 };
 
-#[derive(Debug, VariantArray, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum AudioBitrate {
-    K4,
-    K16,
-    K32,
-    Auto,
-    K64,
-    K128,
-    K192,
-    K256,
-    K320,
-    K512
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct AudioBitrate {
+    pub(crate) value: &'static str,
 }
 
-impl SelectableOption for AudioBitrate {
-    fn variants(&self) -> &'static [Self]
-    where
-        Self: Sized,
-    {
-        AudioBitrate::VARIANTS
+impl AudioBitrate {
+    pub(crate) const NAME: &'static str = "Audio Bitrate";
+    pub(crate) const DEFAULT: &'static str = "auto";
+    pub(crate) const VARIANTS: [&str; 10] = [
+        "4k", "16k", "32k", "auto", "64k", "128k", "192k", "256k", "320k", "512k",
+    ];
+
+    pub const fn new(value: &'static str) -> Self {
+        AudioBitrate { value }
     }
 
-    fn as_str(&self) -> &'static str {
-        match self {
-            AudioBitrate::K4 => "4k",
-            AudioBitrate::K16 => "16k",
-            AudioBitrate::K32 => "32k",
-            AudioBitrate::Auto => "auto",
-            AudioBitrate::K64 => "64k",
-            AudioBitrate::K128 => "128k",
-            AudioBitrate::K192 => "192k",
-            AudioBitrate::K256 => "256k",
-            AudioBitrate::K320 => "320k",
-            AudioBitrate::K512 => "512k",
+    pub const fn default() -> Self {
+        AudioBitrate {
+            value: Self::DEFAULT,
         }
     }
-
-    fn describe_self(&self) -> &'static str {
-        "Audio Bitrate"
-    }
 }
+
+struct_option!(AudioBitrate);
 
 impl FFmpegParameter for AudioBitrate {
     fn accept(&self, visitor: &mut dyn FFmpegParameterVisitor) {

@@ -1,36 +1,34 @@
-pub(crate) trait SelectableOption {
-    fn variants(&self) -> &'static [Self]
-    where
-        Self: Sized;
-
-    fn toggle_prev(&self) -> Self
-    where
-        Self: 'static + Sized + PartialEq + Clone,
-    {
-        self.variants()
-            .iter()
-            .cycle()
-            .take_while(|&v| *v != *self)
-            .last()
-            .cloned()
-            .unwrap_or_else(|| self.variants()[self.variants().len() - 1].clone())
-    }
-
-    fn toggle_next(&self) -> Self
-    where
-        Self: 'static + Sized + PartialEq + Clone,
-    {
-        self.variants()
-            .iter()
-            .cycle()
-            .skip_while(|&v| *v != *self)
-            .nth(1)
-            .cloned()
-            .unwrap_or_else(|| self.variants()[0].clone())
+pub(crate) trait SelectableOption: 'static + Sized + PartialEq + Clone {
+    fn variants() -> &'static [Self];
+    fn variant_index(&self) -> Option<usize> {
+        Self::variants().iter().position(|v| *v == *self)
     }
 
     fn as_str(&self) -> &'static str;
     fn describe_self(&self) -> &'static str;
+
+    fn toggle_prev(&self) -> Self {
+        let variants = Self::variants();
+        let len = variants.len();
+        let idx = if let Some(i) = self.variant_index() {
+            if i == 0 { len - 1 } else { i - 1 }
+        } else {
+            0
+        };
+        variants[idx].clone()
+    }
+
+    fn toggle_next(&self) -> Self {
+        let variants = Self::variants();
+        let idx = if let Some(i) = self.variant_index()
+            && i < variants.len() - 1
+        {
+            i + 1
+        } else {
+            0
+        };
+        variants[idx].clone()
+    }
 }
 
 mod audio_bitrate;
@@ -38,6 +36,7 @@ mod audio_crystalizer;
 mod audio_pitch;
 mod audio_volume;
 mod disable_audio;
+mod macros;
 mod speed_factor;
 mod video_bitrate;
 mod video_frame_rate;
@@ -62,19 +61,19 @@ use crate::{
 pub(crate) fn create_params(info: &Info) -> Vec<(bool, Param)> {
     let mut params = Vec::new();
     if info.has_audio() && info.has_video() {
-        params.push((true, Param::DisableAudio(DisableAudio::Off)));
+        params.push((true, Param::DisableAudio(DisableAudio::default())));
     }
     if info.has_audio() {
-        params.push((true, Param::AudioBitrate(AudioBitrate::Auto)));
-        params.push((true, Param::AudioCrystalizer(AudioCrystalizer::Zero)));
-        params.push((true, Param::AudioVolume(AudioVolume::Original)));
-        params.push((true, Param::AudioPitch(AudioPitch::P1_00)));
+        params.push((true, Param::AudioBitrate(AudioBitrate::default())));
+        params.push((true, Param::AudioCrystalizer(AudioCrystalizer::default())));
+        params.push((true, Param::AudioVolume(AudioVolume::default())));
+        params.push((true, Param::AudioPitch(AudioPitch::default())));
     }
-    params.push((true, Param::SpeedFactor(SpeedFactor::X1_00)));
+    params.push((true, Param::SpeedFactor(SpeedFactor::default())));
     if info.has_video() {
-        params.push((true, Param::VideoBitrate(VideoBitrate::Auto)));
-        params.push((true, Param::VideoFrameRate(VideoFrameRate::Original)));
-        params.push((true, Param::VideoScale(VideoScale::Original)));
+        params.push((true, Param::VideoBitrate(VideoBitrate::default())));
+        params.push((true, Param::VideoFrameRate(VideoFrameRate::default())));
+        params.push((true, Param::VideoScale(VideoScale::default())));
     }
     params
 }
@@ -82,7 +81,7 @@ pub(crate) fn create_params(info: &Info) -> Vec<(bool, Param)> {
 pub(crate) fn recheck_params(params: &mut [(bool, Param)], changed_param: &Param) {
     if let Param::DisableAudio(state) = changed_param {
         params.iter_mut().for_each(|(enabled, param)| {
-            let audio_enabled = state == &DisableAudio::Off;
+            let audio_enabled = state.value == DisableAudio::OFF;
             if matches!(
                 param,
                 Param::AudioBitrate(_)

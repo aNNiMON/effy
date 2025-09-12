@@ -1,48 +1,30 @@
-use strum::VariantArray;
-use strum_macros::VariantArray;
-
 use crate::{
-    params::SelectableOption,
+    params::macros::struct_option,
     visitors::{FFmpegParameter, FFmpegParameterVisitor},
 };
 
-#[derive(Debug, VariantArray, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum AudioPitch {
-    P0_60,
-    P0_80,
-    P0_90,
-    P1_00,
-    P1_15,
-    P1_25,
-    P1_50,
-    P2_00,
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct AudioPitch {
+    pub(crate) value: &'static str,
 }
 
-impl SelectableOption for AudioPitch {
-    fn variants(&self) -> &'static [Self]
-    where
-        Self: Sized,
-    {
-        AudioPitch::VARIANTS
+impl AudioPitch {
+    pub(crate) const NAME: &'static str = "Audio Pitch";
+    pub(crate) const DEFAULT: &'static str = "1";
+    pub(crate) const VARIANTS: [&str; 8] = ["0.6", "0.8", "0.9", "1", "1.15", "1.25", "1.5", "2"];
+
+    pub fn new(value: &'static str) -> Self {
+        AudioPitch { value }
     }
 
-    fn as_str(&self) -> &'static str {
-        match self {
-            AudioPitch::P0_60 => "0.6",
-            AudioPitch::P0_80 => "0.8",
-            AudioPitch::P0_90 => "0.9",
-            AudioPitch::P1_00 => "1",
-            AudioPitch::P1_15 => "1.15",
-            AudioPitch::P1_25 => "1.25",
-            AudioPitch::P1_50 => "1.5",
-            AudioPitch::P2_00 => "2",
+    pub const fn default() -> Self {
+        AudioPitch {
+            value: Self::DEFAULT,
         }
     }
-
-    fn describe_self(&self) -> &'static str {
-        "Audio Pitch"
-    }
 }
+
+struct_option!(AudioPitch);
 
 impl FFmpegParameter for AudioPitch {
     fn accept(&self, visitor: &mut dyn FFmpegParameterVisitor) {

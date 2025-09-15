@@ -24,12 +24,12 @@ impl Param {
     pub(crate) fn toggle_prev(&self) -> Self {
         match self {
             Param::DisableAudio(val) => Param::DisableAudio(SelectableOption::toggle_prev(val)),
-            Param::AudioBitrate(bitrate) => Param::AudioBitrate(SelectableOption::toggle_prev(bitrate)),
-            Param::AudioCrystalizer(cr) => Param::AudioCrystalizer(SelectableOption::toggle_prev(cr)),
+            Param::AudioBitrate(v) => Param::AudioBitrate(SelectableOption::toggle_prev(v)),
+            Param::AudioCrystalizer(v) => Param::AudioCrystalizer(SelectableOption::toggle_prev(v)),
             Param::AudioVolume(volume) => Param::AudioVolume(SelectableOption::toggle_prev(volume)),
             Param::AudioPitch(pitch) => Param::AudioPitch(SelectableOption::toggle_prev(pitch)),
             Param::SpeedFactor(speed) => Param::SpeedFactor(SelectableOption::toggle_prev(speed)),
-            Param::VideoBitrate(bitrate) => Param::VideoBitrate(SelectableOption::toggle_prev(bitrate)),
+            Param::VideoBitrate(v) => Param::VideoBitrate(SelectableOption::toggle_prev(v)),
             Param::VideoFrameRate(fps) => Param::VideoFrameRate(SelectableOption::toggle_prev(fps)),
             Param::VideoScale(scale) => Param::VideoScale(SelectableOption::toggle_prev(scale)),
         }
@@ -38,18 +38,18 @@ impl Param {
     pub(crate) fn toggle_next(&self) -> Self {
         match self {
             Param::DisableAudio(val) => Param::DisableAudio(SelectableOption::toggle_next(val)),
-            Param::AudioBitrate(bitrate) => Param::AudioBitrate(SelectableOption::toggle_next(bitrate)),
-            Param::AudioCrystalizer(cr) => Param::AudioCrystalizer(SelectableOption::toggle_next(cr)),
+            Param::AudioBitrate(v) => Param::AudioBitrate(SelectableOption::toggle_next(v)),
+            Param::AudioCrystalizer(v) => Param::AudioCrystalizer(SelectableOption::toggle_next(v)),
             Param::AudioVolume(volume) => Param::AudioVolume(SelectableOption::toggle_next(volume)),
             Param::AudioPitch(pitch) => Param::AudioPitch(SelectableOption::toggle_next(pitch)),
             Param::SpeedFactor(speed) => Param::SpeedFactor(SelectableOption::toggle_next(speed)),
-            Param::VideoBitrate(bitrate) => Param::VideoBitrate(SelectableOption::toggle_next(bitrate)),
+            Param::VideoBitrate(v) => Param::VideoBitrate(SelectableOption::toggle_next(v)),
             Param::VideoFrameRate(fps) => Param::VideoFrameRate(SelectableOption::toggle_next(fps)),
             Param::VideoScale(scale) => Param::VideoScale(SelectableOption::toggle_next(scale)),
         }
     }
 
-    pub(crate) fn as_str(&self) -> &'static str {
+    pub(crate) fn as_str(&self) -> String {
         match self {
             Param::DisableAudio(val) => val.as_str(),
             Param::AudioBitrate(bitrate) => bitrate.as_str(),

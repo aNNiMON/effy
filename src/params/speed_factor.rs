@@ -5,7 +5,7 @@ use crate::{
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct SpeedFactor {
-    pub(crate) value: &'static str,
+    pub(crate) value: String,
 }
 
 impl SpeedFactor {
@@ -15,13 +15,13 @@ impl SpeedFactor {
         "0.5", "0.75", "0.8", "0.9", "1", "1.25", "1.4", "1.5", "1.6", "1.8", "2", "2.5", "3",
     ];
 
-    pub const fn new(value: &'static str) -> Self {
+    pub const fn new(value: String) -> Self {
         SpeedFactor { value }
     }
 
-    pub const fn default() -> Self {
+    pub fn default() -> Self {
         SpeedFactor {
-            value: Self::DEFAULT,
+            value: Self::DEFAULT.into(),
         }
     }
 }

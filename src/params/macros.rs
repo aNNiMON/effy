@@ -3,8 +3,8 @@ macro_rules! struct_option {
         ::lazy_static::lazy_static! {
             static ref INSTANCES: Vec<$type> = {
                 let mut result = Vec::new();
-                for &v in $type::VARIANTS.iter() {
-                    result.push($type::new(v));
+                for v in $type::VARIANTS.iter() {
+                    result.push($type::new(v.to_string()));
                 }
                 result
             };
@@ -15,8 +15,8 @@ macro_rules! struct_option {
                 &INSTANCES
             }
 
-            fn as_str(&self) -> &'static str {
-                self.value
+            fn as_str(&self) -> String {
+                self.value.clone()
             }
 
             fn describe_self(&self) -> &'static str {

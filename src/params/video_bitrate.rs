@@ -5,7 +5,7 @@ use crate::{
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct VideoBitrate {
-    pub(crate) value: &'static str,
+    pub(crate) value: String,
 }
 
 impl VideoBitrate {
@@ -15,13 +15,13 @@ impl VideoBitrate {
         "16k", "32k", "auto", "64k", "128k", "256k", "512k", "1M", "2M", "4M", "8M", "16M",
     ];
 
-    pub const fn new(value: &'static str) -> Self {
+    pub const fn new(value: String) -> Self {
         VideoBitrate { value }
     }
 
-    pub const fn default() -> Self {
+    pub fn default() -> Self {
         VideoBitrate {
-            value: Self::DEFAULT,
+            value: Self::DEFAULT.into(),
         }
     }
 }

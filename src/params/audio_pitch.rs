@@ -5,7 +5,7 @@ use crate::{
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct AudioPitch {
-    pub(crate) value: &'static str,
+    pub(crate) value: String,
 }
 
 impl AudioPitch {
@@ -13,13 +13,13 @@ impl AudioPitch {
     pub(crate) const DEFAULT: &'static str = "1";
     pub(crate) const VARIANTS: [&str; 8] = ["0.6", "0.8", "0.9", "1", "1.15", "1.25", "1.5", "2"];
 
-    pub fn new(value: &'static str) -> Self {
+    pub fn new(value: String) -> Self {
         AudioPitch { value }
     }
 
-    pub const fn default() -> Self {
+    pub fn default() -> Self {
         AudioPitch {
-            value: Self::DEFAULT,
+            value: Self::DEFAULT.into(),
         }
     }
 }

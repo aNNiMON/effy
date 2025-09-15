@@ -5,7 +5,7 @@ use crate::{
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct AudioVolume {
-    pub(crate) value: &'static str,
+    pub(crate) value: String,
 }
 
 impl AudioVolume {
@@ -15,13 +15,13 @@ impl AudioVolume {
         "-15dB", "-10dB", "-5dB", "-2dB", "original", "2dB", "5dB", "10dB", "15dB", "30dB", "50dB",
     ];
 
-    pub const fn new(value: &'static str) -> Self {
+    pub const fn new(value: String) -> Self {
         AudioVolume { value }
     }
 
-    pub const fn default() -> Self {
+    pub fn default() -> Self {
         AudioVolume {
-            value: Self::DEFAULT,
+            value: Self::DEFAULT.into(),
         }
     }
 }

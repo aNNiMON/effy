@@ -5,7 +5,7 @@ use crate::{
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct VideoScale {
-    pub(crate) value: &'static str,
+    pub(crate) value: String,
 }
 
 impl VideoScale {
@@ -14,13 +14,13 @@ impl VideoScale {
     pub(crate) const VARIANTS: [&str; 7] =
         ["144p", "240p", "360p", "original", "480p", "720p", "1080p"];
 
-    pub const fn new(value: &'static str) -> Self {
+    pub const fn new(value: String) -> Self {
         VideoScale { value }
     }
 
-    pub const fn default() -> Self {
+    pub fn default() -> Self {
         VideoScale {
-            value: Self::DEFAULT,
+            value: Self::DEFAULT.into(),
         }
     }
 }

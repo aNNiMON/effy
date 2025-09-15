@@ -5,7 +5,7 @@ use crate::{
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct VideoFrameRate {
-    pub(crate) value: &'static str,
+    pub(crate) value: String,
 }
 
 impl VideoFrameRate {
@@ -13,13 +13,13 @@ impl VideoFrameRate {
     pub(crate) const DEFAULT: &'static str = "original";
     pub(crate) const VARIANTS: [&str; 8] = ["5", "10", "15", "20", "original", "30", "45", "60"];
 
-    pub const fn new(value: &'static str) -> Self {
+    pub const fn new(value: String) -> Self {
         VideoFrameRate { value }
     }
 
-    pub const fn default() -> Self {
+    pub fn default() -> Self {
         VideoFrameRate {
-            value: Self::DEFAULT,
+            value: Self::DEFAULT.into(),
         }
     }
 }

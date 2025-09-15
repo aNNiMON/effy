@@ -5,7 +5,7 @@ use crate::{
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct DisableAudio {
-    pub(crate) value: &'static str,
+    pub(crate) value: String,
 }
 
 impl DisableAudio {
@@ -14,12 +14,12 @@ impl DisableAudio {
     pub(crate) const ON: &'static str = "on";
     pub(crate) const VARIANTS: [&str; 2] = [Self::OFF, Self::ON];
 
-    pub const fn new(value: &'static str) -> Self {
+    pub const fn new(value: String) -> Self {
         DisableAudio { value }
     }
 
-    pub const fn default() -> Self {
-        DisableAudio { value: Self::OFF }
+    pub fn default() -> Self {
+        DisableAudio { value: Self::OFF.into() }
     }
 }
 

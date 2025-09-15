@@ -4,7 +4,7 @@ pub(crate) trait SelectableOption: 'static + Sized + PartialEq + Clone {
         Self::variants().iter().position(|v| *v == *self)
     }
 
-    fn as_str(&self) -> &'static str;
+    fn as_str(&self) -> String;
     fn describe_self(&self) -> &'static str;
 
     fn toggle_prev(&self) -> Self {

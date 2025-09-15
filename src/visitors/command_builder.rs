@@ -1,13 +1,13 @@
 use crate::{params::*, visitors::FFmpegParameterVisitor};
 
-pub(crate) struct CommandBuilder<'a> {
+pub(crate) struct CommandBuilder {
     discard_audio: bool,
     audio_filters: Vec<String>,
     video_filters: Vec<String>,
-    args: Vec<&'a str>,
+    args: Vec<String>,
 }
 
-impl<'a> CommandBuilder<'a> {
+impl CommandBuilder {
     pub(crate) fn new() -> Self {
         CommandBuilder {
             discard_audio: false,
@@ -32,17 +32,17 @@ impl<'a> CommandBuilder<'a> {
     }
 }
 
-impl<'a> FFmpegParameterVisitor for CommandBuilder<'a> {
+impl FFmpegParameterVisitor for CommandBuilder {
     fn visit_disable_audio(&mut self, param: &DisableAudio) {
         if param.value == DisableAudio::ON {
             self.discard_audio = true;
-            self.args.push("-an");
+            self.args.push("-an".into());
         }
     }
 
     fn visit_audio_bitrate(&mut self, param: &AudioBitrate) {
         if !self.discard_audio && param.value != AudioBitrate::DEFAULT {
-            self.args.push("-b:a");
+            self.args.push("-b:a".into());
             self.args.push(param.as_str());
         }
     }
@@ -83,14 +83,14 @@ impl<'a> FFmpegParameterVisitor for CommandBuilder<'a> {
 
     fn visit_video_bitrate(&mut self, param: &VideoBitrate) {
         if param.value != VideoBitrate::DEFAULT {
-            self.args.push("-b:v");
+            self.args.push("-b:v".into());
             self.args.push(param.as_str());
         }
     }
 
     fn visit_video_frame_rate(&mut self, param: &VideoFrameRate) {
         if param.value != VideoFrameRate::DEFAULT {
-            self.args.push("-r");
+            self.args.push("-r".into());
             self.args.push(param.as_str());
         }
     }

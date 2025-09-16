@@ -1,0 +1,9 @@
+procs:
+  check clippy:
+    shell: cargo clippy
+  check fmt:
+    shell: cargo fmt -- --check
+
+  build release:
+    shell: cargo build --release
+    autostart: false

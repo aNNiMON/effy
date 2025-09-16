@@ -19,7 +19,9 @@ impl DisableAudio {
     }
 
     pub fn default() -> Self {
-        DisableAudio { value: Self::OFF.into() }
+        DisableAudio {
+            value: Self::OFF.into(),
+        }
     }
 }
 

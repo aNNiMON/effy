@@ -85,4 +85,5 @@ impl Param {
 pub(crate) enum AppEvent {
     Input(crossterm::event::KeyEvent),
     AddOutput(String),
+    SaveCompleted(bool),
 }

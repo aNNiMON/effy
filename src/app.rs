@@ -24,6 +24,7 @@ pub(crate) struct App {
     pub(crate) output_pane_current_line: u16,
     pub(crate) params: Vec<(bool, Param)>,
     pub(crate) params_list_state: ListState,
+    save_ongoing: bool,
 }
 
 impl App {
@@ -42,6 +43,7 @@ impl App {
             output_pane_current_line: 0,
             params: create_params(&info),
             params_list_state: list_state,
+            save_ongoing: false,
         }
     }
 
@@ -52,6 +54,7 @@ impl App {
             match rx.recv_timeout(Duration::from_secs(2)) {
                 Ok(AppEvent::Input(key)) => self.on_key_event(key),
                 Ok(AppEvent::AddOutput(output)) => self.add_output(output),
+                Ok(AppEvent::SaveCompleted(success)) => self.on_save_complete(success),
                 Err(_) => {}
             }
         }
@@ -160,6 +163,11 @@ impl App {
     }
 
     fn save(&mut self) {
+        if self.save_ongoing {
+            return;
+        }
+        self.save_ongoing = true;
+
         let mut command_builder = CommandBuilder::new();
         apply_visitor(&mut command_builder, self.params.clone());
         self.output_pane_current_line = 0;
@@ -185,6 +193,7 @@ impl App {
                     let _ = tx.send(AppEvent::AddOutput(format!(
                         "Failed to start FFmpeg: {e}\n"
                     )));
+                    let _ = tx.send(AppEvent::SaveCompleted(false));
                     return;
                 }
             };
@@ -202,15 +211,19 @@ impl App {
                     let _ = tx.send(AppEvent::AddOutput(line));
                 }
             }
-            let msg = if let Ok(status) = child.wait()
-                && status.success()
-            {
-                "FFmpeg finished successfully!\n\n"
-            } else {
-                "FFmpeg encountered an error.\n\n"
-            };
-            let _ = tx.send(AppEvent::AddOutput(msg.to_string()));
+            let result = matches!(child.wait(), Ok(status) if status.success());
+            let _ = tx.send(AppEvent::SaveCompleted(result));
         });
+    }
+
+    fn on_save_complete(&mut self, success: bool) {
+        let msg = if success {
+            "FFmpeg finished successfully!\n\n"
+        } else {
+            "FFmpeg encountered an error.\n\n"
+        };
+        self.add_output(msg.to_string());
+        self.save_ongoing = false;
     }
 
     fn quit(&mut self) {

@@ -11,6 +11,9 @@ TUI FFmpeg helper
 
 ## Usage
 
+> [!IMPORTANT]
+> `ffmpeg` and `ffprobe` must be installed and available in the `PATH` env variable 
+
 ```bash
 effy input.mp4
 ```

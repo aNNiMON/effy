@@ -48,10 +48,14 @@ fn main() -> color_eyre::Result<()> {
 
 fn handle_crossterm_events(tx: Sender<AppEvent>) {
     loop {
-        if let Ok(Event::Key(key)) = crossterm::event::read()
-            && key.kind == KeyEventKind::Press
-        {
-            let _ = tx.send(AppEvent::Input(key));
+        match crossterm::event::read() {
+            Ok(Event::Key(key)) if key.kind == KeyEventKind::Press => {
+                let _ = tx.send(AppEvent::Input(key));
+            }
+            Ok(Event::Resize(_, _)) => {
+                let _ = tx.send(AppEvent::Redraw);
+            }
+            _ => {}
         }
     }
 }

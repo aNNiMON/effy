@@ -174,7 +174,7 @@ impl Modal {
                 Clear.render(input_area, frame.buffer_mut());
                 Paragraph::new(input.value())
                     .style(Style::new().white())
-                    .block(Block::bordered().title("Save as").fg(Color::Blue))
+                    .block(Block::bordered().title("New filename").fg(Color::Blue))
                     .render(input_area, frame.buffer_mut());
                 frame.set_cursor_position(Position {
                     x: input_left + 1 + input.cursor() as u16,

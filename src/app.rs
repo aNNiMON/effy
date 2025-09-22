@@ -20,7 +20,9 @@ pub(crate) struct App {
     event_sender: Sender<AppEvent>,
     pub(crate) current_pane: Pane,
     pub(crate) input_file: String,
-    pub(crate) output_file: String,
+    pub(crate) output_folder: String,
+    pub(crate) output_filename: String,
+    pub(crate) output_fileext: String,
     pub(crate) info_text: String,
     pub(crate) info_pane_current_line: u16,
     pub(crate) output: String,
@@ -35,18 +37,29 @@ impl App {
     pub fn new(tx: Sender<AppEvent>, info: Info, input_file: String) -> Self {
         let mut list_state = ListState::default();
         list_state.select(Some(0));
-        let output_file = input_file
-            .rfind('.')
-            .map(|idx| &input_file[..idx])
-            .unwrap_or(&input_file);
-        let output_file = format!("{output_file}_out.mp4");
+
+        let input_path = Path::new(&input_file);
+        let output_folder = input_path
+            .parent()
+            .unwrap_or_else(|| Path::new("."))
+            .to_string_lossy();
+        let output_filename = input_path
+            .file_stem()
+            .unwrap_or_else(|| input_path.file_name().unwrap())
+            .to_string_lossy();
+        let output_fileext = input_path
+            .extension()
+            .unwrap_or_else(|| "mp4".as_ref())
+            .to_string_lossy();
 
         App {
             running: false,
             event_sender: tx,
             current_pane: Pane::Params,
             input_file: input_file.clone(),
-            output_file,
+            output_folder: output_folder.to_string(),
+            output_filename: format!("{output_filename}_out"),
+            output_fileext: output_fileext.to_string(),
             info_text: info.format(),
             info_pane_current_line: 0,
             output: "".to_string(),
@@ -97,7 +110,7 @@ impl App {
             (_, KeyModifiers::CONTROL, KeyCode::Char('s')) => self.save(),
             (_, _, KeyCode::Char('s')) => {
                 self.modal = Some(Modal::SaveFileAs(
-                    Input::default().with_value(self.output_file.clone()),
+                    Input::default().with_value(self.output_filename.clone()),
                 ))
             }
             (Pane::Info, _, KeyCode::Down | KeyCode::Char('j')) => self.scroll_info_pane_down(),
@@ -121,7 +134,7 @@ impl App {
                     let filename = input.value();
                     let valid = !filename.trim().is_empty() && !Path::new(filename).exists();
                     if valid {
-                        self.output_file = input.value().to_string();
+                        self.output_filename = input.value().to_string();
                         self.save();
                     }
                 } else {
@@ -219,7 +232,10 @@ impl App {
         self.output = "Starting FFmpeg...\n".to_string();
 
         let input_file = self.input_file.clone();
-        let output_file = self.output_file.clone();
+        let output_file = format!(
+            "{}/{}.{}",
+            self.output_folder, self.output_filename, self.output_fileext
+        );
         let tx = self.event_sender.clone();
         thread::spawn(move || {
             let mut child = match Command::new("ffmpeg")

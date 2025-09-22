@@ -1,15 +1,15 @@
 use ratatui::{
-    layout::{Constraint, Direction, Layout, Margin},
+    layout::{Constraint, Direction, Layout, Margin, Position, Rect},
     style::{Color, Style, Stylize},
     symbols,
     text::{Line, Span},
     widgets::{
-        Block, Borders, List, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState,
+        Block, Borders, Clear, List, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState,
         StatefulWidget, Widget,
     },
 };
 
-use crate::{app::App, model::Pane};
+use crate::{app::App, model::Modal, model::Pane};
 
 impl Widget for &App {
     fn render(self, area: ratatui::prelude::Rect, buf: &mut ratatui::prelude::Buffer)
@@ -153,6 +153,34 @@ impl Widget for &App {
                         .title_top(Line::from("Help").blue().left_aligned()),
                 )
                 .render(help, buf);
+        }
+    }
+}
+
+impl Modal {
+    pub(crate) fn render(&self, frame: &mut ratatui::prelude::Frame) {
+        match self {
+            // todo text scroll
+            Modal::SaveFileAs(input) => {
+                let area = frame.area();
+                let input_left = area.width / 2 - area.width / 6;
+                let input_top = area.height / 2 - 2;
+                let input_area = Rect {
+                    x: input_left,
+                    y: input_top,
+                    width: area.width / 3,
+                    height: 3,
+                };
+                Clear.render(input_area, frame.buffer_mut());
+                Paragraph::new(input.value())
+                    .style(Style::new().white())
+                    .block(Block::bordered().title("Save as").fg(Color::Blue))
+                    .render(input_area, frame.buffer_mut());
+                frame.set_cursor_position(Position {
+                    x: input_left + 1 + input.cursor() as u16,
+                    y: input_top + 1,
+                });
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 use std::io::{BufReader, Read};
+use std::path::Path;
 use std::process::{Command, Stdio};
 use std::sync::mpsc::{Receiver, Sender};
 use std::thread;
@@ -6,9 +7,11 @@ use std::thread;
 use color_eyre::Result;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::{DefaultTerminal, Frame, widgets::ListState};
+use tui_input::Input;
+use tui_input::backend::crossterm::EventHandler;
 
 use crate::info::Info;
-use crate::model::{AppEvent, Pane, Param};
+use crate::model::{AppEvent, Modal, Pane, Param};
 use crate::params::{apply_visitor, create_params, recheck_params};
 use crate::visitors::CommandBuilder;
 
@@ -17,12 +20,14 @@ pub(crate) struct App {
     event_sender: Sender<AppEvent>,
     pub(crate) current_pane: Pane,
     pub(crate) input_file: String,
+    pub(crate) output_file: String,
     pub(crate) info_text: String,
     pub(crate) info_pane_current_line: u16,
     pub(crate) output: String,
     pub(crate) output_pane_current_line: u16,
     pub(crate) params: Vec<(bool, Param)>,
     pub(crate) params_list_state: ListState,
+    pub(crate) modal: Option<Modal>,
     save_ongoing: bool,
 }
 
@@ -30,18 +35,25 @@ impl App {
     pub fn new(tx: Sender<AppEvent>, info: Info, input_file: String) -> Self {
         let mut list_state = ListState::default();
         list_state.select(Some(0));
+        let output_file = input_file
+            .rfind('.')
+            .map(|idx| &input_file[..idx])
+            .unwrap_or(&input_file);
+        let output_file = format!("{output_file}_out.mp4");
 
         App {
             running: false,
             event_sender: tx,
             current_pane: Pane::Params,
             input_file: input_file.clone(),
+            output_file,
             info_text: info.format(),
             info_pane_current_line: 0,
             output: "".to_string(),
             output_pane_current_line: 0,
             params: create_params(&info),
             params_list_state: list_state,
+            modal: None,
             save_ongoing: false,
         }
     }
@@ -67,15 +79,27 @@ impl App {
     }
 
     fn render(&self, frame: &mut Frame) {
-        frame.render_widget(self, frame.area())
+        frame.render_widget(self, frame.area());
+        if let Some(modal) = &self.modal {
+            modal.render(frame);
+        }
     }
 
     fn on_key_event(&mut self, key: KeyEvent) {
+        if self.modal.is_some() {
+            self.handle_modal_input(key);
+            return;
+        }
         match (self.current_pane, key.modifiers, key.code) {
             (_, _, KeyCode::Esc | KeyCode::Char('q'))
             | (_, KeyModifiers::CONTROL, KeyCode::Char('c') | KeyCode::Char('C')) => self.quit(),
             (_, _, KeyCode::Tab) => self.next_pane(),
             (_, KeyModifiers::CONTROL, KeyCode::Char('s')) => self.save(),
+            (_, _, KeyCode::Char('s')) => {
+                self.modal = Some(Modal::SaveFileAs(
+                    Input::default().with_value(self.output_file.clone()),
+                ))
+            }
             (Pane::Info, _, KeyCode::Down | KeyCode::Char('j')) => self.scroll_info_pane_down(),
             (Pane::Info, _, KeyCode::Up | KeyCode::Char('k')) => self.scroll_info_pane_up(),
             (Pane::Output, _, KeyCode::Down | KeyCode::Char('j')) => self.scroll_output_pane_down(),
@@ -85,6 +109,26 @@ impl App {
             (Pane::Params, _, KeyCode::Left | KeyCode::Char('h')) => self.prev_option(),
             (Pane::Params, _, KeyCode::Right | KeyCode::Char('l')) => self.next_option(),
             _ => {}
+        }
+    }
+
+    fn handle_modal_input(&mut self, key: KeyEvent) {
+        match &mut self.modal {
+            Some(Modal::SaveFileAs(input)) => {
+                if key.code == KeyCode::Esc {
+                    self.modal = None;
+                } else if key.code == KeyCode::Enter {
+                    let filename = input.value();
+                    let valid = !filename.trim().is_empty() && !Path::new(filename).exists();
+                    if valid {
+                        self.output_file = input.value().to_string();
+                        self.save();
+                    }
+                } else {
+                    input.handle_event(&crossterm::event::Event::Key(key));
+                }
+            }
+            None => {}
         }
     }
 
@@ -135,22 +179,22 @@ impl App {
     }
 
     fn prev_option(&mut self) {
-        if let Some(selected) = self.params_list_state.selected() {
-            if let Some((true, param)) = self.params.get(selected).cloned() {
-                let new_param = param.toggle_prev();
-                recheck_params(&mut self.params, &new_param);
-                self.params[selected] = (true, new_param);
-            }
+        if let Some(selected) = self.params_list_state.selected()
+            && let Some((true, param)) = self.params.get(selected).cloned()
+        {
+            let new_param = param.toggle_prev();
+            recheck_params(&mut self.params, &new_param);
+            self.params[selected] = (true, new_param);
         }
     }
 
     fn next_option(&mut self) {
-        if let Some(selected) = self.params_list_state.selected() {
-            if let Some((true, param)) = self.params.get(selected).cloned() {
-                let new_param = param.toggle_next();
-                recheck_params(&mut self.params, &new_param);
-                self.params[selected] = (true, new_param);
-            }
+        if let Some(selected) = self.params_list_state.selected()
+            && let Some((true, param)) = self.params.get(selected).cloned()
+        {
+            let new_param = param.toggle_next();
+            recheck_params(&mut self.params, &new_param);
+            self.params[selected] = (true, new_param);
         }
     }
 
@@ -166,6 +210,7 @@ impl App {
         if self.save_ongoing {
             return;
         }
+        self.modal = None;
         self.save_ongoing = true;
 
         let mut command_builder = CommandBuilder::new();
@@ -174,6 +219,7 @@ impl App {
         self.output = "Starting FFmpeg...\n".to_string();
 
         let input_file = self.input_file.clone();
+        let output_file = self.output_file.clone();
         let tx = self.event_sender.clone();
         thread::spawn(move || {
             let mut child = match Command::new("ffmpeg")
@@ -182,7 +228,7 @@ impl App {
                 .arg("-i")
                 .arg(&input_file)
                 .args(command_builder.build())
-                .arg(format!("{input_file}_out.mp4"))
+                .arg(&output_file)
                 .stdin(Stdio::null())
                 .stdout(Stdio::null())
                 .stderr(Stdio::piped())

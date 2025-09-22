@@ -1,3 +1,5 @@
+use tui_input::Input;
+
 use crate::params::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -5,6 +7,11 @@ pub(crate) enum Pane {
     Info,
     Params,
     Output,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) enum Modal {
+    SaveFileAs(Input),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

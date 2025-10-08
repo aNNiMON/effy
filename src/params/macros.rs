@@ -1,29 +1,17 @@
-macro_rules! struct_option {
-    ($type:ident) => {
-        ::lazy_static::lazy_static! {
-            static ref INSTANCES: Vec<$type> = {
-                let mut result = Vec::new();
-                for v in $type::VARIANTS.iter() {
-                    result.push($type::new(v.to_string()));
-                }
-                result
-            };
-        }
-
-        impl crate::params::SelectableOption for $type {
-            fn variants() -> &'static [Self] {
-                &INSTANCES
-            }
-
-            fn as_str(&self) -> String {
-                self.value.clone()
-            }
-
-            fn describe_self(&self) -> &'static str {
-                $type::NAME
-            }
+macro_rules! select_non_default_option {
+    ($data:expr) => {
+        if let ParameterData::Select {
+            options,
+            selected_index,
+        } = $data
+            && let Some(option) = options.get(*selected_index)
+            && option.value != Self::DEFAULT
+        {
+            Some(option)
+        } else {
+            None
         }
     };
 }
 
-pub(crate) use struct_option;
+pub(crate) use select_non_default_option;

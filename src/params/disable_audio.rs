@@ -1,34 +1,23 @@
 use crate::{
-    params::macros::struct_option,
-    visitors::{FFmpegParameter, FFmpegParameterVisitor},
+    params::{Parameter, ParameterData},
+    visitors::CommandBuilder,
 };
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct DisableAudio {
-    pub(crate) value: String,
-}
+pub(crate) struct DisableAudio {}
 
 impl DisableAudio {
     pub(crate) const NAME: &'static str = "Disable Audio";
-    pub(crate) const OFF: &'static str = "off";
-    pub(crate) const ON: &'static str = "on";
-    pub(crate) const VARIANTS: [&str; 2] = [Self::OFF, Self::ON];
 
-    pub const fn new(value: String) -> Self {
-        DisableAudio { value }
+    pub fn new_parameter() -> Parameter {
+        Parameter::new(Self::NAME, ParameterData::Toggle { value: false })
     }
 
-    pub fn default() -> Self {
-        DisableAudio {
-            value: Self::OFF.into(),
+    pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {
+        if let ParameterData::Toggle { value } = data
+            && *value
+        {
+            cb.discard_audio = true;
+            cb.args.push("-an".into());
         }
-    }
-}
-
-struct_option!(DisableAudio);
-
-impl FFmpegParameter for DisableAudio {
-    fn accept(&self, visitor: &mut dyn FFmpegParameterVisitor) {
-        visitor.visit_disable_audio(self);
     }
 }

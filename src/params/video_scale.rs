@@ -1,34 +1,36 @@
 use crate::{
-    params::macros::struct_option,
-    visitors::{FFmpegParameter, FFmpegParameterVisitor},
+    params::{Parameter, ParameterData, SelectOption, macros::select_non_default_option},
+    visitors::CommandBuilder,
 };
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct VideoScale {
-    pub(crate) value: String,
-}
+pub(crate) struct VideoScale {}
 
 impl VideoScale {
     pub(crate) const NAME: &'static str = "Video Scale";
-    pub(crate) const DEFAULT: &'static str = "original";
-    pub(crate) const VARIANTS: [&str; 7] =
-        ["144p", "240p", "360p", "original", "480p", "720p", "1080p"];
+    const DEFAULT: &'static str = "original";
+    const VARIANT_PAIRS: [(&str, &str); 7] = [
+        ("144p", "144"),
+        ("240p", "240"),
+        ("360p", "360"),
+        ("original", "original"),
+        ("480p", "480"),
+        ("720p", "720"),
+        ("1080p", "1080"),
+    ];
 
-    pub const fn new(value: String) -> Self {
-        VideoScale { value }
+    pub fn new_parameter() -> Parameter {
+        Parameter::new(
+            Self::NAME,
+            ParameterData::Select {
+                options: SelectOption::from_pairs(&Self::VARIANT_PAIRS),
+                selected_index: 4,
+            },
+        )
     }
 
-    pub fn default() -> Self {
-        VideoScale {
-            value: Self::DEFAULT.into(),
+    pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {
+        if let Some(option) = select_non_default_option!(data) {
+            cb.video_filters.push(format!("scale=-2:{}", option.value));
         }
-    }
-}
-
-struct_option!(VideoScale);
-
-impl FFmpegParameter for VideoScale {
-    fn accept(&self, visitor: &mut dyn FFmpegParameterVisitor) {
-        visitor.visit_video_scale(self);
     }
 }

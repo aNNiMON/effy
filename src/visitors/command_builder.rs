@@ -1,10 +1,10 @@
 use crate::{params::*, visitors::FFmpegParameterVisitor};
 
 pub(crate) struct CommandBuilder {
-    discard_audio: bool,
-    audio_filters: Vec<String>,
-    video_filters: Vec<String>,
-    args: Vec<String>,
+    pub(crate) discard_audio: bool,
+    pub(crate) audio_filters: Vec<String>,
+    pub(crate) video_filters: Vec<String>,
+    pub(crate) args: Vec<String>,
 }
 
 impl CommandBuilder {
@@ -33,74 +33,39 @@ impl CommandBuilder {
 }
 
 impl FFmpegParameterVisitor for CommandBuilder {
-    fn visit_disable_audio(&mut self, param: &DisableAudio) {
-        if param.value == DisableAudio::ON {
-            self.discard_audio = true;
-            self.args.push("-an".into());
-        }
+    fn visit_disable_audio(&mut self, data: &ParameterData) {
+        DisableAudio::build_command(self, data);
     }
 
-    fn visit_audio_bitrate(&mut self, param: &AudioBitrate) {
-        if !self.discard_audio && param.value != AudioBitrate::DEFAULT {
-            self.args.push("-b:a".into());
-            self.args.push(param.as_str());
-        }
+    fn visit_audio_bitrate(&mut self, data: &ParameterData) {
+        AudioBitrate::build_command(self, data);
     }
 
-    fn visit_audio_crystalizer(&mut self, param: &AudioCrystalizer) {
-        if !self.discard_audio && param.value != AudioCrystalizer::DEFAULT {
-            self.audio_filters
-                .push(format!("crystalizer={}", param.as_str()));
-        }
+    fn visit_audio_crystalizer(&mut self, data: &ParameterData) {
+        AudioCrystalizer::build_command(self, data);
     }
 
-    fn visit_audio_volume(&mut self, param: &AudioVolume) {
-        if !self.discard_audio && param.value != AudioVolume::DEFAULT {
-            self.audio_filters
-                .push(format!("volume={}", param.as_str()));
-        }
+    fn visit_audio_volume(&mut self, data: &ParameterData) {
+        AudioVolume::build_command(self, data);
     }
 
-    fn visit_audio_pitch(&mut self, param: &AudioPitch) {
-        if !self.discard_audio && param.value != AudioPitch::DEFAULT {
-            self.audio_filters.push(format!(
-                "rubberband=pitchq=quality:pitch={}",
-                param.as_str()
-            ));
-        }
+    fn visit_audio_pitch(&mut self, data: &ParameterData) {
+        AudioPitch::build_command(self, data);
     }
 
-    fn visit_speed_factor(&mut self, param: &SpeedFactor) {
-        if param.value != SpeedFactor::DEFAULT {
-            if !self.discard_audio {
-                self.audio_filters
-                    .push(format!("atempo={}", param.as_str()));
-            }
-            self.video_filters
-                .push(format!("setpts=PTS/{}", param.as_str()));
-        }
+    fn visit_speed_factor(&mut self, data: &ParameterData) {
+        SpeedFactor::build_command(self, data);
     }
 
-    fn visit_video_bitrate(&mut self, param: &VideoBitrate) {
-        if param.value != VideoBitrate::DEFAULT {
-            self.args.push("-b:v".into());
-            self.args.push(param.as_str());
-        }
+    fn visit_video_bitrate(&mut self, data: &ParameterData) {
+        VideoBitrate::build_command(self, data);
     }
 
-    fn visit_video_frame_rate(&mut self, param: &VideoFrameRate) {
-        if param.value != VideoFrameRate::DEFAULT {
-            self.args.push("-r".into());
-            self.args.push(param.as_str());
-        }
+    fn visit_video_frame_rate(&mut self, data: &ParameterData) {
+        VideoFrameRate::build_command(self, data);
     }
 
-    fn visit_video_scale(&mut self, param: &VideoScale) {
-        if param.value != VideoScale::DEFAULT {
-            self.video_filters.push(format!(
-                "scale=-2:{}",
-                param.as_str().strip_suffix('p').unwrap()
-            ));
-        }
+    fn visit_video_scale(&mut self, data: &ParameterData) {
+        VideoScale::build_command(self, data);
     }
 }

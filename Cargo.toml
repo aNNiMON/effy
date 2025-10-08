@@ -1,6 +1,6 @@
 [package]
 name = "effy"
-version = "0.1.0"
+version = "0.2.0"
 description = "FFmpeg TUI Helper"
 authors = ["aNNiMON <annimon119@gmail.com>"]
 license = "MIT"

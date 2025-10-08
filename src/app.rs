@@ -2,7 +2,7 @@ use std::io::{BufReader, Read};
 use std::path::Path;
 use std::process::{Command, Stdio};
 use std::sync::mpsc::{Receiver, Sender};
-use std::thread;
+use std::{mem, thread};
 
 use color_eyre::Result;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
@@ -11,8 +11,8 @@ use tui_input::Input;
 use tui_input::backend::crossterm::EventHandler;
 
 use crate::info::Info;
-use crate::model::{AppEvent, Modal, Pane, Param};
-use crate::params::{apply_visitor, create_params, recheck_params};
+use crate::model::{AppEvent, Modal, Pane};
+use crate::params::{Parameter, apply_visitor, create_params, recheck_params};
 use crate::visitors::CommandBuilder;
 
 pub(crate) struct App {
@@ -27,7 +27,7 @@ pub(crate) struct App {
     pub(crate) info_pane_current_line: u16,
     pub(crate) output: String,
     pub(crate) output_pane_current_line: u16,
-    pub(crate) params: Vec<(bool, Param)>,
+    pub(crate) params: Vec<Parameter>,
     pub(crate) params_list_state: ListState,
     pub(crate) modal: Option<Modal>,
     save_ongoing: bool,
@@ -193,21 +193,21 @@ impl App {
 
     fn prev_option(&mut self) {
         if let Some(selected) = self.params_list_state.selected()
-            && let Some((true, param)) = self.params.get(selected).cloned()
+            && let Some(mut param) = self.params.get_mut(selected).map(mem::take)
         {
-            let new_param = param.toggle_prev();
-            recheck_params(&mut self.params, &new_param);
-            self.params[selected] = (true, new_param);
+            param.toggle_prev();
+            recheck_params(&mut self.params, &param);
+            self.params[selected] = param;
         }
     }
 
     fn next_option(&mut self) {
         if let Some(selected) = self.params_list_state.selected()
-            && let Some((true, param)) = self.params.get(selected).cloned()
+            && let Some(mut param) = self.params.get_mut(selected).map(mem::take)
         {
-            let new_param = param.toggle_next();
-            recheck_params(&mut self.params, &new_param);
-            self.params[selected] = (true, new_param);
+            param.toggle_next();
+            recheck_params(&mut self.params, &param);
+            self.params[selected] = param;
         }
     }
 
@@ -227,7 +227,7 @@ impl App {
         self.save_ongoing = true;
 
         let mut command_builder = CommandBuilder::new();
-        apply_visitor(&mut command_builder, self.params.clone());
+        apply_visitor(&mut command_builder, &self.params);
         self.output_pane_current_line = 0;
         self.output = "Starting FFmpeg...\n".to_string();
 

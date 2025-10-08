@@ -52,12 +52,12 @@ impl Widget for &App {
             } else {
                 (default_style, Color::Gray)
             };
-            let items = self.params.iter().map(|(enabled, param)| {
-                if *enabled {
+            let items = self.params.iter().map(|param| {
+                if param.enabled {
                     Line::from(vec![
-                        Span::styled(param.get_name(), highlighted_style),
+                        Span::styled(param.name.clone(), highlighted_style),
                         Span::raw(": "),
-                        Span::styled(param.as_str(), Style::default().yellow()),
+                        Span::styled(param.describe_value(), Style::default().yellow()),
                     ])
                 } else {
                     Line::styled(param.describe(), default_style)

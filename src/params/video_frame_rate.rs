@@ -1,33 +1,29 @@
 use crate::{
-    params::macros::struct_option,
-    visitors::{FFmpegParameter, FFmpegParameterVisitor},
+    params::{Parameter, ParameterData, SelectOption, macros::select_non_default_option},
+    visitors::CommandBuilder,
 };
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct VideoFrameRate {
-    pub(crate) value: String,
-}
+pub(crate) struct VideoFrameRate {}
 
 impl VideoFrameRate {
     pub(crate) const NAME: &'static str = "Video Frame Rate";
-    pub(crate) const DEFAULT: &'static str = "original";
-    pub(crate) const VARIANTS: [&str; 8] = ["5", "10", "15", "20", "original", "30", "45", "60"];
+    const DEFAULT: &'static str = "original";
+    const VARIANTS: [&str; 8] = ["5", "10", "15", "20", "original", "30", "45", "60"];
 
-    pub const fn new(value: String) -> Self {
-        VideoFrameRate { value }
+    pub fn new_parameter() -> Parameter {
+        Parameter::new(
+            Self::NAME,
+            ParameterData::Select {
+                options: SelectOption::from_slice(&Self::VARIANTS),
+                selected_index: 4,
+            },
+        )
     }
 
-    pub fn default() -> Self {
-        VideoFrameRate {
-            value: Self::DEFAULT.into(),
+    pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {
+        if let Some(option) = select_non_default_option!(data) {
+            cb.args.push("-r".into());
+            cb.args.push(option.value.clone());
         }
-    }
-}
-
-struct_option!(VideoFrameRate);
-
-impl FFmpegParameter for VideoFrameRate {
-    fn accept(&self, visitor: &mut dyn FFmpegParameterVisitor) {
-        visitor.visit_video_frame_rate(self);
     }
 }

@@ -1,35 +1,32 @@
 use crate::{
-    params::macros::struct_option,
-    visitors::{FFmpegParameter, FFmpegParameterVisitor},
+    params::{Parameter, ParameterData, SelectOption, macros::select_non_default_option},
+    visitors::CommandBuilder,
 };
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct AudioVolume {
-    pub(crate) value: String,
-}
+pub(crate) struct AudioVolume {}
 
 impl AudioVolume {
     pub(crate) const NAME: &'static str = "Audio Volume";
-    pub(crate) const DEFAULT: &'static str = "original";
-    pub(crate) const VARIANTS: [&str; 11] = [
+    const DEFAULT: &'static str = "original";
+    const VARIANTS: [&str; 11] = [
         "-15dB", "-10dB", "-5dB", "-2dB", "original", "2dB", "5dB", "10dB", "15dB", "30dB", "50dB",
     ];
 
-    pub const fn new(value: String) -> Self {
-        AudioVolume { value }
+    pub fn new_parameter() -> Parameter {
+        Parameter::new(
+            Self::NAME,
+            ParameterData::Select {
+                options: SelectOption::from_slice(&Self::VARIANTS),
+                selected_index: 4,
+            },
+        )
     }
 
-    pub fn default() -> Self {
-        AudioVolume {
-            value: Self::DEFAULT.into(),
+    pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {
+        if !cb.discard_audio
+            && let Some(option) = select_non_default_option!(data)
+        {
+            cb.audio_filters.push(format!("volume={}", option.value));
         }
-    }
-}
-
-struct_option!(AudioVolume);
-
-impl FFmpegParameter for AudioVolume {
-    fn accept(&self, visitor: &mut dyn FFmpegParameterVisitor) {
-        visitor.visit_audio_volume(self);
     }
 }

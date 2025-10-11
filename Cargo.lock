@@ -231,7 +231,7 @@ dependencies = [
 
 [[package]]
 name = "effy"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "color-eyre",
  "crossterm 0.29.0",

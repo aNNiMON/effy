@@ -1,7 +1,8 @@
 [package]
 name = "effy"
-version = "0.2.0"
+version = "0.2.1"
 description = "FFmpeg TUI Helper"
+keywords = ["ffmpeg", "tui", "ratatui"]
 authors = ["aNNiMON <annimon119@gmail.com>"]
 license = "MIT"
 edition = "2024"

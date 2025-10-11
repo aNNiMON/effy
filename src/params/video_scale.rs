@@ -1,6 +1,6 @@
 use crate::{
     params::{Parameter, ParameterData, SelectOption, macros::select_non_default_option},
-    visitors::CommandBuilder,
+    visitors::{CommandBuilder, HWAccel},
 };
 
 pub(crate) struct VideoScale {}
@@ -30,7 +30,13 @@ impl VideoScale {
 
     pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {
         if let Some(option) = select_non_default_option!(data) {
-            cb.video_filters.push(format!("scale=-2:{}", option.value));
+            // Use nvenc cuda scale only if there is no other video filter
+            if (cb.hwaccel == HWAccel::Nvenc) && (cb.video_filters.is_empty()) {
+                cb.video_filters
+                    .push(format!("scale_cuda=-2:{}", option.value))
+            } else {
+                cb.video_filters.push(format!("scale=-2:{}", option.value))
+            }
         }
     }
 }

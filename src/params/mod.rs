@@ -6,6 +6,7 @@ mod audio_crystalizer;
 mod audio_pitch;
 mod audio_volume;
 mod disable_audio;
+mod hardware_acceleration;
 mod speed_factor;
 mod video_bitrate;
 mod video_frame_rate;
@@ -16,6 +17,7 @@ pub(crate) use audio_crystalizer::*;
 pub(crate) use audio_pitch::*;
 pub(crate) use audio_volume::*;
 pub(crate) use disable_audio::*;
+pub(crate) use hardware_acceleration::*;
 pub(crate) use parameter::{Parameter, ParameterData, SelectOption};
 pub(crate) use speed_factor::*;
 pub(crate) use video_bitrate::*;
@@ -40,6 +42,7 @@ pub(crate) fn create_params(info: &Info) -> Vec<Parameter> {
         params.push(VideoBitrate::new_parameter());
         params.push(VideoFrameRate::new_parameter());
         params.push(VideoScale::new_parameter());
+        params.push(HardwareAcceleration::new_parameter());
     }
     params
 }
@@ -77,6 +80,7 @@ pub(crate) fn apply_visitor(visitor: &mut dyn FFmpegParameterVisitor, params: &[
             VideoBitrate::NAME => visitor.visit_video_bitrate(&param.data),
             VideoFrameRate::NAME => visitor.visit_video_frame_rate(&param.data),
             VideoScale::NAME => visitor.visit_video_scale(&param.data),
+            HardwareAcceleration::NAME => visitor.visit_hardware_acceleration(&param.data),
             _ => continue,
         }
     }

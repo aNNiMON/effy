@@ -235,7 +235,6 @@ version = "0.2.0"
 dependencies = [
  "color-eyre",
  "crossterm 0.29.0",
- "lazy_static",
  "ratatui",
  "serde",
  "serde_json",

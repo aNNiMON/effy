@@ -23,7 +23,7 @@ impl VideoScale {
             Self::NAME,
             ParameterData::Select {
                 options: SelectOption::from_pairs(&Self::VARIANT_PAIRS),
-                selected_index: 4,
+                selected_index: 3,
             },
         )
     }

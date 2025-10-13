@@ -13,6 +13,7 @@ pub(crate) struct CommandBuilder {
 pub(crate) enum HWAccel {
     None,
     Nvenc,
+    Qsv,
 }
 
 impl CommandBuilder {

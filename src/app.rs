@@ -13,13 +13,14 @@ use tui_input::backend::crossterm::EventHandler;
 use crate::info::Info;
 use crate::model::{AppEvent, Modal, Pane};
 use crate::params::{Parameter, apply_visitor, create_params, recheck_params};
+use crate::source::Source;
 use crate::visitors::CommandBuilder;
 
 pub(crate) struct App {
     running: bool,
     event_sender: Sender<AppEvent>,
     pub(crate) current_pane: Pane,
-    pub(crate) input_file: String,
+    pub(crate) source: Source,
     pub(crate) output_folder: String,
     pub(crate) output_filename: String,
     pub(crate) output_fileext: String,
@@ -34,32 +35,19 @@ pub(crate) struct App {
 }
 
 impl App {
-    pub fn new(tx: Sender<AppEvent>, info: Info, input_file: String) -> Self {
+    pub fn new(tx: Sender<AppEvent>, info: Info, source: Source) -> Self {
         let mut list_state = ListState::default();
         list_state.select(Some(0));
-
-        let input_path = Path::new(&input_file);
-        let output_folder = input_path
-            .parent()
-            .unwrap_or_else(|| Path::new("."))
-            .to_string_lossy();
-        let output_filename = input_path
-            .file_stem()
-            .unwrap_or_else(|| input_path.file_name().unwrap())
-            .to_string_lossy();
-        let output_fileext = input_path
-            .extension()
-            .unwrap_or_else(|| "mp4".as_ref())
-            .to_string_lossy();
-
-        App {
+        let folder = source.input_folder();
+        let (filename, fileext) = source.input_name_and_ext();
+        Self {
             running: false,
             event_sender: tx,
             current_pane: Pane::Params,
-            input_file: input_file.clone(),
-            output_folder: output_folder.to_string(),
-            output_filename: format!("{output_filename}_out"),
-            output_fileext: output_fileext.to_string(),
+            source,
+            output_folder: folder,
+            output_filename: format!("{filename}_out"),
+            output_fileext: fileext.to_string(),
             info_text: info.format(),
             info_pane_current_line: 0,
             output: "".to_string(),
@@ -231,7 +219,7 @@ impl App {
         self.output_pane_current_line = 0;
         self.output = "Starting FFmpeg...\n".to_string();
 
-        let input_file = self.input_file.clone();
+        let input = self.source.input.clone();
         let output_file = format!(
             "{}/{}.{}",
             self.output_folder, self.output_filename, self.output_fileext
@@ -243,7 +231,7 @@ impl App {
                 .arg("-hide_banner")
                 .args(command_builder.build_pre_input_args())
                 .arg("-i")
-                .arg(&input_file)
+                .arg(&input)
                 .args(command_builder.build_args())
                 .arg(&output_file)
                 .stdin(Stdio::null())

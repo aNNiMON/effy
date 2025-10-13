@@ -6,12 +6,13 @@ use std::{
 use app::App;
 use crossterm::event::{Event, KeyEventKind};
 
-use crate::model::AppEvent;
+use crate::{model::AppEvent, source::Source};
 
 mod app;
 mod info;
 mod model;
 mod params;
+mod source;
 mod ui;
 mod visitors;
 
@@ -23,12 +24,13 @@ fn main() -> color_eyre::Result<()> {
         eprintln!("Usage: {} input", args[0]);
         std::process::exit(1);
     }
-    let input = &args[1];
-    if std::fs::metadata(input).is_err() {
-        eprintln!("Error: File '{input}' does not exist");
+    let source = Source::new(args[1].clone());
+    source.validate().map_err(|e| {
+        eprintln!("Error: {e}");
         std::process::exit(1);
-    }
-    let ffprobe_info = match info::get_info(input.clone()) {
+    })?;
+
+    let ffprobe_info = match info::get_info(source.input.clone()) {
         Ok(info) => info,
         Err(e) => {
             eprintln!("Error getting ffprobe info: {e}");
@@ -41,7 +43,7 @@ fn main() -> color_eyre::Result<()> {
     let event_tx = tx.clone();
     thread::spawn(move || handle_crossterm_events(event_tx));
 
-    let result = App::new(tx, ffprobe_info, input.clone()).run(terminal, rx);
+    let result = App::new(tx, ffprobe_info, source).run(terminal, rx);
     ratatui::restore();
     result
 }

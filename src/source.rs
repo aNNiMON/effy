@@ -32,11 +32,12 @@ impl Source {
 
     pub(crate) fn input_folder(&self) -> String {
         match self.source_type {
-            SourceType::Url => ".".to_string(),
+            SourceType::Url => ".".into(),
             SourceType::File => Path::new(&self.input)
                 .parent()
-                .unwrap_or_else(|| Path::new("."))
-                .to_string_lossy()
+                .map(|p| p.to_string_lossy())
+                .map(|p| if p.is_empty() { ".".into() } else { p })
+                .unwrap_or_else(|| ".".into())
                 .to_string(),
         }
     }

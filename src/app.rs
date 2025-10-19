@@ -119,10 +119,10 @@ impl App {
                 if key.code == KeyCode::Esc {
                     self.modal = None;
                 } else if key.code == KeyCode::Enter {
-                    let filename = input.value();
-                    let valid = !filename.trim().is_empty() && !Path::new(filename).exists();
+                    let filename = input.value().trim();
+                    let valid = !filename.is_empty() && !Path::new(filename).exists();
                     if valid {
-                        self.output_filename = input.value().to_string();
+                        self.output_filename = filename.to_string();
                         self.save();
                     }
                 } else {

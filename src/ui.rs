@@ -1,5 +1,5 @@
 use ratatui::{
-    layout::{Constraint, Direction, Layout, Margin, Position, Rect},
+    layout::{Constraint, Direction, Flex, Layout, Margin, Position},
     style::{Color, Style, Stylize},
     symbols,
     text::{Line, Span},
@@ -160,25 +160,37 @@ impl Widget for &App {
 impl Modal {
     pub(crate) fn render(&self, frame: &mut ratatui::prelude::Frame) {
         match self {
-            // todo text scroll
             Modal::SaveFileAs(input) => {
                 let area = frame.area();
-                let input_left = area.width / 2 - area.width / 6;
-                let input_top = area.height / 2 - 2;
-                let input_area = Rect {
-                    x: input_left,
-                    y: input_top,
-                    width: area.width / 3,
-                    height: 3,
-                };
+                let [input_area] = Layout::vertical([Constraint::Length(3)])
+                    .horizontal_margin(area.width / 5)
+                    .flex(Flex::Center)
+                    .areas(area);
+
+                let block = Block::bordered()
+                    .border_set(symbols::border::THICK)
+                    .title("New filename")
+                    .fg(Color::Blue);
                 Clear.render(input_area, frame.buffer_mut());
-                Paragraph::new(input.value())
+
+                let width = input_area.width.max(3) - 3;
+                let scroll = input.visual_scroll(width as usize);
+                let display_value = input
+                    .value()
+                    .chars()
+                    .skip(scroll)
+                    .take(width as usize)
+                    .collect::<String>();
+
+                Paragraph::new(display_value)
                     .style(Style::new().white())
-                    .block(Block::bordered().title("New filename").fg(Color::Blue))
+                    .block(block)
                     .render(input_area, frame.buffer_mut());
+
+                let x = input.visual_cursor().max(scroll) - scroll + 1;
                 frame.set_cursor_position(Position {
-                    x: input_left + 1 + input.cursor() as u16,
-                    y: input_top + 1,
+                    x: input_area.x + x as u16,
+                    y: input_area.y + 1,
                 });
             }
         }

@@ -1,5 +1,6 @@
 use ratatui::{
-    layout::{Constraint, Direction, Flex, Layout, Margin, Position},
+    Frame,
+    layout::{Constraint, Direction, Flex, Layout, Margin, Position, Rect},
     style::{Color, Style, Stylize},
     symbols,
     text::{Line, Span},
@@ -12,7 +13,7 @@ use ratatui::{
 use crate::{app::App, model::Modal, model::Pane};
 
 impl Widget for &App {
-    fn render(self, area: ratatui::prelude::Rect, buf: &mut ratatui::prelude::Buffer)
+    fn render(self, area: Rect, buf: &mut ratatui::prelude::Buffer)
     where
         Self: Sized,
     {
@@ -162,16 +163,15 @@ impl Modal {
         match self {
             Modal::SaveFileAs(input) => {
                 let area = frame.area();
-                let [input_area] = Layout::vertical([Constraint::Length(3)])
+                let [modal_area] = Layout::vertical([Constraint::Length(6)])
                     .horizontal_margin(area.width / 5)
                     .flex(Flex::Center)
                     .areas(area);
-
-                let block = Block::bordered()
-                    .border_set(symbols::border::THICK)
-                    .title("New filename")
-                    .fg(Color::Blue);
-                Clear.render(input_area, frame.buffer_mut());
+                let [input_area, hints_area] =
+                    Layout::vertical([Constraint::Length(3), Constraint::Length(1)])
+                        .horizontal_margin(2)
+                        .vertical_margin(1)
+                        .areas(modal_area);
 
                 let width = input_area.width.max(3) - 3;
                 let scroll = input.visual_scroll(width as usize);
@@ -182,10 +182,17 @@ impl Modal {
                     .take(width as usize)
                     .collect::<String>();
 
+                Clear.render(modal_area, frame.buffer_mut());
+                Block::bordered()
+                    .border_set(symbols::border::THICK)
+                    .title("Render as")
+                    .fg(Color::Blue)
+                    .render(modal_area, frame.buffer_mut());
                 Paragraph::new(display_value)
                     .style(Style::new().white())
-                    .block(block)
+                    .block(Block::bordered().gray().dim())
                     .render(input_area, frame.buffer_mut());
+                Self::render_input_hints(hints_area, frame);
 
                 let x = input.visual_cursor().max(scroll) - scroll + 1;
                 frame.set_cursor_position(Position {
@@ -194,5 +201,15 @@ impl Modal {
                 });
             }
         }
+    }
+
+    fn render_input_hints(area: Rect, frame: &mut Frame) {
+        let parts = Line::from(vec![
+            "Enter".gray().bold(),
+            ": confirm  ".gray(),
+            "Esc".gray().bold(),
+            ": close".gray(),
+        ]);
+        Paragraph::new(parts).render(area, frame.buffer_mut());
     }
 }

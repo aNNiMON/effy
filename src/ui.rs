@@ -132,17 +132,22 @@ impl Widget for &App {
             let mut lines = vec![
                 Span::styled(" Tab", keystyle),
                 Span::raw(": switch tab  "),
-                Span::styled(" C-s", keystyle),
+                Span::styled("C", keystyle.underlined()),
+                Span::styled("-s", keystyle),
                 Span::raw(": render  "),
-                Span::styled(" ↑/↓/k/j", keystyle),
+                Span::styled("↑/↓/k/j", keystyle),
                 Span::raw(": navigate  "),
             ];
             if matches!(self.current_pane, Pane::Params) {
-                lines.push(Span::styled("←/→/h/l", keystyle));
-                lines.push(Span::raw(": toggle parameter  "));
+                lines.append(&mut vec![
+                    Span::styled("←/→/h/l", keystyle),
+                    Span::raw(": toggle parameter  "),
+                ]);
             }
-            lines.push(Span::styled("q/Esc", keystyle));
-            lines.push(Span::raw(": quit"));
+            lines.append(&mut vec![
+                Span::styled("q/Esc", keystyle),
+                Span::raw(": quit"),
+            ]);
 
             let lines = Line::from(lines);
             Paragraph::new(lines)

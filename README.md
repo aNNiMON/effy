@@ -5,18 +5,31 @@ TUI FFmpeg helper
 ## Features
 
 - change a video resolution, bitrate, frame rate, speed
-- change an audio bitrate, volume, pitch
-- apply audio effects
+- change an audio bitrate, volume, pitch, tempo
+- apply audio effects (crystalizer)
 - remove audio from the video
 
 ## Usage
 
 > [!IMPORTANT]
-> `ffmpeg` and `ffprobe` must be installed and available in the `PATH` env variable 
+> `ffmpeg` and `ffprobe` must be [installed](https://ffmpeg.org/download.html) and available in the `PATH` env variable 
 
 ```bash
 effy input.mp4
+effy "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
 ```
+
+## Install
+
+Download pre-compiled binaries from [Releases](https://github.com/aNNiMON/effy/releases)
+
+Or compile from source:
+
+1. Install [Rustup](https://rustup.rs/)
+2. Clone this repo
+3. `cargo build --release`
+4. Navigate to `./target/release` and look for `effy` binary
+
 
 ## Telegram bot
 

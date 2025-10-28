@@ -8,14 +8,16 @@ pub(crate) struct VideoFrameRate {}
 impl VideoFrameRate {
     pub(crate) const NAME: &'static str = "Video Frame Rate";
     const DEFAULT: &'static str = "original";
-    const VARIANTS: [&str; 8] = ["5", "10", "15", "20", "original", "30", "45", "60"];
+    const VARIANTS: [&str; 10] = [
+        "5", "10", "15", "20", "24", "25", "original", "30", "50", "60",
+    ];
 
     pub fn new_parameter() -> Parameter {
         Parameter::new(
             Self::NAME,
             ParameterData::Select {
                 options: SelectOption::from_slice(&Self::VARIANTS),
-                selected_index: 4,
+                selected_index: 6,
             },
         )
     }

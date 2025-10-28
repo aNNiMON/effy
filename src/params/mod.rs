@@ -30,6 +30,9 @@ use crate::{info::Info, visitors::FFmpegParameterVisitor};
 
 pub(crate) fn create_params(info: &Info) -> Vec<Parameter> {
     let mut params: Vec<Parameter> = Vec::new();
+    if info.has_non_empty_duration() {
+        params.push(Trim::new_parameter());
+    }
     if info.has_audio() && info.has_video() {
         params.push(DisableAudio::new_parameter());
     }
@@ -73,6 +76,7 @@ pub(crate) fn apply_visitor(visitor: &mut dyn FFmpegParameterVisitor, params: &[
             continue;
         }
         match param.id {
+            Trim::NAME => visitor.visit_trim(&param.data),
             DisableAudio::NAME => visitor.visit_disable_audio(&param.data),
             AudioVolume::NAME => visitor.visit_audio_volume(&param.data),
             AudioBitrate::NAME => visitor.visit_audio_bitrate(&param.data),

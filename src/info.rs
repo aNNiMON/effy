@@ -52,6 +52,17 @@ impl Info {
         self.has_stream_type("video")
     }
 
+    pub fn has_non_empty_duration(&self) -> bool {
+        self.get_duration().is_some_and(|dur| dur > 0.0)
+    }
+
+    pub fn get_duration(&self) -> Option<f64> {
+        self.format
+            .duration
+            .as_deref()
+            .and_then(|dur_str| dur_str.parse::<f64>().ok())
+    }
+
     fn has_stream_type(&self, stream_type: &str) -> bool {
         if self.format.nb_streams == 0 {
             false

@@ -48,6 +48,10 @@ impl CommandBuilder {
 }
 
 impl FFmpegParameterVisitor for CommandBuilder {
+    fn visit_trim(&mut self, data: &ParameterData) {
+        Trim::build_command(self, data);
+    }
+
     fn visit_disable_audio(&mut self, data: &ParameterData) {
         DisableAudio::build_command(self, data);
     }

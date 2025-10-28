@@ -97,6 +97,7 @@ impl App {
         match (self.current_pane, key.modifiers, key.code) {
             (_, _, KeyCode::Esc | KeyCode::Char('q'))
             | (_, KeyModifiers::CONTROL, KeyCode::Char('c') | KeyCode::Char('C')) => self.quit(),
+            (_, _, KeyCode::BackTab) => self.prev_pane(),
             (_, _, KeyCode::Tab) => self.next_pane(),
             (_, KeyModifiers::CONTROL, KeyCode::Char('s')) => self.save(),
             (_, _, KeyCode::Char('s')) => {
@@ -134,6 +135,9 @@ impl App {
             }
             Some(Modal::Trim(trim_view)) => match key.code {
                 KeyCode::Esc => self.modal = None,
+                KeyCode::BackTab => {
+                    trim_view.active_input = (trim_view.active_input + 3) % 4;
+                }
                 KeyCode::Tab => {
                     trim_view.active_input = (trim_view.active_input + 1) % 4;
                 }
@@ -240,6 +244,14 @@ impl App {
             recheck_params(&mut self.params, &param);
             self.params[selected] = param;
         }
+    }
+
+    fn prev_pane(&mut self) {
+        self.current_pane = match self.current_pane {
+            Pane::Info => Pane::Output,
+            Pane::Params => Pane::Info,
+            Pane::Output => Pane::Params,
+        };
     }
 
     fn next_pane(&mut self) {

@@ -1,6 +1,6 @@
 use ratatui::{
     Frame,
-    layout::{Constraint, Direction, Flex, Layout, Margin, Position, Rect},
+    layout::{Alignment, Constraint, Direction, Flex, Layout, Margin, Position, Rect},
     style::{Color, Style, Stylize},
     symbols,
     text::{Line, Span},
@@ -9,6 +9,7 @@ use ratatui::{
         StatefulWidget, Widget,
     },
 };
+use tui_input::Input;
 
 use crate::{app::App, model::Modal, model::Pane};
 
@@ -205,6 +206,74 @@ impl Modal {
                     y: input_area.y + 1,
                 });
             }
+            Modal::Trim(trim_view) => {
+                let area = frame.area();
+                let [modal_area] = Layout::vertical([Constraint::Length(8)])
+                    .horizontal_margin(area.width / 5)
+                    .flex(Flex::Center)
+                    .areas(area);
+                let [inputs_area, chackbox_area, hints_area] = Layout::vertical([
+                    Constraint::Length(3),
+                    Constraint::Length(2),
+                    Constraint::Length(1),
+                ])
+                .flex(Flex::SpaceBetween)
+                .areas(modal_area.inner(Margin::new(2, 1)));
+
+                let [ss_area, to_area] =
+                    Layout::horizontal([Constraint::Fill(1), Constraint::Fill(1)])
+                        .areas(inputs_area);
+                let [precise_area, use_to_area] =
+                    Layout::horizontal([Constraint::Fill(1), Constraint::Fill(1)])
+                        .areas(chackbox_area);
+
+                let (ss_value, ss_x) = Self::input_value_and_pos(&trim_view.ss, ss_area.width);
+                let (to_value, to_x) = Self::input_value_and_pos(&trim_view.to, to_area.width);
+
+                let active_border_style = Style::new().blue();
+                let inactive_border_style = Style::new().gray();
+
+                Clear.render(modal_area, frame.buffer_mut());
+                Block::bordered()
+                    .border_set(symbols::border::THICK)
+                    .title("Trim")
+                    .fg(Color::Blue)
+                    .render(modal_area, frame.buffer_mut());
+
+                let mut borders = [inactive_border_style; 4];
+                borders[trim_view.active_input] = active_border_style;
+                // Inputs
+                Paragraph::new(ss_value)
+                    .block(Block::bordered().style(borders[0]).title("Start".blue()))
+                    .render(ss_area, frame.buffer_mut());
+                let to_title = if trim_view.use_to { "To" } else { "Duration" };
+                Paragraph::new(to_value)
+                    .block(Block::bordered().style(borders[1]).title(to_title.blue()))
+                    .render(to_area, frame.buffer_mut());
+                if trim_view.active_input <= 1 {
+                    let (x, y) = if trim_view.active_input == 0 {
+                        (ss_area.x + ss_x, ss_area.y + 1)
+                    } else {
+                        (to_area.x + to_x, to_area.y + 1)
+                    };
+                    frame.set_cursor_position(Position { x, y });
+                }
+                // Checkboxes
+                let precise_line =
+                    Self::checkbox_line(trim_view.precise, "Precise", trim_view.active_input == 2);
+                Paragraph::new(precise_line)
+                    .alignment(Alignment::Center)
+                    .render(precise_area, frame.buffer_mut());
+                let use_to_line = Self::checkbox_line(
+                    trim_view.use_to,
+                    "Use Duration/To",
+                    trim_view.active_input == 3,
+                );
+                Paragraph::new(use_to_line)
+                    .alignment(Alignment::Center)
+                    .render(use_to_area, frame.buffer_mut());
+                Self::render_input_hints(hints_area, frame);
+            }
         }
     }
 
@@ -216,5 +285,32 @@ impl Modal {
             ": close".gray(),
         ]);
         Paragraph::new(parts).render(area, frame.buffer_mut());
+    }
+
+    fn input_value_and_pos(input: &Input, width: u16) -> (String, u16) {
+        let scroll = input.visual_scroll(width as usize).max(3) - 3;
+        let display_value = input
+            .value()
+            .chars()
+            .skip(scroll)
+            .take(width as usize)
+            .collect::<String>();
+        let pos = input.visual_cursor().max(scroll) - scroll + 1;
+        (display_value, pos as u16)
+    }
+
+    fn checkbox_line(checked: bool, label: &str, active: bool) -> Line<'_> {
+        let mut line = Line::from(vec![
+            if checked {
+                "[■]".green()
+            } else {
+                "[ ]".gray()
+            },
+            format!(" {}", label).gray(),
+        ]);
+        if active {
+            line = line.bg(Color::DarkGray);
+        }
+        line
     }
 }

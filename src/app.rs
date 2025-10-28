@@ -5,14 +5,14 @@ use std::sync::mpsc::{Receiver, Sender};
 use std::{mem, thread};
 
 use color_eyre::Result;
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
 use ratatui::{DefaultTerminal, Frame, widgets::ListState};
 use tui_input::Input;
 use tui_input::backend::crossterm::EventHandler;
 
 use crate::info::Info;
-use crate::model::{AppEvent, Modal, Pane};
-use crate::params::{Parameter, apply_visitor, create_params, recheck_params};
+use crate::model::{AppEvent, Modal, Pane, TrimView};
+use crate::params::{Parameter, ParameterData, Trim, apply_visitor, create_params, recheck_params};
 use crate::source::Source;
 use crate::visitors::CommandBuilder;
 
@@ -68,6 +68,9 @@ impl App {
                 Ok(AppEvent::AddOutput(output)) => self.add_output(output),
                 Ok(AppEvent::SaveCompleted(success)) => self.on_save_complete(success),
                 Ok(AppEvent::Redraw) => {}
+                Ok(AppEvent::OpenTrimModal(data)) => {
+                    self.modal = Some(Modal::Trim(TrimView::from_data(data)))
+                }
                 Err(_) => {}
             }
         }
@@ -126,9 +129,49 @@ impl App {
                         self.save();
                     }
                 } else {
-                    input.handle_event(&crossterm::event::Event::Key(key));
+                    input.handle_event(&Event::Key(key));
                 }
             }
+            Some(Modal::Trim(trim_view)) => match key.code {
+                KeyCode::Esc => self.modal = None,
+                KeyCode::Tab => {
+                    trim_view.active_input = (trim_view.active_input + 1) % 4;
+                }
+                KeyCode::Char(x) => {
+                    match (trim_view.active_input, x) {
+                        (0, '0'..='9' | '.' | ':') if trim_view.ss.value().len() < 8 => {
+                            trim_view.ss.handle_event(&Event::Key(key));
+                        }
+                        (1, '0'..='9' | '.' | ':') if trim_view.to.value().len() < 8 => {
+                            trim_view.to.handle_event(&Event::Key(key));
+                        }
+                        (2, ' ') => trim_view.precise = !trim_view.precise,
+                        (3, ' ') => trim_view.use_to = !trim_view.use_to,
+                        _ => {}
+                    };
+                }
+                KeyCode::Backspace | KeyCode::Delete => match trim_view.active_input {
+                    0 => {
+                        trim_view.ss.handle_event(&Event::Key(key));
+                    }
+                    1 => {
+                        trim_view.to.handle_event(&Event::Key(key));
+                    }
+                    _ => {}
+                },
+                KeyCode::Enter => {
+                    if let Some(param) = self.params.iter_mut().find(|p| p.id == Trim::NAME)
+                        && let ParameterData::Trim(data) = &mut param.data
+                    {
+                        data.ss = Some(trim_view.ss.value_and_reset()).filter(|s| !s.is_empty());
+                        data.to = Some(trim_view.to.value_and_reset()).filter(|s| !s.is_empty());
+                        data.use_to = trim_view.use_to;
+                        data.precise = trim_view.precise;
+                    }
+                    self.modal = None;
+                }
+                _ => {}
+            },
             None => {}
         }
     }
@@ -183,7 +226,7 @@ impl App {
         if let Some(selected) = self.params_list_state.selected()
             && let Some(mut param) = self.params.get_mut(selected).map(mem::take)
         {
-            param.toggle_prev();
+            param.toggle_prev(&self.event_sender);
             recheck_params(&mut self.params, &param);
             self.params[selected] = param;
         }
@@ -193,7 +236,7 @@ impl App {
         if let Some(selected) = self.params_list_state.selected()
             && let Some(mut param) = self.params.get_mut(selected).map(mem::take)
         {
-            param.toggle_next();
+            param.toggle_next(&self.event_sender);
             recheck_params(&mut self.params, &param);
             self.params[selected] = param;
         }

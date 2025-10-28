@@ -1,3 +1,7 @@
+use std::sync::mpsc::Sender;
+
+use crate::model::{AppEvent, TrimData};
+
 #[derive(Debug, Clone)]
 pub(crate) struct SelectOption {
     pub(crate) name: String,
@@ -34,6 +38,7 @@ pub(crate) enum ParameterData {
     Toggle {
         value: bool,
     },
+    Trim(TrimData),
 }
 
 pub(crate) struct Parameter {
@@ -53,7 +58,7 @@ impl Parameter {
         }
     }
 
-    pub(crate) fn toggle_prev(&mut self) {
+    pub(crate) fn toggle_prev(&mut self, event_sender: &Sender<AppEvent>) {
         if !self.enabled {
             return;
         }
@@ -74,10 +79,13 @@ impl Parameter {
                     *selected_index -= 1;
                 }
             }
+            ParameterData::Trim(data) => {
+                let _ = event_sender.send(AppEvent::OpenTrimModal(data.clone()));
+            }
         }
     }
 
-    pub(crate) fn toggle_next(&mut self) {
+    pub(crate) fn toggle_next(&mut self, event_sender: &Sender<AppEvent>) {
         if !self.enabled {
             return;
         }
@@ -98,6 +106,9 @@ impl Parameter {
                     *selected_index += 1;
                 }
             }
+            ParameterData::Trim(data) => {
+                let _ = event_sender.send(AppEvent::OpenTrimModal(data.clone()));
+            }
         }
     }
 
@@ -113,6 +124,15 @@ impl Parameter {
                 } else {
                     String::new()
                 }
+            }
+            ParameterData::Trim(data) => {
+                format!(
+                    "{}{}..{}{}",
+                    if data.precise { "!" } else { "~" },
+                    data.ss.clone().unwrap_or("start".to_string()),
+                    if data.use_to { "duration: " } else { "to: " },
+                    data.to.clone().unwrap_or("end".to_string())
+                )
             }
         }
     }

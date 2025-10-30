@@ -128,7 +128,7 @@ impl Widget for &App {
 
         {
             let keystyle = Style::default().green();
-            let mut lines = vec![
+            let mut parts = vec![
                 Span::styled(" Tab", keystyle),
                 Span::raw(": switch tab  "),
                 Span::styled("C", keystyle.underlined()),
@@ -138,17 +138,17 @@ impl Widget for &App {
                 Span::raw(": navigate  "),
             ];
             if matches!(self.current_pane, Pane::Params) {
-                lines.append(&mut vec![
+                parts.append(&mut vec![
                     Span::styled("←/→/h/l", keystyle),
                     Span::raw(": toggle parameter  "),
                 ]);
             }
-            lines.append(&mut vec![
+            parts.append(&mut vec![
                 Span::styled("q/Esc", keystyle),
                 Span::raw(": quit"),
             ]);
 
-            let lines = Line::from(lines);
+            let lines = Line::from(parts);
             Paragraph::new(lines)
                 .block(
                     Block::default()

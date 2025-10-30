@@ -1,5 +1,6 @@
 use crossterm::event::{Event, KeyCode, KeyEvent};
 use ratatui::layout::{Alignment, Margin};
+use ratatui::text::Span;
 use ratatui::{layout::Layout, prelude::Frame};
 use ratatui::{
     layout::{Constraint, Flex, Position, Rect},
@@ -82,7 +83,7 @@ impl UiModal for TrimModal {
         Paragraph::new(use_to_line)
             .alignment(Alignment::Center)
             .render(use_to_area, frame.buffer_mut());
-        Self::render_input_hints(hints_area, frame);
+        self.render_input_hints(hints_area, frame);
     }
 }
 
@@ -141,13 +142,21 @@ impl TrimModal {
         }
     }
 
-    fn render_input_hints(area: Rect, frame: &mut Frame) {
-        let parts = Line::from(vec![
-            "Enter".gray().bold(),
-            ": confirm  ".gray(),
-            "Esc".gray().bold(),
-            ": close".gray(),
-        ]);
+    fn render_input_hints(&self, area: Rect, frame: &mut Frame) {
+        let keystyle = Style::default().gray().bold();
+        let mut parts = vec![
+            Span::styled("Enter", keystyle),
+            Span::raw(": confirm  "),
+            Span::styled("Esc", keystyle),
+            Span::raw(": close"),
+        ];
+        if self.active_input > 1 {
+            parts.append(&mut vec![
+                Span::styled("  Space", keystyle),
+                Span::raw(": toggle"),
+            ]);
+        }
+        let parts = Line::from(parts);
         Paragraph::new(parts).render(area, frame.buffer_mut());
     }
 }

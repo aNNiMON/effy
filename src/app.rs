@@ -1,19 +1,17 @@
 use std::io::{BufReader, Read};
-use std::path::Path;
 use std::process::{Command, Stdio};
 use std::sync::mpsc::{Receiver, Sender};
 use std::{mem, thread};
 
 use color_eyre::Result;
-use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
+use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::{DefaultTerminal, Frame, widgets::ListState};
-use tui_input::Input;
-use tui_input::backend::crossterm::EventHandler;
 
 use crate::info::Info;
-use crate::model::{AppEvent, Modal, Pane, TrimView};
+use crate::model::{AppEvent, Pane};
 use crate::params::{Parameter, ParameterData, Trim, apply_visitor, create_params, recheck_params};
 use crate::source::Source;
+use crate::ui::{ModalResult, SaveAsFileModal, TrimModal, UiModal};
 use crate::visitors::CommandBuilder;
 
 pub(crate) struct App {
@@ -30,7 +28,7 @@ pub(crate) struct App {
     pub(crate) output_pane_current_line: u16,
     pub(crate) params: Vec<Parameter>,
     pub(crate) params_list_state: ListState,
-    pub(crate) modal: Option<Modal>,
+    pub(crate) modal: Option<Box<dyn UiModal>>,
     save_ongoing: bool,
 }
 
@@ -69,7 +67,7 @@ impl App {
                 Ok(AppEvent::SaveCompleted(success)) => self.on_save_complete(success),
                 Ok(AppEvent::Redraw) => {}
                 Ok(AppEvent::OpenTrimModal(data)) => {
-                    self.modal = Some(Modal::Trim(TrimView::from_data(data)))
+                    self.modal = Some(Box::new(TrimModal::from_data(data)))
                 }
                 Err(_) => {}
             }
@@ -90,8 +88,24 @@ impl App {
     }
 
     fn on_key_event(&mut self, key: KeyEvent) {
-        if self.modal.is_some() {
-            self.handle_modal_input(key);
+        if let Some(modal) = &mut self.modal {
+            match modal.handle_key(key) {
+                ModalResult::Close => self.modal = None,
+                ModalResult::Filename(filename) => {
+                    self.output_filename = filename.to_string();
+                    self.save();
+                }
+                ModalResult::Trim => {
+                    if let Some(param) = self.params.iter_mut().find(|p| p.id == Trim::NAME)
+                        && let ParameterData::Trim(data) = &mut param.data
+                        && let Some(trim) = modal.downcast_ref::<TrimModal>()
+                    {
+                        *data = trim.to_data();
+                    }
+                    self.modal = None;
+                }
+                ModalResult::None => {}
+            };
             return;
         }
         match (self.current_pane, key.modifiers, key.code) {
@@ -101,9 +115,7 @@ impl App {
             (_, _, KeyCode::Tab) => self.next_pane(),
             (_, KeyModifiers::CONTROL, KeyCode::Char('s')) => self.save(),
             (_, _, KeyCode::Char('s')) => {
-                self.modal = Some(Modal::SaveFileAs(
-                    Input::default().with_value(self.output_filename.clone()),
-                ))
+                self.modal = Some(Box::new(SaveAsFileModal::new(self.output_filename.clone())));
             }
             (Pane::Info, _, KeyCode::Down | KeyCode::Char('j')) => self.scroll_info_pane_down(),
             (Pane::Info, _, KeyCode::Up | KeyCode::Char('k')) => self.scroll_info_pane_up(),
@@ -114,69 +126,6 @@ impl App {
             (Pane::Params, _, KeyCode::Left | KeyCode::Char('h')) => self.prev_option(),
             (Pane::Params, _, KeyCode::Right | KeyCode::Char('l')) => self.next_option(),
             _ => {}
-        }
-    }
-
-    fn handle_modal_input(&mut self, key: KeyEvent) {
-        match &mut self.modal {
-            Some(Modal::SaveFileAs(input)) => {
-                if key.code == KeyCode::Esc {
-                    self.modal = None;
-                } else if key.code == KeyCode::Enter {
-                    let filename = input.value().trim();
-                    let valid = !filename.is_empty() && !Path::new(filename).exists();
-                    if valid {
-                        self.output_filename = filename.to_string();
-                        self.save();
-                    }
-                } else {
-                    input.handle_event(&Event::Key(key));
-                }
-            }
-            Some(Modal::Trim(trim_view)) => match key.code {
-                KeyCode::Esc => self.modal = None,
-                KeyCode::BackTab => {
-                    trim_view.active_input = (trim_view.active_input + 3) % 4;
-                }
-                KeyCode::Tab => {
-                    trim_view.active_input = (trim_view.active_input + 1) % 4;
-                }
-                KeyCode::Char(x) => {
-                    match (trim_view.active_input, x) {
-                        (0, '0'..='9' | '.' | ':') if trim_view.ss.value().len() < 8 => {
-                            trim_view.ss.handle_event(&Event::Key(key));
-                        }
-                        (1, '0'..='9' | '.' | ':') if trim_view.to.value().len() < 8 => {
-                            trim_view.to.handle_event(&Event::Key(key));
-                        }
-                        (2, ' ') => trim_view.precise = !trim_view.precise,
-                        (3, ' ') => trim_view.use_to = !trim_view.use_to,
-                        _ => {}
-                    };
-                }
-                KeyCode::Backspace | KeyCode::Delete => match trim_view.active_input {
-                    0 => {
-                        trim_view.ss.handle_event(&Event::Key(key));
-                    }
-                    1 => {
-                        trim_view.to.handle_event(&Event::Key(key));
-                    }
-                    _ => {}
-                },
-                KeyCode::Enter => {
-                    if let Some(param) = self.params.iter_mut().find(|p| p.id == Trim::NAME)
-                        && let ParameterData::Trim(data) = &mut param.data
-                    {
-                        data.ss = Some(trim_view.ss.value_and_reset()).filter(|s| !s.is_empty());
-                        data.to = Some(trim_view.to.value_and_reset()).filter(|s| !s.is_empty());
-                        data.use_to = trim_view.use_to;
-                        data.precise = trim_view.precise;
-                    }
-                    self.modal = None;
-                }
-                _ => {}
-            },
-            None => {}
         }
     }
 

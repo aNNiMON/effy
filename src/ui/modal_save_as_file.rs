@@ -1,0 +1,90 @@
+use std::path::Path;
+
+use crossterm::event::{Event, KeyCode, KeyEvent};
+use ratatui::{layout::Layout, prelude::Frame};
+use ratatui::{
+    layout::{Constraint, Flex, Position, Rect},
+    style::{Color, Style, Stylize},
+    symbols,
+    text::Line,
+    widgets::{Block, Clear, Paragraph, Widget},
+};
+use tui_input::Input;
+use tui_input::backend::crossterm::EventHandler;
+
+use crate::ui::{KeyboardHandler, ModalResult, UiModal, input_value_and_pos};
+
+pub(crate) struct SaveAsFileModal {
+    filename: Input,
+}
+
+impl UiModal for SaveAsFileModal {
+    fn render(&self, frame: &mut Frame) {
+        let area = frame.area();
+        let [modal_area] = Layout::vertical([Constraint::Length(6)])
+            .horizontal_margin(area.width / 5)
+            .flex(Flex::Center)
+            .areas(area);
+        let [input_area, hints_area] =
+            Layout::vertical([Constraint::Length(3), Constraint::Length(1)])
+                .horizontal_margin(2)
+                .vertical_margin(1)
+                .areas(modal_area);
+
+        let (display_value, x) = input_value_and_pos(&self.filename, input_area.width);
+
+        Clear.render(modal_area, frame.buffer_mut());
+        Block::bordered()
+            .border_set(symbols::border::THICK)
+            .title("Render as")
+            .fg(Color::Blue)
+            .render(modal_area, frame.buffer_mut());
+        Paragraph::new(display_value)
+            .style(Style::new().white())
+            .block(Block::bordered().gray().dim())
+            .render(input_area, frame.buffer_mut());
+        Self::render_input_hints(hints_area, frame);
+
+        frame.set_cursor_position(Position {
+            x: input_area.x + x,
+            y: input_area.y + 1,
+        });
+    }
+}
+
+impl KeyboardHandler for SaveAsFileModal {
+    fn handle_key(&mut self, key: KeyEvent) -> ModalResult {
+        if key.code == KeyCode::Esc {
+            ModalResult::Close
+        } else if key.code == KeyCode::Enter {
+            let filename = self.filename.value().trim();
+            let valid = !filename.is_empty() && !Path::new(filename).exists();
+            if valid {
+                ModalResult::Filename(filename.to_string())
+            } else {
+                ModalResult::None
+            }
+        } else {
+            self.filename.handle_event(&Event::Key(key));
+            ModalResult::None
+        }
+    }
+}
+
+impl SaveAsFileModal {
+    pub(crate) fn new(filename: String) -> Self {
+        Self {
+            filename: Input::new(filename.to_string()),
+        }
+    }
+
+    fn render_input_hints(area: Rect, frame: &mut Frame) {
+        let parts = Line::from(vec![
+            "Enter".gray().bold(),
+            ": confirm  ".gray(),
+            "Esc".gray().bold(),
+            ": close".gray(),
+        ]);
+        Paragraph::new(parts).render(area, frame.buffer_mut());
+    }
+}

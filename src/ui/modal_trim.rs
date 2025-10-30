@@ -1,0 +1,153 @@
+use crossterm::event::{Event, KeyCode, KeyEvent};
+use ratatui::layout::{Alignment, Margin};
+use ratatui::{layout::Layout, prelude::Frame};
+use ratatui::{
+    layout::{Constraint, Flex, Position, Rect},
+    style::{Color, Style, Stylize},
+    symbols,
+    text::Line,
+    widgets::{Block, Clear, Paragraph, Widget},
+};
+use tui_input::Input;
+use tui_input::backend::crossterm::EventHandler;
+
+use crate::model::TrimData;
+use crate::ui::{KeyboardHandler, ModalResult, UiModal, checkbox_line, input_value_and_pos};
+
+pub(crate) struct TrimModal {
+    ss: Input,
+    to: Input,
+    active_input: usize,
+    use_to: bool, // -t or -to
+    precise: bool,
+}
+
+impl UiModal for TrimModal {
+    fn render(&self, frame: &mut Frame) {
+        let area = frame.area();
+        let [modal_area] = Layout::vertical([Constraint::Length(8)])
+            .horizontal_margin(area.width / 5)
+            .flex(Flex::Center)
+            .areas(area);
+        let [inputs_area, chackbox_area, hints_area] = Layout::vertical([
+            Constraint::Length(3),
+            Constraint::Length(2),
+            Constraint::Length(1),
+        ])
+        .flex(Flex::SpaceBetween)
+        .areas(modal_area.inner(Margin::new(2, 1)));
+
+        let [ss_area, to_area] =
+            Layout::horizontal([Constraint::Fill(1), Constraint::Fill(1)]).areas(inputs_area);
+        let [precise_area, use_to_area] =
+            Layout::horizontal([Constraint::Fill(1), Constraint::Fill(1)]).areas(chackbox_area);
+
+        let (ss_value, ss_x) = input_value_and_pos(&self.ss, ss_area.width);
+        let (to_value, to_x) = input_value_and_pos(&self.to, to_area.width);
+
+        let active_border_style = Style::new().blue();
+        let inactive_border_style = Style::new().gray();
+
+        Clear.render(modal_area, frame.buffer_mut());
+        Block::bordered()
+            .border_set(symbols::border::THICK)
+            .title("Trim")
+            .fg(Color::Blue)
+            .render(modal_area, frame.buffer_mut());
+
+        let mut borders = [inactive_border_style; 4];
+        borders[self.active_input] = active_border_style;
+        // Inputs
+        Paragraph::new(ss_value)
+            .block(Block::bordered().style(borders[0]).title("Start".blue()))
+            .render(ss_area, frame.buffer_mut());
+        let to_title = if self.use_to { "To" } else { "Duration" };
+        Paragraph::new(to_value)
+            .block(Block::bordered().style(borders[1]).title(to_title.blue()))
+            .render(to_area, frame.buffer_mut());
+        if self.active_input <= 1 {
+            let (x, y) = if self.active_input == 0 {
+                (ss_area.x + ss_x, ss_area.y + 1)
+            } else {
+                (to_area.x + to_x, to_area.y + 1)
+            };
+            frame.set_cursor_position(Position { x, y });
+        }
+        // Checkboxes
+        let precise_line = checkbox_line(self.precise, "Precise", self.active_input == 2);
+        Paragraph::new(precise_line)
+            .alignment(Alignment::Center)
+            .render(precise_area, frame.buffer_mut());
+        let use_to_line = checkbox_line(self.use_to, "Use Duration/To", self.active_input == 3);
+        Paragraph::new(use_to_line)
+            .alignment(Alignment::Center)
+            .render(use_to_area, frame.buffer_mut());
+        Self::render_input_hints(hints_area, frame);
+    }
+}
+
+impl KeyboardHandler for TrimModal {
+    fn handle_key(&mut self, key: KeyEvent) -> ModalResult {
+        match key.code {
+            KeyCode::Esc => return ModalResult::Close,
+            KeyCode::BackTab => self.active_input = (self.active_input + 3) % 4,
+            KeyCode::Tab => self.active_input = (self.active_input + 1) % 4,
+            KeyCode::Char(x) => {
+                match (self.active_input, x) {
+                    (0, '0'..='9' | '.' | ':') if self.ss.value().len() < 8 => {
+                        self.ss.handle_event(&Event::Key(key));
+                    }
+                    (1, '0'..='9' | '.' | ':') if self.to.value().len() < 8 => {
+                        self.to.handle_event(&Event::Key(key));
+                    }
+                    (2, ' ') => self.precise = !self.precise,
+                    (3, ' ') => self.use_to = !self.use_to,
+                    _ => {}
+                };
+            }
+            KeyCode::Backspace | KeyCode::Delete => match self.active_input {
+                0 => {
+                    self.ss.handle_event(&Event::Key(key));
+                }
+                1 => {
+                    self.to.handle_event(&Event::Key(key));
+                }
+                _ => {}
+            },
+            KeyCode::Enter => return ModalResult::Trim,
+            _ => {}
+        }
+        ModalResult::None
+    }
+}
+
+impl TrimModal {
+    pub fn from_data(data: TrimData) -> Self {
+        Self {
+            ss: Input::new(data.ss.unwrap_or("".to_string())),
+            to: Input::new(data.to.unwrap_or("".to_string())),
+            active_input: 0,
+            use_to: data.use_to,
+            precise: data.precise,
+        }
+    }
+
+    pub fn to_data(&self) -> TrimData {
+        TrimData {
+            ss: Some(self.ss.value().trim().to_string()),
+            to: Some(self.to.value().trim().to_string()),
+            use_to: self.use_to,
+            precise: self.precise,
+        }
+    }
+
+    fn render_input_hints(area: Rect, frame: &mut Frame) {
+        let parts = Line::from(vec![
+            "Enter".gray().bold(),
+            ": confirm  ".gray(),
+            "Esc".gray().bold(),
+            ": close".gray(),
+        ]);
+        Paragraph::new(parts).render(area, frame.buffer_mut());
+    }
+}

@@ -122,8 +122,8 @@ impl KeyboardHandler for TrimModal {
     }
 }
 
-impl TrimModal {
-    pub fn from_data(data: TrimData) -> Self {
+impl From<TrimData> for TrimModal {
+    fn from(data: TrimData) -> Self {
         Self {
             ss: Input::new(data.ss.unwrap_or("".to_string())),
             to: Input::new(data.to.unwrap_or("".to_string())),
@@ -132,16 +132,20 @@ impl TrimModal {
             precise: data.precise,
         }
     }
+}
 
-    pub fn to_data(&self) -> TrimData {
+impl From<&TrimModal> for TrimData {
+    fn from(model: &TrimModal) -> TrimData {
         TrimData {
-            ss: Some(self.ss.value().trim().to_string()),
-            to: Some(self.to.value().trim().to_string()),
-            use_to: self.use_to,
-            precise: self.precise,
+            ss: Some(model.ss.value().trim().to_string()).filter(|x| !x.is_empty()),
+            to: Some(model.to.value().trim().to_string()).filter(|x| !x.is_empty()),
+            use_to: model.use_to,
+            precise: model.precise,
         }
     }
+}
 
+impl TrimModal {
     fn render_input_hints(&self, area: Rect, frame: &mut Frame) {
         let keystyle = Style::default().gray().bold();
         let mut parts = vec![

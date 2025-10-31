@@ -67,7 +67,7 @@ impl App {
                 Ok(AppEvent::SaveCompleted(success)) => self.on_save_complete(success),
                 Ok(AppEvent::Redraw) => {}
                 Ok(AppEvent::OpenTrimModal(data)) => {
-                    self.modal = Some(Box::new(TrimModal::from_data(data)))
+                    self.modal = Some(Box::new(TrimModal::from(data)))
                 }
                 Err(_) => {}
             }
@@ -100,7 +100,7 @@ impl App {
                         && let ParameterData::Trim(data) = &mut param.data
                         && let Some(trim) = modal.downcast_ref::<TrimModal>()
                     {
-                        *data = trim.to_data();
+                        *data = trim.into();
                     }
                     self.modal = None;
                 }

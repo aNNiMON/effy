@@ -8,25 +8,31 @@ pub(crate) struct SelectOption {
     pub(crate) value: String,
 }
 
+impl From<&str> for SelectOption {
+    fn from(value: &str) -> Self {
+        SelectOption {
+            name: value.to_owned(),
+            value: value.to_owned(),
+        }
+    }
+}
+
+impl From<(&str, &str)> for SelectOption {
+    fn from((name, value): (&str, &str)) -> Self {
+        SelectOption {
+            name: name.to_owned(),
+            value: value.to_owned(),
+        }
+    }
+}
+
 impl SelectOption {
     pub(crate) fn from_slice(values: &[&str]) -> Vec<Self> {
-        values
-            .iter()
-            .map(|&value| Self {
-                name: value.to_string(),
-                value: value.to_string(),
-            })
-            .collect()
+        values.iter().map(|&v| v.into()).collect()
     }
 
     pub(crate) fn from_pairs(names: &[(&str, &str)]) -> Vec<Self> {
-        names
-            .iter()
-            .map(|(name, value)| Self {
-                name: name.to_string(),
-                value: value.to_string(),
-            })
-            .collect()
+        names.iter().map(|&v| v.into()).collect()
     }
 }
 
@@ -52,7 +58,7 @@ impl Parameter {
     pub(crate) fn new(id: &'static str, data: ParameterData) -> Self {
         Parameter {
             id,
-            name: id.to_string(),
+            name: id.to_owned(),
             enabled: true,
             data,
         }
@@ -130,7 +136,7 @@ impl Parameter {
                     "{}{}..{}{}",
                     if data.precise { "!" } else { "~" },
                     data.ss.clone().unwrap_or("start".to_string()),
-                    if data.use_to { "duration: " } else { "to: " },
+                    if data.use_to { "to: " } else { "duration: " },
                     data.to.clone().unwrap_or("end".to_string())
                 )
             }

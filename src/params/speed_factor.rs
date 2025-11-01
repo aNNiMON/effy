@@ -3,7 +3,7 @@ use crate::{
     visitors::CommandBuilder,
 };
 
-pub(crate) struct SpeedFactor {}
+pub(crate) struct SpeedFactor;
 
 impl SpeedFactor {
     pub(crate) const NAME: &'static str = "Speed";
@@ -25,10 +25,10 @@ impl SpeedFactor {
     pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {
         if let Some(option) = select_non_default_option!(data) {
             if !cb.discard_audio {
-                cb.audio_filters.push(format!("atempo={}", option.value));
+                cb.audio_filters.push(format!("atempo={}", &option.value));
             }
             cb.video_filters
-                .push(format!("setpts=PTS/{}", option.value));
+                .push(format!("setpts=PTS/{}", &option.value));
         }
     }
 }

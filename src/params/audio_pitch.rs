@@ -3,7 +3,7 @@ use crate::{
     visitors::CommandBuilder,
 };
 
-pub(crate) struct AudioPitch {}
+pub(crate) struct AudioPitch;
 
 impl AudioPitch {
     pub(crate) const NAME: &'static str = "Audio Pitch";
@@ -25,7 +25,7 @@ impl AudioPitch {
             && let Some(option) = select_non_default_option!(data)
         {
             cb.audio_filters
-                .push(format!("rubberband=pitchq=quality:pitch={}", option.value));
+                .push(format!("rubberband=pitchq=quality:pitch={}", &option.value));
         }
     }
 }

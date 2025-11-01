@@ -3,7 +3,7 @@ use crate::{
     visitors::CommandBuilder,
 };
 
-pub(crate) struct AudioCrystalizer {}
+pub(crate) struct AudioCrystalizer;
 
 impl AudioCrystalizer {
     pub(crate) const NAME: &'static str = "Audio Crystalizer";
@@ -25,7 +25,7 @@ impl AudioCrystalizer {
             && let Some(option) = select_non_default_option!(data)
         {
             cb.audio_filters
-                .push(format!("crystalizer={}", option.value));
+                .push(format!("crystalizer={}", &option.value));
         }
     }
 }

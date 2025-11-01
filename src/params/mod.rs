@@ -59,14 +59,14 @@ pub(crate) fn recheck_params(params: &mut [Parameter], changed_param: &Parameter
         ..
     } = changed_param
     {
-        params.iter_mut().for_each(|param| {
+        for param in params {
             if matches!(
                 param.id,
                 AudioBitrate::NAME | AudioCrystalizer::NAME | AudioPitch::NAME | AudioVolume::NAME
             ) {
                 param.enabled = !*value;
             }
-        });
+        }
     }
 }
 
@@ -87,7 +87,7 @@ pub(crate) fn apply_visitor(visitor: &mut dyn FFmpegParameterVisitor, params: &[
             VideoFrameRate::NAME => visitor.visit_video_frame_rate(&param.data),
             VideoScale::NAME => visitor.visit_video_scale(&param.data),
             HardwareAcceleration::NAME => visitor.visit_hardware_acceleration(&param.data),
-            _ => continue,
+            _ => {}
         }
     }
 }

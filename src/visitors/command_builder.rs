@@ -1,5 +1,6 @@
 use crate::{params::*, visitors::FFmpegParameterVisitor};
 
+#[derive(Default)]
 pub(crate) struct CommandBuilder {
     pub(crate) discard_audio: bool,
     pub(crate) hwaccel: HWAccel,
@@ -9,38 +10,28 @@ pub(crate) struct CommandBuilder {
     pub(crate) args: Vec<String>,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Default)]
 pub(crate) enum HWAccel {
+    #[default]
     None,
     Nvenc,
     Qsv,
 }
 
 impl CommandBuilder {
-    pub(crate) fn new() -> Self {
-        CommandBuilder {
-            discard_audio: false,
-            hwaccel: HWAccel::None,
-            audio_filters: Vec::new(),
-            video_filters: Vec::new(),
-            pre_input_args: Vec::new(),
-            args: Vec::new(),
-        }
-    }
-
-    pub(crate) fn build_pre_input_args(&self) -> Vec<String> {
-        self.pre_input_args.clone()
+    pub(crate) fn build_pre_input_args(&self) -> &Vec<String> {
+        &self.pre_input_args
     }
 
     pub(crate) fn build_args(&self) -> Vec<String> {
         let mut args = Vec::new();
-        args.extend(self.args.iter().map(|s| s.to_string()));
+        args.extend(self.args.iter().cloned());
         if !self.discard_audio && !self.audio_filters.is_empty() {
-            args.push("-af".into());
+            args.push("-af".to_owned());
             args.push(self.audio_filters.join(","));
         }
         if !self.video_filters.is_empty() {
-            args.push("-vf".into());
+            args.push("-vf".to_owned());
             args.push(self.video_filters.join(","));
         }
         args

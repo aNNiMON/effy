@@ -4,23 +4,23 @@ use ratatui::text::Span;
 use ratatui::{layout::Layout, prelude::Frame};
 use ratatui::{
     layout::{Constraint, Flex, Position, Rect},
-    style::{Color, Style, Stylize},
+    style::{Color, Style, Stylize as _},
     symbols,
     text::Line,
     widgets::{Block, Clear, Paragraph, Widget},
 };
 use tui_input::Input;
-use tui_input::backend::crossterm::EventHandler;
+use tui_input::backend::crossterm::EventHandler as _;
 
 use crate::model::TrimData;
 use crate::ui::{KeyboardHandler, ModalResult, UiModal, checkbox_line, input_value_and_pos};
 
 pub(crate) struct TrimModal {
+    active_input: usize,
     ss: Input,
     to: Input,
-    active_input: usize,
-    use_to: bool, // -t or -to
     precise: bool,
+    use_to: bool, // -t or -to
 }
 
 impl UiModal for TrimModal {
@@ -93,19 +93,17 @@ impl KeyboardHandler for TrimModal {
             KeyCode::Esc => return ModalResult::Close,
             KeyCode::BackTab => self.active_input = (self.active_input + 3) % 4,
             KeyCode::Tab => self.active_input = (self.active_input + 1) % 4,
-            KeyCode::Char(x) => {
-                match (self.active_input, x) {
-                    (0, '0'..='9' | '.' | ':') if self.ss.value().len() < 8 => {
-                        self.ss.handle_event(&Event::Key(key));
-                    }
-                    (1, '0'..='9' | '.' | ':') if self.to.value().len() < 8 => {
-                        self.to.handle_event(&Event::Key(key));
-                    }
-                    (2, ' ') => self.precise = !self.precise,
-                    (3, ' ') => self.use_to = !self.use_to,
-                    _ => {}
-                };
-            }
+            KeyCode::Char(x) => match (self.active_input, x) {
+                (0, '0'..='9' | '.' | ':') if self.ss.value().len() < 8 => {
+                    self.ss.handle_event(&Event::Key(key));
+                }
+                (1, '0'..='9' | '.' | ':') if self.to.value().len() < 8 => {
+                    self.to.handle_event(&Event::Key(key));
+                }
+                (2, ' ') => self.precise = !self.precise,
+                (3, ' ') => self.use_to = !self.use_to,
+                _ => {}
+            },
             KeyCode::Backspace | KeyCode::Delete => match self.active_input {
                 0 => {
                     self.ss.handle_event(&Event::Key(key));
@@ -125,11 +123,11 @@ impl KeyboardHandler for TrimModal {
 impl From<TrimData> for TrimModal {
     fn from(data: TrimData) -> Self {
         Self {
-            ss: Input::new(data.ss.unwrap_or("".to_string())),
-            to: Input::new(data.to.unwrap_or("".to_string())),
             active_input: 0,
-            use_to: data.use_to,
+            ss: Input::new(data.ss.unwrap_or_default()),
+            to: Input::new(data.to.unwrap_or_default()),
             precise: data.precise,
+            use_to: data.use_to,
         }
     }
 }
@@ -137,10 +135,10 @@ impl From<TrimData> for TrimModal {
 impl From<&TrimModal> for TrimData {
     fn from(model: &TrimModal) -> TrimData {
         TrimData {
-            ss: Some(model.ss.value().trim().to_string()).filter(|x| !x.is_empty()),
-            to: Some(model.to.value().trim().to_string()).filter(|x| !x.is_empty()),
-            use_to: model.use_to,
+            ss: Some(model.ss.value().trim().to_owned()).filter(|x| !x.is_empty()),
+            to: Some(model.to.value().trim().to_owned()).filter(|x| !x.is_empty()),
             precise: model.precise,
+            use_to: model.use_to,
         }
     }
 }

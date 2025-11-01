@@ -3,7 +3,7 @@ use crate::{
     visitors::CommandBuilder,
 };
 
-pub(crate) struct DisableAudio {}
+pub(crate) struct DisableAudio;
 
 impl DisableAudio {
     pub(crate) const NAME: &'static str = "Disable Audio";

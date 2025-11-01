@@ -1,4 +1,5 @@
 use std::{
+    process,
     sync::mpsc::{self, Sender},
     thread,
 };
@@ -21,34 +22,34 @@ fn main() -> color_eyre::Result<()> {
 
     let args: Vec<String> = std::env::args().collect();
     if args.len() != 2 {
-        eprintln!("Usage: {} input", args[0]);
-        std::process::exit(1);
+        eprintln!("Usage: {} input", &args[0]);
+        process::exit(1);
     }
     let source = Source::new(args[1].clone());
     source.validate().map_err(|e| {
         eprintln!("Error: {e}");
-        std::process::exit(1);
+        process::exit(1);
     })?;
 
-    let ffprobe_info = match info::get_info(source.input.clone()) {
+    let ffprobe_info = match info::get_info(&source.input) {
         Ok(info) => info,
         Err(e) => {
             eprintln!("Error getting ffprobe info: {e}");
-            std::process::exit(1);
+            process::exit(1);
         }
     };
 
     let terminal = ratatui::init();
     let (tx, rx) = mpsc::channel();
     let event_tx = tx.clone();
-    thread::spawn(move || handle_crossterm_events(event_tx));
+    thread::spawn(move || handle_crossterm_events(&event_tx));
 
-    let result = App::new(tx, ffprobe_info, source).run(terminal, rx);
+    let result = App::new(tx, &ffprobe_info, source).run(terminal, &rx);
     ratatui::restore();
     result
 }
 
-fn handle_crossterm_events(tx: Sender<AppEvent>) {
+fn handle_crossterm_events(tx: &Sender<AppEvent>) -> ! {
     loop {
         match crossterm::event::read() {
             Ok(Event::Key(key)) if key.kind == KeyEventKind::Press => {

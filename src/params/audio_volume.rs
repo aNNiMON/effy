@@ -3,7 +3,7 @@ use crate::{
     visitors::CommandBuilder,
 };
 
-pub(crate) struct AudioVolume {}
+pub(crate) struct AudioVolume;
 
 impl AudioVolume {
     pub(crate) const NAME: &'static str = "Audio Volume";
@@ -26,7 +26,7 @@ impl AudioVolume {
         if !cb.discard_audio
             && let Some(option) = select_non_default_option!(data)
         {
-            cb.audio_filters.push(format!("volume={}", option.value));
+            cb.audio_filters.push(format!("volume={}", &option.value));
         }
     }
 }

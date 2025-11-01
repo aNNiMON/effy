@@ -33,7 +33,7 @@ pub(crate) struct App {
 }
 
 impl App {
-    pub fn new(tx: Sender<AppEvent>, info: Info, source: Source) -> Self {
+    pub fn new(tx: Sender<AppEvent>, info: &Info, source: Source) -> Self {
         let mut list_state = ListState::default();
         list_state.select(Some(0));
         let folder = source.input_folder();
@@ -45,29 +45,29 @@ impl App {
             source,
             output_folder: folder,
             output_filename: format!("{filename}_out"),
-            output_fileext: fileext.to_string(),
+            output_fileext: fileext.clone(),
             info_text: info.format(),
             info_pane_current_line: 0,
-            output: "".to_string(),
+            output: String::new(),
             output_pane_current_line: 0,
-            params: create_params(&info),
+            params: create_params(info),
             params_list_state: list_state,
             modal: None,
             save_ongoing: false,
         }
     }
 
-    pub fn run(mut self, mut terminal: DefaultTerminal, rx: Receiver<AppEvent>) -> Result<()> {
+    pub fn run(mut self, mut terminal: DefaultTerminal, rx: &Receiver<AppEvent>) -> Result<()> {
         self.running = true;
         while self.running {
             terminal.draw(|frame| self.render(frame))?;
             match rx.recv() {
                 Ok(AppEvent::Input(key)) => self.on_key_event(key),
-                Ok(AppEvent::AddOutput(output)) => self.add_output(output),
+                Ok(AppEvent::AddOutput(output)) => self.add_output(&output),
                 Ok(AppEvent::SaveCompleted(success)) => self.on_save_complete(success),
                 Ok(AppEvent::Redraw) => {}
                 Ok(AppEvent::OpenTrimModal(data)) => {
-                    self.modal = Some(Box::new(TrimModal::from(data)))
+                    self.modal = Some(Box::new(TrimModal::from(data)));
                 }
                 Err(_) => {}
             }
@@ -75,8 +75,8 @@ impl App {
         Ok(())
     }
 
-    fn add_output(&mut self, output: String) {
-        self.output.push_str(&output);
+    fn add_output(&mut self, output: &str) {
+        self.output.push_str(output);
         self.output_pane_current_line = 0;
     }
 
@@ -92,7 +92,7 @@ impl App {
             match modal.handle_key(key) {
                 ModalResult::Close => self.modal = None,
                 ModalResult::Filename(filename) => {
-                    self.output_filename = filename.to_string();
+                    self.output_filename.clone_from(&filename);
                     self.save();
                 }
                 ModalResult::Trim => {
@@ -105,7 +105,7 @@ impl App {
                     self.modal = None;
                 }
                 ModalResult::None => {}
-            };
+            }
             return;
         }
         match (self.current_pane, key.modifiers, key.code) {
@@ -115,7 +115,7 @@ impl App {
             (_, _, KeyCode::Tab) => self.next_pane(),
             (_, KeyModifiers::CONTROL, KeyCode::Char('s')) => self.save(),
             (_, _, KeyCode::Char('s')) => {
-                self.modal = Some(Box::new(SaveAsFileModal::new(self.output_filename.clone())));
+                self.modal = Some(Box::new(SaveAsFileModal::new(&self.output_filename)));
             }
             (Pane::Info, _, KeyCode::Down | KeyCode::Char('j')) => self.scroll_info_pane_down(),
             (Pane::Info, _, KeyCode::Up | KeyCode::Char('k')) => self.scroll_info_pane_up(),
@@ -218,10 +218,10 @@ impl App {
         self.modal = None;
         self.save_ongoing = true;
 
-        let mut command_builder = CommandBuilder::new();
+        let mut command_builder = CommandBuilder::default();
         apply_visitor(&mut command_builder, &self.params);
         self.output_pane_current_line = 0;
-        self.output = "Starting FFmpeg...\n".to_string();
+        "Starting FFmpeg...\n".clone_into(&mut self.output);
 
         let input = self.source.input.clone();
         let output_file = format!(
@@ -277,7 +277,7 @@ impl App {
         } else {
             "FFmpeg encountered an error.\n\n"
         };
-        self.add_output(msg.to_string());
+        self.add_output(msg);
         self.save_ongoing = false;
     }
 

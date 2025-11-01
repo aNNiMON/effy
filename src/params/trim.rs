@@ -4,7 +4,7 @@ use crate::{
     visitors::CommandBuilder,
 };
 
-pub(crate) struct Trim {}
+pub(crate) struct Trim;
 
 impl Trim {
     pub(crate) const NAME: &'static str = "Trim";
@@ -18,7 +18,7 @@ impl Trim {
             let mut args = Vec::new();
             if let Some(ss) = &trim_data.ss {
                 args.push("-ss".into());
-                args.push(ss.to_string());
+                args.push(ss.clone());
             }
             if let Some(to) = &trim_data.to {
                 if trim_data.use_to {
@@ -26,7 +26,7 @@ impl Trim {
                 } else {
                     args.push("-t".into());
                 }
-                args.push(to.to_string());
+                args.push(to.clone());
             }
             if trim_data.precise {
                 cb.args.append(&mut args);

@@ -28,11 +28,11 @@ fn input_value_and_pos(input: &Input, width: u16) -> (String, u16) {
 fn checkbox_line(checked: bool, label: &str, active: bool) -> Line<'_> {
     let mut line = Line::from(vec![
         if checked {
-            "[■]".green()
+            "[\u{25a0}]".green()
         } else {
             "[ ]".gray()
         },
-        format!(" {}", label).gray(),
+        format!(" {label}").gray(),
     ]);
     if active {
         line = line.bg(Color::DarkGray);

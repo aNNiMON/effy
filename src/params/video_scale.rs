@@ -3,7 +3,7 @@ use crate::{
     visitors::{CommandBuilder, HWAccel},
 };
 
-pub(crate) struct VideoScale {}
+pub(crate) struct VideoScale;
 
 impl VideoScale {
     pub(crate) const NAME: &'static str = "Video Scale";
@@ -33,9 +33,9 @@ impl VideoScale {
             // Use nvenc cuda scale only if there is no other video filter
             if (cb.hwaccel == HWAccel::Nvenc) && (cb.video_filters.is_empty()) {
                 cb.video_filters
-                    .push(format!("scale_cuda=-2:{}", option.value))
+                    .push(format!("scale_cuda=-2:{}", &option.value));
             } else {
-                cb.video_filters.push(format!("scale=-2:{}", option.value))
+                cb.video_filters.push(format!("scale=-2:{}", &option.value));
             }
         }
     }

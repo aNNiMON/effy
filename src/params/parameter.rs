@@ -120,31 +120,27 @@ impl Parameter {
 
     pub(crate) fn describe_value(&self) -> String {
         match &self.data {
-            ParameterData::Toggle { value } => if *value { "on" } else { "off" }.to_string(),
+            ParameterData::Toggle { value } => if *value { "on" } else { "off" }.to_owned(),
             ParameterData::Select {
                 options,
                 selected_index,
-            } => {
-                if let Some(option) = options.get(*selected_index) {
-                    option.name.clone()
-                } else {
-                    String::new()
-                }
-            }
+            } => options
+                .get(*selected_index)
+                .map_or_else(String::new, |option| option.name.clone()),
             ParameterData::Trim(data) => {
                 format!(
                     "{}{}..{}{}",
                     if data.precise { "!" } else { "~" },
-                    data.ss.clone().unwrap_or("start".to_string()),
+                    data.ss.as_deref().unwrap_or("start"),
                     if data.use_to { "to: " } else { "duration: " },
-                    data.to.clone().unwrap_or("end".to_string())
+                    data.to.as_deref().unwrap_or("end")
                 )
             }
         }
     }
 
     pub(crate) fn describe(&self) -> String {
-        format!("{}: {}", self.name, self.describe_value())
+        format!("{}: {}", &self.name, self.describe_value())
     }
 }
 

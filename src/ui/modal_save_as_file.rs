@@ -4,13 +4,13 @@ use crossterm::event::{Event, KeyCode, KeyEvent};
 use ratatui::{layout::Layout, prelude::Frame};
 use ratatui::{
     layout::{Constraint, Flex, Position, Rect},
-    style::{Color, Style, Stylize},
+    style::{Color, Style, Stylize as _},
     symbols,
     text::Line,
     widgets::{Block, Clear, Paragraph, Widget},
 };
 use tui_input::Input;
-use tui_input::backend::crossterm::EventHandler;
+use tui_input::backend::crossterm::EventHandler as _;
 
 use crate::ui::{KeyboardHandler, ModalResult, UiModal, input_value_and_pos};
 
@@ -60,7 +60,7 @@ impl KeyboardHandler for SaveAsFileModal {
             let filename = self.filename.value().trim();
             let valid = !filename.is_empty() && !Path::new(filename).exists();
             if valid {
-                ModalResult::Filename(filename.to_string())
+                ModalResult::Filename(filename.to_owned())
             } else {
                 ModalResult::None
             }
@@ -72,9 +72,9 @@ impl KeyboardHandler for SaveAsFileModal {
 }
 
 impl SaveAsFileModal {
-    pub(crate) fn new(filename: String) -> Self {
+    pub(crate) fn new(filename: &str) -> Self {
         Self {
-            filename: Input::new(filename.to_string()),
+            filename: Input::new(filename.to_owned()),
         }
     }
 

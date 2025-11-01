@@ -25,20 +25,17 @@ impl Source {
 
     pub(crate) fn validate(&self) -> Result<(), String> {
         if self.source_type == SourceType::File && std::fs::metadata(&self.input).is_err() {
-            return Err(format!("Input file '{}' does not exist", self.input));
+            return Err(format!("Input file '{}' does not exist", &self.input));
         }
         Ok(())
     }
 
     pub(crate) fn input_folder(&self) -> String {
         match self.source_type {
-            SourceType::Url => ".".into(),
+            SourceType::Url => ".".to_owned(),
             SourceType::File => Path::new(&self.input)
                 .parent()
-                .map(|p| p.to_string_lossy())
-                .map(|p| if p.is_empty() { ".".into() } else { p })
-                .unwrap_or_else(|| ".".into())
-                .to_string(),
+                .map_or_else(|| ".".to_owned(), |p| p.to_string_lossy().to_string()),
         }
     }
 
@@ -46,7 +43,8 @@ impl Source {
         let path = Path::new(&self.input);
         let filename = path
             .file_stem()
-            .unwrap_or_else(|| path.file_name().unwrap())
+            .or_else(|| path.file_name())
+            .unwrap_or_else(|| "filename".as_ref())
             .to_string_lossy();
         let ext = path
             .extension()

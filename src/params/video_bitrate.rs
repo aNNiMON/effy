@@ -3,7 +3,7 @@ use crate::{
     visitors::CommandBuilder,
 };
 
-pub(crate) struct VideoBitrate {}
+pub(crate) struct VideoBitrate;
 
 impl VideoBitrate {
     pub(crate) const NAME: &'static str = "Video Bitrate";

@@ -3,7 +3,7 @@ use crate::{
     visitors::CommandBuilder,
 };
 
-pub(crate) struct AudioBitrate {}
+pub(crate) struct AudioBitrate;
 
 impl AudioBitrate {
     pub(crate) const NAME: &'static str = "Audio Bitrate";

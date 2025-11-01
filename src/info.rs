@@ -53,7 +53,7 @@ impl Info {
     }
 
     pub fn has_non_empty_duration(&self) -> bool {
-        self.get_duration().is_some_and(|dur| dur > 0.0)
+        self.get_duration().is_some_and(|dur| dur > 0.0_f64)
     }
 
     pub fn get_duration(&self) -> Option<f64> {
@@ -69,15 +69,15 @@ impl Info {
         } else {
             self.streams
                 .iter()
-                .any(|s| matches!(s.codec_type, Some(ref t) if t == stream_type))
+                .any(|s| matches!(&s.codec_type, Some(t) if t == stream_type))
         }
     }
 
     pub fn format(&self) -> String {
         let mut r: Vec<String> = Vec::new();
         let format = &self.format;
-        r.push(format!("filename: {}", format.filename));
-        r.push(format!("nb_streams: {}", format.nb_streams));
+        r.push(format!("filename: {}", &format.filename));
+        r.push(format!("nb_streams: {}", &format.nb_streams));
         macro_rules! format_val {
             ($field:expr, $name:expr) => {
                 if let Some(ref v) = $field {
@@ -133,7 +133,7 @@ impl Info {
     }
 }
 
-pub(crate) fn get_info(input_file: String) -> Result<Info, Error> {
+pub(crate) fn get_info(input_file: &str) -> Result<Info, Error> {
     let mut child = Command::new("ffprobe")
         .args([
             "-v",
@@ -143,7 +143,7 @@ pub(crate) fn get_info(input_file: String) -> Result<Info, Error> {
             "-show_format",
             "-show_streams",
         ])
-        .arg(&input_file)
+        .arg(input_file)
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::null())

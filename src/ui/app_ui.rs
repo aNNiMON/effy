@@ -40,7 +40,7 @@ impl Widget for &App {
                 )
                 .scroll((self.info_pane_current_line, 0))
                 .render(info, buf);
-        }
+        };
 
         let [params, config] = Layout::default()
             .direction(Direction::Horizontal)
@@ -55,7 +55,7 @@ impl Widget for &App {
             let items = self.params.iter().map(|param| {
                 if param.enabled {
                     Line::from(vec![
-                        Span::styled(param.name.clone(), highlighted_style),
+                        Span::styled(&param.name, highlighted_style),
                         Span::raw(": "),
                         Span::styled(param.describe_value(), Style::default().yellow()),
                     ])
@@ -77,8 +77,8 @@ impl Widget for &App {
                 params,
                 buf,
                 &mut self.params_list_state.clone(),
-            );
-        }
+            )
+        };
 
         {
             let style = if matches!(self.current_pane, Pane::Output) {
@@ -124,7 +124,7 @@ impl Widget for &App {
                         &mut scrollbar_state,
                     );
             }
-        }
+        };
 
         {
             let keystyle = Style::default().green();
@@ -158,6 +158,6 @@ impl Widget for &App {
                         .title_top(Line::from("Help").blue().left_aligned()),
                 )
                 .render(help, buf);
-        }
+        };
     }
 }

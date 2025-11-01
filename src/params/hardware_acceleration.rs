@@ -3,7 +3,7 @@ use crate::{
     visitors::{CommandBuilder, HWAccel},
 };
 
-pub(crate) struct HardwareAcceleration {}
+pub(crate) struct HardwareAcceleration;
 
 impl HardwareAcceleration {
     pub(crate) const NAME: &'static str = "HW Acceleration";
@@ -50,7 +50,7 @@ impl HardwareAcceleration {
                     cb.args.push("h264_qsv".into());
                 }
                 _ => cb.hwaccel = HWAccel::None,
-            };
+            }
         } else {
             cb.hwaccel = HWAccel::None;
         }

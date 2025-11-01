@@ -129,11 +129,11 @@ impl Parameter {
                 .map_or_else(String::new, |option| option.name.clone()),
             ParameterData::Trim(data) => {
                 format!(
-                    "{}{}..{}{}",
+                    "{}{}..{} {}",
                     if data.precise { "!" } else { "~" },
                     data.ss.as_deref().unwrap_or("start"),
-                    if data.use_to { "to: " } else { "duration: " },
-                    data.to.as_deref().unwrap_or("end")
+                    data.to.as_deref().unwrap_or("end"),
+                    if data.use_to { "(to)" } else { "(duration)" },
                 )
             }
         }

@@ -6,6 +6,7 @@ use crate::{
 pub(crate) struct SpeedFactor;
 
 impl SpeedFactor {
+    pub(crate) const ID: &'static str = "speed";
     pub(crate) const NAME: &'static str = "Speed";
     const DEFAULT: &'static str = "1";
     const VARIANTS: [&str; 13] = [
@@ -14,6 +15,7 @@ impl SpeedFactor {
 
     pub fn new_parameter() -> Parameter {
         Parameter::new(
+            Self::ID,
             Self::NAME,
             ParameterData::Select {
                 options: SelectOption::from_slice(&Self::VARIANTS),

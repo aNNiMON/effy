@@ -6,6 +6,7 @@ use crate::{
 pub(crate) struct AudioVolume;
 
 impl AudioVolume {
+    pub(crate) const ID: &'static str = "volume";
     pub(crate) const NAME: &'static str = "Audio Volume";
     const DEFAULT: &'static str = "original";
     const VARIANTS: [&str; 11] = [
@@ -14,6 +15,7 @@ impl AudioVolume {
 
     pub fn new_parameter() -> Parameter {
         Parameter::new(
+            Self::ID,
             Self::NAME,
             ParameterData::Select {
                 options: SelectOption::from_slice(&Self::VARIANTS),

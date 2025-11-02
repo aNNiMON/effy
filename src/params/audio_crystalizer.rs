@@ -6,12 +6,14 @@ use crate::{
 pub(crate) struct AudioCrystalizer;
 
 impl AudioCrystalizer {
+    pub(crate) const ID: &'static str = "crystalizer";
     pub(crate) const NAME: &'static str = "Audio Crystalizer";
     const DEFAULT: &'static str = "0";
     const VARIANTS: [&str; 7] = ["-8", "-4", "-2", "0", "2", "4", "8"];
 
     pub fn new_parameter() -> Parameter {
         Parameter::new(
+            Self::ID,
             Self::NAME,
             ParameterData::Select {
                 options: SelectOption::from_slice(&Self::VARIANTS),

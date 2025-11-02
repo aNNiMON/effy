@@ -6,12 +6,14 @@ use crate::{
 pub(crate) struct AudioPitch;
 
 impl AudioPitch {
+    pub(crate) const ID: &'static str = "pitch";
     pub(crate) const NAME: &'static str = "Audio Pitch";
     const DEFAULT: &'static str = "1";
     const VARIANTS: [&str; 8] = ["0.6", "0.8", "0.9", "1", "1.15", "1.25", "1.5", "2"];
 
     pub fn new_parameter() -> Parameter {
         Parameter::new(
+            Self::ID,
             Self::NAME,
             ParameterData::Select {
                 options: SelectOption::from_slice(&Self::VARIANTS),

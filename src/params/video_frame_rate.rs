@@ -6,6 +6,7 @@ use crate::{
 pub(crate) struct VideoFrameRate;
 
 impl VideoFrameRate {
+    pub(crate) const ID: &'static str = "frate";
     pub(crate) const NAME: &'static str = "Video Frame Rate";
     const DEFAULT: &'static str = "original";
     const VARIANTS: [&str; 10] = [
@@ -14,6 +15,7 @@ impl VideoFrameRate {
 
     pub fn new_parameter() -> Parameter {
         Parameter::new(
+            Self::ID,
             Self::NAME,
             ParameterData::Select {
                 options: SelectOption::from_slice(&Self::VARIANTS),

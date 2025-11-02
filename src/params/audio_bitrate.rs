@@ -6,6 +6,7 @@ use crate::{
 pub(crate) struct AudioBitrate;
 
 impl AudioBitrate {
+    pub(crate) const ID: &'static str = "abitrate";
     pub(crate) const NAME: &'static str = "Audio Bitrate";
     const DEFAULT: &'static str = "auto";
     const VARIANTS: [&str; 10] = [
@@ -14,6 +15,7 @@ impl AudioBitrate {
 
     pub fn new_parameter() -> Parameter {
         Parameter::new(
+            Self::ID,
             Self::NAME,
             ParameterData::Select {
                 options: SelectOption::from_slice(&Self::VARIANTS),

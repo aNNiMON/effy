@@ -7,10 +7,15 @@ use crate::{
 pub(crate) struct Trim;
 
 impl Trim {
+    pub(crate) const ID: &'static str = "trim";
     pub(crate) const NAME: &'static str = "Trim";
 
     pub fn new_parameter() -> Parameter {
-        Parameter::new(Self::NAME, ParameterData::Trim(TrimData::default()))
+        Parameter::new(
+            Self::ID,
+            Self::NAME,
+            ParameterData::Trim(TrimData::default()),
+        )
     }
 
     pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {

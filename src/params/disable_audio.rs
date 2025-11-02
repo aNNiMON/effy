@@ -6,10 +6,11 @@ use crate::{
 pub(crate) struct DisableAudio;
 
 impl DisableAudio {
+    pub(crate) const ID: &'static str = "noaudio";
     pub(crate) const NAME: &'static str = "Disable Audio";
 
     pub fn new_parameter() -> Parameter {
-        Parameter::new(Self::NAME, ParameterData::Toggle { value: false })
+        Parameter::new(Self::ID, Self::NAME, ParameterData::Toggle { value: false })
     }
 
     pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {

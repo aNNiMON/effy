@@ -6,6 +6,7 @@ use crate::{
 pub(crate) struct VideoBitrate;
 
 impl VideoBitrate {
+    pub(crate) const ID: &'static str = "vbitrate";
     pub(crate) const NAME: &'static str = "Video Bitrate";
     const DEFAULT: &'static str = "auto";
     const VARIANTS: [&str; 12] = [
@@ -14,6 +15,7 @@ impl VideoBitrate {
 
     pub fn new_parameter() -> Parameter {
         Parameter::new(
+            Self::ID,
             Self::NAME,
             ParameterData::Select {
                 options: SelectOption::from_slice(&Self::VARIANTS),

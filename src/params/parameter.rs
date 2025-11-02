@@ -55,10 +55,10 @@ pub(crate) struct Parameter {
 }
 
 impl Parameter {
-    pub(crate) fn new(id: &'static str, data: ParameterData) -> Self {
+    pub(crate) fn new(id: &'static str, name: &str, data: ParameterData) -> Self {
         Parameter {
             id,
-            name: id.to_owned(),
+            name: name.to_owned(),
             enabled: true,
             data,
         }

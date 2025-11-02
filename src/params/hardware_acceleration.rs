@@ -6,6 +6,7 @@ use crate::{
 pub(crate) struct HardwareAcceleration;
 
 impl HardwareAcceleration {
+    pub(crate) const ID: &'static str = "hwaccel";
     pub(crate) const NAME: &'static str = "HW Acceleration";
     const DEFAULT: &'static str = "none";
     const VARIANT_PAIRS: [(&str, &str); 3] =
@@ -13,6 +14,7 @@ impl HardwareAcceleration {
 
     pub fn new_parameter() -> Parameter {
         Parameter::new(
+            Self::ID,
             Self::NAME,
             ParameterData::Select {
                 options: SelectOption::from_pairs(&Self::VARIANT_PAIRS),

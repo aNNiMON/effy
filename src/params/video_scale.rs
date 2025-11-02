@@ -6,6 +6,7 @@ use crate::{
 pub(crate) struct VideoScale;
 
 impl VideoScale {
+    pub(crate) const ID: &'static str = "scale";
     pub(crate) const NAME: &'static str = "Video Scale";
     const DEFAULT: &'static str = "original";
     const VARIANT_PAIRS: [(&str, &str); 7] = [
@@ -20,6 +21,7 @@ impl VideoScale {
 
     pub fn new_parameter() -> Parameter {
         Parameter::new(
+            Self::ID,
             Self::NAME,
             ParameterData::Select {
                 options: SelectOption::from_pairs(&Self::VARIANT_PAIRS),

@@ -65,11 +65,10 @@ impl App {
                 Ok(AppEvent::Input(key)) => self.on_key_event(key),
                 Ok(AppEvent::AddOutput(output)) => self.add_output(&output),
                 Ok(AppEvent::SaveCompleted(success)) => self.on_save_complete(success),
-                Ok(AppEvent::Redraw) => {}
                 Ok(AppEvent::OpenTrimModal(data)) => {
-                    self.modal = Some(Box::new(TrimModal::from(data)));
+                    self.modal = Some(Box::new(TrimModal::from(data)))
                 }
-                Err(_) => {}
+                Ok(AppEvent::Redraw) | Err(_) => {}
             }
         }
         Ok(())

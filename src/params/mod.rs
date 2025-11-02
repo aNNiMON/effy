@@ -54,7 +54,7 @@ pub(crate) fn create_params(info: &Info) -> Vec<Parameter> {
 
 pub(crate) fn recheck_params(params: &mut [Parameter], changed_param: &Parameter) {
     if let Parameter {
-        id: DisableAudio::NAME,
+        id: DisableAudio::ID,
         data: ParameterData::Toggle { value },
         ..
     } = changed_param
@@ -62,7 +62,7 @@ pub(crate) fn recheck_params(params: &mut [Parameter], changed_param: &Parameter
         for param in params {
             if matches!(
                 param.id,
-                AudioBitrate::NAME | AudioCrystalizer::NAME | AudioPitch::NAME | AudioVolume::NAME
+                AudioBitrate::ID | AudioCrystalizer::ID | AudioPitch::ID | AudioVolume::ID
             ) {
                 param.enabled = !*value;
             }
@@ -76,17 +76,17 @@ pub(crate) fn apply_visitor(visitor: &mut dyn FFmpegParameterVisitor, params: &[
             continue;
         }
         match param.id {
-            Trim::NAME => visitor.visit_trim(&param.data),
-            DisableAudio::NAME => visitor.visit_disable_audio(&param.data),
-            AudioVolume::NAME => visitor.visit_audio_volume(&param.data),
-            AudioBitrate::NAME => visitor.visit_audio_bitrate(&param.data),
-            AudioCrystalizer::NAME => visitor.visit_audio_crystalizer(&param.data),
-            AudioPitch::NAME => visitor.visit_audio_pitch(&param.data),
-            SpeedFactor::NAME => visitor.visit_speed_factor(&param.data),
+            Trim::ID => visitor.visit_trim(&param.data),
+            DisableAudio::ID => visitor.visit_disable_audio(&param.data),
+            AudioVolume::ID => visitor.visit_audio_volume(&param.data),
+            AudioBitrate::ID => visitor.visit_audio_bitrate(&param.data),
+            AudioCrystalizer::ID => visitor.visit_audio_crystalizer(&param.data),
+            AudioPitch::ID => visitor.visit_audio_pitch(&param.data),
+            SpeedFactor::ID => visitor.visit_speed_factor(&param.data),
             VideoBitrate::NAME => visitor.visit_video_bitrate(&param.data),
-            VideoFrameRate::NAME => visitor.visit_video_frame_rate(&param.data),
-            VideoScale::NAME => visitor.visit_video_scale(&param.data),
-            HardwareAcceleration::NAME => visitor.visit_hardware_acceleration(&param.data),
+            VideoFrameRate::ID => visitor.visit_video_frame_rate(&param.data),
+            VideoScale::ID => visitor.visit_video_scale(&param.data),
+            HardwareAcceleration::ID => visitor.visit_hardware_acceleration(&param.data),
             _ => {}
         }
     }

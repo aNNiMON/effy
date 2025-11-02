@@ -95,7 +95,7 @@ impl App {
                     self.save();
                 }
                 ModalResult::Trim => {
-                    if let Some(param) = self.params.iter_mut().find(|p| p.id == Trim::NAME)
+                    if let Some(param) = self.params.iter_mut().find(|p| p.id == Trim::ID)
                         && let ParameterData::Trim(data) = &mut param.data
                         && let Some(trim) = modal.downcast_ref::<TrimModal>()
                     {

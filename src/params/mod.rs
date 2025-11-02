@@ -83,7 +83,7 @@ pub(crate) fn apply_visitor(visitor: &mut dyn FFmpegParameterVisitor, params: &[
             AudioCrystalizer::ID => visitor.visit_audio_crystalizer(&param.data),
             AudioPitch::ID => visitor.visit_audio_pitch(&param.data),
             SpeedFactor::ID => visitor.visit_speed_factor(&param.data),
-            VideoBitrate::NAME => visitor.visit_video_bitrate(&param.data),
+            VideoBitrate::ID => visitor.visit_video_bitrate(&param.data),
             VideoFrameRate::ID => visitor.visit_video_frame_rate(&param.data),
             VideoScale::ID => visitor.visit_video_scale(&param.data),
             HardwareAcceleration::ID => visitor.visit_hardware_acceleration(&param.data),

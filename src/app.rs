@@ -114,7 +114,11 @@ impl App {
             (_, _, KeyCode::Tab) => self.next_pane(),
             (_, KeyModifiers::CONTROL, KeyCode::Char('s')) => self.save(),
             (_, _, KeyCode::Char('s')) => {
-                self.modal = Some(Box::new(SaveAsFileModal::new(&self.output_filename)));
+                self.modal = Some(Box::new(SaveAsFileModal::new(
+                    &self.output_folder,
+                    &self.output_filename,
+                    &self.output_fileext,
+                )));
             }
             (Pane::Info, _, KeyCode::Down | KeyCode::Char('j')) => self.scroll_info_pane_down(),
             (Pane::Info, _, KeyCode::Up | KeyCode::Char('k')) => self.scroll_info_pane_up(),

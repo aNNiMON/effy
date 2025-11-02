@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::PathBuf;
 
 use crossterm::event::{Event, KeyCode, KeyEvent};
 use ratatui::{layout::Layout, prelude::Frame};
@@ -16,6 +16,8 @@ use crate::ui::{KeyboardHandler, ModalResult, UiModal, input_value_and_pos};
 
 pub(crate) struct SaveAsFileModal {
     filename: Input,
+    folder: Box<str>,
+    ext: Box<str>,
 }
 
 impl UiModal for SaveAsFileModal {
@@ -58,7 +60,7 @@ impl KeyboardHandler for SaveAsFileModal {
             ModalResult::Close
         } else if key.code == KeyCode::Enter {
             let filename = self.filename.value().trim();
-            let valid = !filename.is_empty() && !Path::new(filename).exists();
+            let valid = !filename.is_empty() && !self.is_file_exists(filename);
             if valid {
                 ModalResult::Filename(filename.to_owned())
             } else {
@@ -72,9 +74,11 @@ impl KeyboardHandler for SaveAsFileModal {
 }
 
 impl SaveAsFileModal {
-    pub(crate) fn new(filename: &str) -> Self {
+    pub(crate) fn new(folder: &str, filename: &str, ext: &str) -> Self {
         Self {
             filename: Input::new(filename.to_owned()),
+            folder: folder.into(),
+            ext: ext.into(),
         }
     }
 
@@ -86,5 +90,13 @@ impl SaveAsFileModal {
             ": close".gray(),
         ]);
         Paragraph::new(parts).render(area, frame.buffer_mut());
+    }
+
+    fn is_file_exists(&self, filename: &str) -> bool {
+        let mut path = PathBuf::new();
+        path.push(&*self.folder);
+        path.push(filename);
+        path.set_extension(&*self.ext);
+        path.exists()
     }
 }

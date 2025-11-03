@@ -24,6 +24,7 @@ pub(crate) struct TrimModal {
     to: Input,
     precise: bool,
     use_to: bool, // -t or -to
+    error: Option<String>,
 }
 
 impl UiModal for TrimModal {
@@ -86,12 +87,13 @@ impl UiModal for TrimModal {
         Paragraph::new(use_to_line)
             .alignment(Alignment::Center)
             .render(use_to_area, frame.buffer_mut());
-        self.render_input_hints(hints_area, frame);
+        self.render_status(hints_area, frame);
     }
 }
 
 impl KeyboardHandler for TrimModal {
     fn handle_key(&mut self, key: KeyEvent) -> ModalResult {
+        self.error.take();
         match key.code {
             KeyCode::Esc => return ModalResult::Close,
             KeyCode::BackTab => self.active_input = (self.active_input + 3) % 4,
@@ -116,7 +118,13 @@ impl KeyboardHandler for TrimModal {
                 }
                 _ => {}
             },
-            KeyCode::Enter => return ModalResult::Trim,
+            KeyCode::Enter => {
+                if let Some(msg) = self.validate() {
+                    self.error = Some(msg.to_owned());
+                    return ModalResult::None;
+                }
+                return ModalResult::Trim;
+            }
             _ => {}
         }
         ModalResult::None
@@ -131,6 +139,7 @@ impl From<TrimData> for TrimModal {
             to: Input::new(data.to.unwrap_or_default()),
             precise: data.precise,
             use_to: data.use_to,
+            error: None,
         }
     }
 }
@@ -150,22 +159,26 @@ impl TrimModal {
     const REGEXP_SECONDS: &str = r"^([0-9]+)(\.[0-9]+)?$";
     const REGEXP_HHMMSS: &str = r"^([0-9]{1,2}:)?([0-5]?[0-9]:)([0-5]?[0-9])(\.[0-9]+)?$";
 
-    fn render_input_hints(&self, area: Rect, frame: &mut Frame) {
-        let keystyle = Style::default().gray().bold();
-        let mut parts = vec![
-            Span::styled("Enter", keystyle),
-            Span::raw(": confirm  "),
-            Span::styled("Esc", keystyle),
-            Span::raw(": close"),
-        ];
-        if self.active_input > 1 {
-            parts.append(&mut vec![
-                Span::styled("  Space", keystyle),
-                Span::raw(": toggle"),
-            ]);
-        }
-        let parts = Line::from(parts);
-        Paragraph::new(parts).render(area, frame.buffer_mut());
+    fn render_status(&self, area: Rect, frame: &mut Frame) {
+        let line = if let Some(error) = &self.error {
+            Line::from(error.as_str().red().bold()).centered()
+        } else {
+            let keystyle = Style::default().gray().bold();
+            let mut parts = vec![
+                Span::styled("Enter", keystyle),
+                Span::raw(": confirm  "),
+                Span::styled("Esc", keystyle),
+                Span::raw(": close"),
+            ];
+            if self.active_input > 1 {
+                parts.append(&mut vec![
+                    Span::styled("  Space", keystyle),
+                    Span::raw(": toggle"),
+                ]);
+            }
+            Line::from(parts)
+        };
+        Paragraph::new(line).render(area, frame.buffer_mut());
     }
 
     fn prevalidate_value(x: char, value: &str) -> bool {
@@ -175,22 +188,25 @@ impl TrimModal {
             && !(x == ':' && value.matches(':').count() >= 2)
     }
 
-    fn validate(&self) -> bool {
+    fn validate(&self) -> Option<&str> {
         let (ss, to) = (self.ss.value(), self.to.value());
         if !ss.is_empty() && !Self::valid_value(ss) {
-            return false;
+            return Some("Incorrect start time format");
         }
         if !to.is_empty() && !Self::valid_value(to) {
-            return false;
+            return Some("Incorrect duration/to format");
         }
         if self.use_to && !ss.is_empty() && !to.is_empty() {
             let ss_sec = Self::to_seconds(ss);
             let to_sec = Self::to_seconds(to);
             if ss_sec >= to_sec {
-                return false;
+                return Some("End time must be greater than start time");
             }
         }
-        true
+        if !to.is_empty() && Self::to_seconds(to) <= 0.0 {
+            return Some("Duration/to must be greater than zero");
+        }
+        None
     }
 
     fn valid_value(value: &str) -> bool {

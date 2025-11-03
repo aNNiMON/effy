@@ -1,3 +1,5 @@
+use std::vec;
+
 use crossterm::event::{Event, KeyCode, KeyEvent};
 use ratatui::layout::{Alignment, Margin};
 use ratatui::text::Span;
@@ -9,6 +11,7 @@ use ratatui::{
     text::Line,
     widgets::{Block, Clear, Paragraph, Widget},
 };
+use regex::Regex;
 use tui_input::Input;
 use tui_input::backend::crossterm::EventHandler as _;
 
@@ -94,10 +97,10 @@ impl KeyboardHandler for TrimModal {
             KeyCode::BackTab => self.active_input = (self.active_input + 3) % 4,
             KeyCode::Tab => self.active_input = (self.active_input + 1) % 4,
             KeyCode::Char(x) => match (self.active_input, x) {
-                (0, '0'..='9' | '.' | ':') if self.ss.value().len() < 8 => {
+                (0, '0'..='9' | '.' | ':') if Self::prevalidate_value(x, self.ss.value()) => {
                     self.ss.handle_event(&Event::Key(key));
                 }
-                (1, '0'..='9' | '.' | ':') if self.to.value().len() < 8 => {
+                (1, '0'..='9' | '.' | ':') if Self::prevalidate_value(x, self.to.value()) => {
                     self.to.handle_event(&Event::Key(key));
                 }
                 (2, ' ') => self.precise = !self.precise,
@@ -135,8 +138,8 @@ impl From<TrimData> for TrimModal {
 impl From<&TrimModal> for TrimData {
     fn from(model: &TrimModal) -> TrimData {
         TrimData {
-            ss: Some(model.ss.value().trim().to_owned()).filter(|x| !x.is_empty()),
-            to: Some(model.to.value().trim().to_owned()).filter(|x| !x.is_empty()),
+            ss: Some(model.ss.value().to_owned()).filter(|x| !x.is_empty()),
+            to: Some(model.to.value().to_owned()).filter(|x| !x.is_empty()),
             precise: model.precise,
             use_to: model.use_to,
         }
@@ -144,6 +147,9 @@ impl From<&TrimModal> for TrimData {
 }
 
 impl TrimModal {
+    const REGEXP_SECONDS: &str = r"^([0-9]+)(\.[0-9]+)?$";
+    const REGEXP_HHMMSS: &str = r"^([0-9]{1,2}:)?([0-5]?[0-9]:)([0-5]?[0-9])(\.[0-9]+)?$";
+
     fn render_input_hints(&self, area: Rect, frame: &mut Frame) {
         let keystyle = Style::default().gray().bold();
         let mut parts = vec![
@@ -160,5 +166,49 @@ impl TrimModal {
         }
         let parts = Line::from(parts);
         Paragraph::new(parts).render(area, frame.buffer_mut());
+    }
+
+    fn prevalidate_value(x: char, value: &str) -> bool {
+        // Format 00:00:00.000 or seconds
+        value.len() < 12
+            && !(x == '.' && value.contains('.'))
+            && !(x == ':' && value.matches(':').count() >= 2)
+    }
+
+    fn validate(&self) -> bool {
+        let (ss, to) = (self.ss.value(), self.to.value());
+        if !ss.is_empty() && !Self::valid_value(ss) {
+            return false;
+        }
+        if !to.is_empty() && !Self::valid_value(to) {
+            return false;
+        }
+        if self.use_to && !ss.is_empty() && !to.is_empty() {
+            let ss_sec = Self::to_seconds(ss);
+            let to_sec = Self::to_seconds(to);
+            if ss_sec >= to_sec {
+                return false;
+            }
+        }
+        true
+    }
+
+    fn valid_value(value: &str) -> bool {
+        let regexs = [Self::REGEXP_SECONDS, Self::REGEXP_HHMMSS];
+        regexs.iter().any(|rstr| {
+            let re = Regex::new(rstr).expect("Valid regex");
+            re.is_match(value)
+        })
+    }
+
+    fn to_seconds(value: &str) -> f64 {
+        let parts: Vec<&str> = value.split(':').collect();
+        let mut total_seconds = 0.0_f64;
+        for (i, part) in parts.iter().rev().enumerate() {
+            if let Ok(num) = part.parse::<f64>() {
+                total_seconds += num * 60_f64.powi(i as i32);
+            }
+        }
+        total_seconds
     }
 }

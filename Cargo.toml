@@ -1,6 +1,6 @@
 [package]
 name = "effy"
-version = "0.3.0"
+version = "0.4.0"
 description = "FFmpeg TUI Helper"
 keywords = ["ffmpeg", "tui", "ratatui"]
 authors = ["aNNiMON <annimon119@gmail.com>"]

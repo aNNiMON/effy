@@ -8,11 +8,12 @@ TUI FFmpeg helper
 - change an audio bitrate, volume, pitch, tempo
 - apply audio effects (crystalizer)
 - remove audio from the video
+- trim video/audio
 
 ## Usage
 
 > [!IMPORTANT]
-> `ffmpeg` and `ffprobe` must be [installed](https://ffmpeg.org/download.html) and available in the `PATH` env variable 
+> `ffmpeg` and `ffprobe` must be [installed](https://ffmpeg.org/download.html) and available in the `PATH` env variable
 
 ```bash
 effy input.mp4

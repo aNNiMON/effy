@@ -168,7 +168,9 @@ impl TrimModal {
                 Span::styled("Enter", keystyle),
                 Span::raw(": confirm  "),
                 Span::styled("Esc", keystyle),
-                Span::raw(": close"),
+                Span::raw(": close  "),
+                Span::styled("Tab", keystyle),
+                Span::raw(": switch focus"),
             ];
             if self.active_input > 1 {
                 parts.append(&mut vec![

@@ -14,7 +14,10 @@ impl Trim {
         Parameter::new(
             Self::ID,
             Self::NAME,
-            ParameterData::Trim(TrimData::default()),
+            ParameterData::Trim(TrimData {
+                use_to: true,
+                ..Default::default()
+            }),
         )
     }
 

@@ -1,4 +1,5 @@
 use std::{
+    error::Error,
     process,
     sync::mpsc::{self, Sender},
     thread,
@@ -17,9 +18,7 @@ mod source;
 mod ui;
 mod visitors;
 
-fn main() -> color_eyre::Result<()> {
-    color_eyre::install()?;
-
+fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = std::env::args().collect();
     if args.len() != 2 {
         eprintln!("Usage: {} input", &args[0]);

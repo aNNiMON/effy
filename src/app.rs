@@ -1,9 +1,9 @@
+use std::error::Error;
 use std::io::{BufReader, Read};
 use std::process::{Command, Stdio};
 use std::sync::mpsc::{Receiver, Sender};
 use std::{mem, thread};
 
-use color_eyre::Result;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::{DefaultTerminal, Frame, widgets::ListState};
 
@@ -57,7 +57,11 @@ impl App {
         }
     }
 
-    pub fn run(mut self, mut terminal: DefaultTerminal, rx: &Receiver<AppEvent>) -> Result<()> {
+    pub fn run(
+        mut self,
+        mut terminal: DefaultTerminal,
+        rx: &Receiver<AppEvent>,
+    ) -> Result<(), Box<dyn Error>> {
         self.running = true;
         while self.running {
             terminal.draw(|frame| self.render(frame))?;

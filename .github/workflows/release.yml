@@ -26,9 +26,6 @@ jobs:
           - filename: aarch64-linux.tar.gz
             target: aarch64-unknown-linux-gnu
             build_with: cross
-          - filename: aarch64-android.tar.gz
-            target: aarch64-linux-android
-            build_with: cross
 
     runs-on: ${{ matrix.os || 'ubuntu-latest' }}
     timeout-minutes: 60
@@ -38,7 +35,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: '${{ matrix.target }}'
+          targets: "${{ matrix.target }}"
       - name: Install cross
         run: cargo install cross
         if: matrix.build_with == 'cross'
@@ -64,4 +61,4 @@ jobs:
         with:
           files: target/${{ matrix.target }}/release/${{ env.PROGRAM }}-*
         env:
-          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

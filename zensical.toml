@@ -5,7 +5,7 @@ site_author = "aNNiMON"
 site_url = "https://projects.annimon.com/projects/effy"
 
 repo_url = "https://github.com/annimon/effy"
-edit_uri = "blob/docs/"
+edit_uri = "blob/docs/docs"
 
 copyright = "&copy; aNNiMON"
 

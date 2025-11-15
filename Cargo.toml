@@ -1,11 +1,15 @@
 [package]
 name = "effy"
 version = "0.4.0"
-description = "FFmpeg TUI Helper"
+description = "A small and friendly terminal FFmpeg helper that simplifies common tasks"
 keywords = ["ffmpeg", "tui", "ratatui"]
 authors = ["aNNiMON <annimon119@gmail.com>"]
 license = "MIT"
 edition = "2024"
+repository = "https://github.com/aNNiMON/effy"
+homepage = "https://projects.annimon.com/projects/effy"
+categories = ["command-line-utilities", "multimedia"]
+readme = "README.md"
 
 [dependencies]
 crossterm = "0.29"

@@ -4,6 +4,7 @@ use crate::{params::*, visitors::FFmpegParameterVisitor};
 pub(crate) struct CommandBuilder {
     pub(crate) discard_audio: bool,
     pub(crate) hwaccel: HWAccel,
+    pub(crate) speed_factor: Option<f64>,
     pub(crate) audio_filters: Vec<String>,
     pub(crate) video_filters: Vec<String>,
     pub(crate) pre_input_args: Vec<String>,

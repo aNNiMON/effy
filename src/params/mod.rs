@@ -71,10 +71,9 @@ pub(crate) fn recheck_params(params: &mut [Parameter], changed_param: &Parameter
 }
 
 pub(crate) fn apply_visitor(visitor: &mut dyn FFmpegParameterVisitor, params: &[Parameter]) {
-    for param in params {
-        if !param.enabled {
-            continue;
-        }
+    let mut sorted_params: Vec<&Parameter> = params.iter().filter(|param| param.enabled).collect();
+    sorted_params.sort_by_key(|param| param.order);
+    for param in sorted_params {
         match param.id {
             Trim::ID => visitor.visit_trim(&param.data),
             DisableAudio::ID => visitor.visit_disable_audio(&param.data),

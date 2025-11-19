@@ -51,6 +51,7 @@ pub(crate) struct Parameter {
     pub(crate) id: &'static str,
     pub(crate) name: String,
     pub(crate) enabled: bool,
+    pub(crate) order: usize,
     pub(crate) data: ParameterData,
 }
 
@@ -60,8 +61,14 @@ impl Parameter {
             id,
             name: name.to_owned(),
             enabled: true,
+            order: 0,
             data,
         }
+    }
+
+    pub(crate) fn with_order(mut self, order: usize) -> Self {
+        self.order = order;
+        self
     }
 
     pub(crate) fn toggle_prev(&mut self, event_sender: &Sender<AppEvent>) {
@@ -150,6 +157,7 @@ impl Default for Parameter {
             id: "",
             name: String::new(),
             enabled: false,
+            order: 0,
             data: ParameterData::Toggle { value: false },
         }
     }

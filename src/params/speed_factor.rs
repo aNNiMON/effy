@@ -26,6 +26,7 @@ impl SpeedFactor {
 
     pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {
         if let Some(option) = select_non_default_option!(data) {
+            cb.speed_factor = option.value.parse().ok();
             if !cb.discard_audio {
                 cb.audio_filters.push(format!("atempo={}", &option.value));
             }

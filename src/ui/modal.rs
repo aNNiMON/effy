@@ -5,6 +5,7 @@ pub(crate) enum ModalResult {
     Close,
     Filename(String),
     Trim,
+    CustomSelect(String),
 }
 
 pub(crate) trait UiModal: Any + KeyboardHandler {

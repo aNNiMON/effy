@@ -13,10 +13,16 @@ pub(crate) struct TrimData {
     pub(crate) precise: bool,
 }
 
+#[derive(Debug, Clone)]
+pub(crate) struct CustomSelectData {
+    pub(crate) value: String,
+}
+
 pub(crate) enum AppEvent {
     Input(crossterm::event::KeyEvent),
     AddOutput(String),
     SaveCompleted(bool),
     Redraw,
     OpenTrimModal(TrimData),
+    OpenCustomSelectModal(CustomSelectData),
 }

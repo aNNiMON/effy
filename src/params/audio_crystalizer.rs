@@ -15,9 +15,10 @@ impl AudioCrystalizer {
         Parameter::new(
             Self::ID,
             Self::NAME,
-            ParameterData::Select {
+            ParameterData::CustomSelect {
                 options: SelectOption::from_slice(&Self::VARIANTS),
-                selected_index: 3,
+                selected_index: Some(3),
+                value: Self::DEFAULT.to_owned(),
             },
         )
     }

@@ -11,7 +11,7 @@ use crate::info::Info;
 use crate::model::{AppEvent, Pane};
 use crate::params::{Parameter, ParameterData, Trim, apply_visitor, create_params, recheck_params};
 use crate::source::Source;
-use crate::ui::{ModalResult, SaveAsFileModal, TrimModal, UiModal};
+use crate::ui::{CustomSelectModal, ModalResult, SaveAsFileModal, TrimModal, UiModal};
 use crate::visitors::CommandBuilder;
 
 pub(crate) struct App {
@@ -72,6 +72,9 @@ impl App {
                 Ok(AppEvent::OpenTrimModal(data)) => {
                     self.modal = Some(Box::new(TrimModal::from(data)))
                 }
+                Ok(AppEvent::OpenCustomSelectModal(data)) => {
+                    self.modal = Some(Box::new(CustomSelectModal::from(data)))
+                }
                 Ok(AppEvent::Redraw) | Err(_) => {}
             }
         }
@@ -107,6 +110,17 @@ impl App {
                     }
                     self.modal = None;
                 }
+                ModalResult::CustomSelect(value) => {
+                    if let Some(selected) = self.params_list_state.selected()
+                        && let Some(param) = self.params.get_mut(selected)
+                        && let ParameterData::CustomSelect {
+                            value: param_value, ..
+                        } = &mut param.data
+                    {
+                        *param_value = value;
+                    }
+                    self.modal = None;
+                }
                 ModalResult::None => {}
             }
             return;
@@ -132,6 +146,7 @@ impl App {
             (Pane::Params, _, KeyCode::Up | KeyCode::Char('k')) => self.select_prev_param(),
             (Pane::Params, _, KeyCode::Left | KeyCode::Char('h')) => self.prev_option(),
             (Pane::Params, _, KeyCode::Right | KeyCode::Char('l')) => self.next_option(),
+            (Pane::Params, _, KeyCode::Enter) => self.open_param_modal(),
             _ => {}
         }
     }
@@ -199,6 +214,14 @@ impl App {
             param.toggle_next(&self.event_sender);
             recheck_params(&mut self.params, &param);
             self.params[selected] = param;
+        }
+    }
+
+    fn open_param_modal(&mut self) {
+        if let Some(selected) = self.params_list_state.selected()
+            && let Some(param) = self.params.get(selected)
+        {
+            param.open_modal(&self.event_sender);
         }
     }
 

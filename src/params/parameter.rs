@@ -1,6 +1,6 @@
 use std::sync::mpsc::Sender;
 
-use crate::model::{AppEvent, TrimData};
+use crate::model::{AppEvent, CustomSelectData, TrimData};
 
 #[derive(Debug, Clone)]
 pub(crate) struct SelectOption {
@@ -40,6 +40,11 @@ pub(crate) enum ParameterData {
     Select {
         options: Vec<SelectOption>,
         selected_index: usize,
+    },
+    CustomSelect {
+        options: Vec<SelectOption>,
+        selected_index: Option<usize>,
+        value: String,
     },
     Toggle {
         value: bool,
@@ -83,18 +88,31 @@ impl Parameter {
                 options,
                 selected_index,
             } => {
-                if options.is_empty() {
-                    return;
-                }
-                if *selected_index == 0 {
-                    *selected_index = options.len() - 1;
-                } else {
-                    *selected_index -= 1;
+                if !options.is_empty() {
+                    *selected_index = if *selected_index == 0 {
+                        options.len() - 1
+                    } else {
+                        *selected_index - 1
+                    };
                 }
             }
-            ParameterData::Trim(data) => {
-                let _ = event_sender.send(AppEvent::OpenTrimModal(data.clone()));
+            ParameterData::CustomSelect {
+                options,
+                selected_index,
+                value,
+            } => {
+                if !options.is_empty()
+                    && let Some(idx) = selected_index
+                {
+                    "".clone_into(value);
+                    *selected_index = Some(if *idx == 0 {
+                        options.len() - 1
+                    } else {
+                        *idx - 1
+                    });
+                }
             }
+            _ => self.open_modal(event_sender),
         }
     }
 
@@ -110,18 +128,31 @@ impl Parameter {
                 options,
                 selected_index,
             } => {
-                if options.is_empty() {
-                    return;
-                }
-                if *selected_index >= options.len() - 1 {
-                    *selected_index = 0;
-                } else {
-                    *selected_index += 1;
+                if !options.is_empty() {
+                    *selected_index = if *selected_index >= options.len() - 1 {
+                        0
+                    } else {
+                        *selected_index + 1
+                    };
                 }
             }
-            ParameterData::Trim(data) => {
-                let _ = event_sender.send(AppEvent::OpenTrimModal(data.clone()));
+            ParameterData::CustomSelect {
+                options,
+                selected_index,
+                value,
+            } => {
+                if !options.is_empty()
+                    && let Some(idx) = selected_index
+                {
+                    "".clone_into(value);
+                    *selected_index = Some(if *idx >= options.len() - 1 {
+                        0
+                    } else {
+                        *idx + 1
+                    });
+                }
             }
+            _ => self.open_modal(event_sender),
         }
     }
 
@@ -134,6 +165,21 @@ impl Parameter {
             } => options
                 .get(*selected_index)
                 .map_or_else(String::new, |option| option.name.clone()),
+            ParameterData::CustomSelect {
+                options,
+                selected_index,
+                value,
+            } => {
+                if !value.is_empty() {
+                    value.clone()
+                } else if let Some(idx) = selected_index {
+                    options
+                        .get(*idx)
+                        .map_or_else(String::new, |option| option.name.clone())
+                } else {
+                    String::new()
+                }
+            }
             ParameterData::Trim(data) => {
                 format!(
                     "{}{}..{} {}",
@@ -148,6 +194,35 @@ impl Parameter {
 
     pub(crate) fn describe(&self) -> String {
         format!("{}: {}", &self.name, self.describe_value())
+    }
+
+    pub(crate) fn open_modal(&self, event_sender: &Sender<AppEvent>) {
+        if !self.enabled {
+            return;
+        }
+        match &self.data {
+            ParameterData::CustomSelect {
+                options,
+                selected_index,
+                value,
+            } => {
+                let initial_value = if let Some(idx) = selected_index {
+                    options
+                        .get(*idx)
+                        .map(|opt| opt.value.clone())
+                        .unwrap_or_default()
+                } else {
+                    value.clone()
+                };
+                let _ = event_sender.send(AppEvent::OpenCustomSelectModal(CustomSelectData {
+                    value: initial_value,
+                }));
+            }
+            ParameterData::Trim(data) => {
+                let _ = event_sender.send(AppEvent::OpenTrimModal(data.clone()));
+            }
+            _ => {}
+        }
     }
 }
 

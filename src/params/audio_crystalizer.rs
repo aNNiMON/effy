@@ -26,14 +26,13 @@ impl AudioCrystalizer {
         )
     }
 
-    fn validate(value: String) -> Result<String, String> {
+    fn validate(value: &str) -> Result<String, &str> {
         if let Ok(num) = value.parse::<i32>()
-            && num >= -10
-            && num <= 10
+            && (-10..=10).contains(&num)
         {
             Ok(num.to_string())
         } else {
-            Err("Invalid value. Expected a number in range -10..10".to_owned())
+            Err("Invalid value. Expected a number in range -10..10")
         }
     }
 

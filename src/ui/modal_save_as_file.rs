@@ -93,9 +93,7 @@ impl SaveAsFileModal {
     }
 
     fn is_file_exists(&self, filename: &str) -> bool {
-        let mut path = PathBuf::new();
-        path.push(&*self.folder);
-        path.push(filename);
+        let mut path = PathBuf::new().join(&*self.folder).join(filename);
         path.set_extension(&*self.ext);
         path.exists()
     }

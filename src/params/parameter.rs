@@ -109,7 +109,7 @@ impl Parameter {
                     } else {
                         *selected_index - 1
                     };
-                    *value = options[*selected_index].value.clone();
+                    value.clone_from(&options[*selected_index].value);
                 }
             }
             _ => self.open_modal(event_sender),
@@ -148,7 +148,7 @@ impl Parameter {
                     } else {
                         *selected_index + 1
                     };
-                    *value = options[*selected_index].value.clone();
+                    value.clone_from(&options[*selected_index].value);
                 }
             }
             _ => self.open_modal(event_sender),

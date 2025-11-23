@@ -10,11 +10,12 @@ use ratatui::{
 use tui_input::Input;
 use tui_input::backend::crossterm::EventHandler as _;
 
-use crate::model::{CustomSelectData, ValidationCallback};
+use crate::model::{CustomSelectData, InputConstraints, InputType, ValidationCallback};
 use crate::ui::{KeyboardHandler, ModalResult, UiModal, input_value_and_pos};
 
 pub(crate) struct CustomSelectModal {
     input: Input,
+    constraints: InputConstraints,
     validation: ValidationCallback,
     error: Option<String>,
 }
@@ -56,22 +57,35 @@ impl UiModal for CustomSelectModal {
 impl KeyboardHandler for CustomSelectModal {
     fn handle_key(&mut self, key: KeyEvent) -> ModalResult {
         self.error.take();
-        if key.code == KeyCode::Esc {
-            ModalResult::Close
-        } else if key.code == KeyCode::Enter {
-            let value = self.input.value().trim();
-            let validation = self.validation.as_ref();
-            match validation(value) {
-                Ok(valid) => ModalResult::CustomSelect(valid),
-                Err(error) => {
-                    self.error = Some(error.into());
-                    ModalResult::None
+        match key.code {
+            KeyCode::Esc => return ModalResult::Close,
+            KeyCode::Enter => {
+                let value = self.input.value().trim();
+                let validation = self.validation.as_ref();
+                match validation(value) {
+                    Ok(valid) => return ModalResult::CustomSelect(valid),
+                    Err(error) => {
+                        self.error = Some(error.into());
+                    }
                 }
             }
-        } else {
-            self.input.handle_event(&Event::Key(key));
-            ModalResult::None
+            KeyCode::Backspace | KeyCode::Delete => {
+                self.input.handle_event(&Event::Key(key));
+            }
+            KeyCode::Char(x) if self.input.value().len() < self.constraints.length => {
+                match (self.constraints.input_type, x) {
+                    (InputType::Integer, '0'..='9' | '-') => {
+                        self.input.handle_event(&Event::Key(key));
+                    }
+                    (InputType::Decimal, '0'..='9' | '.' | '-') => {
+                        self.input.handle_event(&Event::Key(key));
+                    }
+                    _ => {}
+                }
+            }
+            _ => {}
         }
+        ModalResult::None
     }
 }
 
@@ -79,6 +93,7 @@ impl From<CustomSelectData> for CustomSelectModal {
     fn from(data: CustomSelectData) -> Self {
         Self {
             input: Input::new(data.value),
+            constraints: data.constraints,
             validation: data.validator,
             error: None,
         }

@@ -17,9 +17,22 @@ pub(crate) struct TrimData {
 
 pub(crate) type ValidationCallback = Arc<dyn Fn(&str) -> Result<String, &str> + Send + Sync>;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum InputType {
+    Integer,
+    Decimal,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct InputConstraints {
+    pub(crate) length: usize,
+    pub(crate) input_type: InputType,
+}
+
 #[derive(Clone)]
 pub(crate) struct CustomSelectData {
     pub(crate) value: String,
+    pub(crate) constraints: InputConstraints,
     pub(crate) validator: ValidationCallback,
 }
 

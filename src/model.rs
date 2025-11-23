@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Pane {
     Info,
@@ -13,9 +15,12 @@ pub(crate) struct TrimData {
     pub(crate) precise: bool,
 }
 
-#[derive(Debug, Clone)]
+pub(crate) type ValidationCallback = Arc<dyn Fn(String) -> Result<String, String> + Send + Sync>;
+
+#[derive(Clone)]
 pub(crate) struct CustomSelectData {
     pub(crate) value: String,
+    pub(crate) validator: ValidationCallback,
 }
 
 pub(crate) enum AppEvent {

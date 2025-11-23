@@ -1,6 +1,6 @@
 use std::sync::mpsc::Sender;
 
-use crate::model::{AppEvent, CustomSelectData, TrimData};
+use crate::model::{AppEvent, CustomSelectData, TrimData, ValidationCallback};
 
 #[derive(Debug, Clone)]
 pub(crate) struct SelectOption {
@@ -45,6 +45,7 @@ pub(crate) enum ParameterData {
         options: Vec<SelectOption>,
         selected_index: Option<usize>,
         value: String,
+        validator: ValidationCallback,
     },
     Toggle {
         value: bool,
@@ -100,6 +101,7 @@ impl Parameter {
                 options,
                 selected_index,
                 value,
+                ..
             } => {
                 if !options.is_empty()
                     && let Some(idx) = selected_index
@@ -140,6 +142,7 @@ impl Parameter {
                 options,
                 selected_index,
                 value,
+                ..
             } => {
                 if !options.is_empty()
                     && let Some(idx) = selected_index
@@ -169,6 +172,7 @@ impl Parameter {
                 options,
                 selected_index,
                 value,
+                ..
             } => {
                 if !value.is_empty() {
                     value.clone()
@@ -205,6 +209,7 @@ impl Parameter {
                 options,
                 selected_index,
                 value,
+                validator,
             } => {
                 let initial_value = if let Some(idx) = selected_index {
                     options
@@ -216,6 +221,7 @@ impl Parameter {
                 };
                 let _ = event_sender.send(AppEvent::OpenCustomSelectModal(CustomSelectData {
                     value: initial_value,
+                    validator: validator.clone(),
                 }));
             }
             ParameterData::Trim(data) => {

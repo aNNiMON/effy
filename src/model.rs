@@ -31,6 +31,7 @@ pub(crate) struct InputConstraints {
 
 #[derive(Clone)]
 pub(crate) struct CustomSelectData {
+    pub(crate) name: Arc<str>,
     pub(crate) value: String,
     pub(crate) constraints: InputConstraints,
     pub(crate) validator: ValidationCallback,

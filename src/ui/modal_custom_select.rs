@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crossterm::event::{Event, KeyCode, KeyEvent};
 use ratatui::{layout::Layout, prelude::Frame};
 use ratatui::{
@@ -14,6 +16,7 @@ use crate::model::{CustomSelectData, InputConstraints, InputType, ValidationCall
 use crate::ui::{KeyboardHandler, ModalResult, UiModal, input_value_and_pos};
 
 pub(crate) struct CustomSelectModal {
+    name: Arc<str>,
     input: Input,
     constraints: InputConstraints,
     validation: ValidationCallback,
@@ -38,7 +41,7 @@ impl UiModal for CustomSelectModal {
         Clear.render(modal_area, frame.buffer_mut());
         Block::bordered()
             .border_set(symbols::border::THICK)
-            .title("Enter Value")
+            .title(self.name.as_ref())
             .fg(Color::Blue)
             .render(modal_area, frame.buffer_mut());
         Paragraph::new(display_value)
@@ -92,6 +95,7 @@ impl KeyboardHandler for CustomSelectModal {
 impl From<CustomSelectData> for CustomSelectModal {
     fn from(data: CustomSelectData) -> Self {
         Self {
+            name: data.name,
             input: Input::new(data.value),
             constraints: data.constraints,
             validation: data.validator,

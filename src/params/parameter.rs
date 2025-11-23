@@ -1,4 +1,4 @@
-use std::sync::mpsc::Sender;
+use std::sync::{Arc, mpsc::Sender};
 
 use crate::model::{AppEvent, CustomSelectData, InputConstraints, TrimData, ValidationCallback};
 
@@ -194,6 +194,7 @@ impl Parameter {
                 ..
             } => {
                 let _ = event_sender.send(AppEvent::OpenCustomSelectModal(CustomSelectData {
+                    name: Arc::from(self.name.clone()), // todo: global param name to Arc
                     value: value.clone(),
                     constraints: *constraints,
                     validator: validator.clone(),

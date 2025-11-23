@@ -1,6 +1,8 @@
 use std::sync::{Arc, mpsc::Sender};
 
-use crate::model::{AppEvent, CustomSelectData, InputConstraints, TrimData, ValidationCallback};
+use crate::model::{
+    AppEvent, CustomSelectData, InputConstraints, TrimData, ValidationCallback, ValueFormatter,
+};
 
 #[derive(Debug, Clone)]
 pub(crate) struct SelectOption {
@@ -47,6 +49,7 @@ pub(crate) enum ParameterData {
         value: String,
         constraints: InputConstraints,
         validator: ValidationCallback,
+        formatter: Option<ValueFormatter>,
     },
     Toggle {
         value: bool,
@@ -165,7 +168,15 @@ impl Parameter {
             } => options
                 .get(*selected_index)
                 .map_or_else(String::new, |option| option.name.clone()),
-            ParameterData::CustomSelect { value, .. } => value.clone(),
+            ParameterData::CustomSelect {
+                value, formatter, ..
+            } => {
+                if let Some(fmt) = formatter {
+                    fmt(value)
+                } else {
+                    value.clone()
+                }
+            }
             ParameterData::Trim(data) => {
                 format!(
                     "{}{}..{} {}",

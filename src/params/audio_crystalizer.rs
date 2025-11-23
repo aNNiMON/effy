@@ -19,7 +19,7 @@ impl AudioCrystalizer {
             Self::NAME,
             ParameterData::CustomSelect {
                 options: SelectOption::from_slice(&Self::VARIANTS),
-                selected_index: Some(3),
+                selected_index: 3,
                 value: Self::DEFAULT.to_owned(),
                 validator: Arc::new(Self::validate),
             },

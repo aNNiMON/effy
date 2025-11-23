@@ -43,7 +43,7 @@ pub(crate) enum ParameterData {
     },
     CustomSelect {
         options: Vec<SelectOption>,
-        selected_index: Option<usize>,
+        selected_index: usize,
         value: String,
         validator: ValidationCallback,
     },
@@ -103,15 +103,13 @@ impl Parameter {
                 value,
                 ..
             } => {
-                if !options.is_empty()
-                    && let Some(idx) = selected_index
-                {
-                    "".clone_into(value);
-                    *selected_index = Some(if *idx == 0 {
+                if !options.is_empty() {
+                    *selected_index = if *selected_index == 0 {
                         options.len() - 1
                     } else {
-                        *idx - 1
-                    });
+                        *selected_index - 1
+                    };
+                    *value = options[*selected_index].value.clone();
                 }
             }
             _ => self.open_modal(event_sender),
@@ -144,15 +142,13 @@ impl Parameter {
                 value,
                 ..
             } => {
-                if !options.is_empty()
-                    && let Some(idx) = selected_index
-                {
-                    "".clone_into(value);
-                    *selected_index = Some(if *idx >= options.len() - 1 {
+                if !options.is_empty() {
+                    *selected_index = if *selected_index >= options.len() - 1 {
                         0
                     } else {
-                        *idx + 1
-                    });
+                        *selected_index + 1
+                    };
+                    *value = options[*selected_index].value.clone();
                 }
             }
             _ => self.open_modal(event_sender),
@@ -168,22 +164,7 @@ impl Parameter {
             } => options
                 .get(*selected_index)
                 .map_or_else(String::new, |option| option.name.clone()),
-            ParameterData::CustomSelect {
-                options,
-                selected_index,
-                value,
-                ..
-            } => {
-                if !value.is_empty() {
-                    value.clone()
-                } else if let Some(idx) = selected_index {
-                    options
-                        .get(*idx)
-                        .map_or_else(String::new, |option| option.name.clone())
-                } else {
-                    String::new()
-                }
-            }
+            ParameterData::CustomSelect { value, .. } => value.clone(),
             ParameterData::Trim(data) => {
                 format!(
                     "{}{}..{} {}",
@@ -206,21 +187,10 @@ impl Parameter {
         }
         match &self.data {
             ParameterData::CustomSelect {
-                options,
-                selected_index,
-                value,
-                validator,
+                value, validator, ..
             } => {
-                let initial_value = if let Some(idx) = selected_index {
-                    options
-                        .get(*idx)
-                        .map(|opt| opt.value.clone())
-                        .unwrap_or_default()
-                } else {
-                    value.clone()
-                };
                 let _ = event_sender.send(AppEvent::OpenCustomSelectModal(CustomSelectData {
-                    value: initial_value,
+                    value: value.clone(),
                     validator: validator.clone(),
                 }));
             }

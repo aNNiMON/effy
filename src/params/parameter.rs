@@ -1,6 +1,6 @@
 use std::sync::mpsc::Sender;
 
-use crate::model::{AppEvent, CustomSelectData, TrimData, ValidationCallback};
+use crate::model::{AppEvent, CustomSelectData, InputConstraints, TrimData, ValidationCallback};
 
 #[derive(Debug, Clone)]
 pub(crate) struct SelectOption {
@@ -45,6 +45,7 @@ pub(crate) enum ParameterData {
         options: Vec<SelectOption>,
         selected_index: usize,
         value: String,
+        constraints: InputConstraints,
         validator: ValidationCallback,
     },
     Toggle {
@@ -187,10 +188,14 @@ impl Parameter {
         }
         match &self.data {
             ParameterData::CustomSelect {
-                value, validator, ..
+                value,
+                constraints,
+                validator,
+                ..
             } => {
                 let _ = event_sender.send(AppEvent::OpenCustomSelectModal(CustomSelectData {
                     value: value.clone(),
+                    constraints: *constraints,
                     validator: validator.clone(),
                 }));
             }

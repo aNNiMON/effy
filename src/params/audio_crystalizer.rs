@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
+    model::{InputConstraints, InputType},
     params::{Parameter, ParameterData, SelectOption, macros::select_non_default_option},
     visitors::CommandBuilder,
 };
@@ -21,6 +22,10 @@ impl AudioCrystalizer {
                 options: SelectOption::from_slice(&Self::VARIANTS),
                 selected_index: 3,
                 value: Self::DEFAULT.to_owned(),
+                constraints: InputConstraints {
+                    length: 3,
+                    input_type: InputType::Integer,
+                },
                 validator: Arc::new(Self::validate),
             },
         )

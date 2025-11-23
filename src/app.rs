@@ -117,7 +117,7 @@ impl App {
                             value: param_value, ..
                         } = &mut param.data
                     {
-                        *param_value = value;
+                        param_value.clone_from(&value);
                     }
                     self.modal = None;
                 }

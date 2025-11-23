@@ -28,7 +28,7 @@ impl Trim {
 
             let time_multiplier = cb
                 .speed_factor
-                .filter(|spd| trim_data.precise && *spd != 1.0);
+                .filter(|spd| trim_data.precise && (*spd - 1.0).abs() > 0.00001);
 
             if let Some(ss) = &trim_data.ss {
                 args.push("-ss".into());

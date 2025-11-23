@@ -59,12 +59,12 @@ impl KeyboardHandler for CustomSelectModal {
         if key.code == KeyCode::Esc {
             ModalResult::Close
         } else if key.code == KeyCode::Enter {
-            let value = self.input.value().trim().to_owned();
+            let value = self.input.value().trim();
             let validation = self.validation.as_ref();
             match validation(value) {
                 Ok(valid) => ModalResult::CustomSelect(valid),
                 Err(error) => {
-                    self.error = Some(error);
+                    self.error = Some(error.into());
                     ModalResult::None
                 }
             }

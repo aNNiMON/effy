@@ -15,7 +15,7 @@ pub(crate) struct TrimData {
     pub(crate) precise: bool,
 }
 
-pub(crate) type ValidationCallback = Arc<dyn Fn(String) -> Result<String, String> + Send + Sync>;
+pub(crate) type ValidationCallback = Arc<dyn Fn(&str) -> Result<String, &str> + Send + Sync>;
 
 #[derive(Clone)]
 pub(crate) struct CustomSelectData {

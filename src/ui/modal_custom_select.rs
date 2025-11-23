@@ -10,11 +10,13 @@ use ratatui::{
 use tui_input::Input;
 use tui_input::backend::crossterm::EventHandler as _;
 
-use crate::model::CustomSelectData;
+use crate::model::{CustomSelectData, ValidationCallback};
 use crate::ui::{KeyboardHandler, ModalResult, UiModal, input_value_and_pos};
 
 pub(crate) struct CustomSelectModal {
     input: Input,
+    validation: ValidationCallback,
+    error: Option<String>,
 }
 
 impl UiModal for CustomSelectModal {
@@ -42,7 +44,7 @@ impl UiModal for CustomSelectModal {
             .style(Style::new().white())
             .block(Block::bordered().gray().dim())
             .render(input_area, frame.buffer_mut());
-        Self::render_input_hints(hints_area, frame);
+        self.render_status(hints_area, frame);
 
         frame.set_cursor_position(Position {
             x: input_area.x + x,
@@ -53,11 +55,19 @@ impl UiModal for CustomSelectModal {
 
 impl KeyboardHandler for CustomSelectModal {
     fn handle_key(&mut self, key: KeyEvent) -> ModalResult {
+        self.error.take();
         if key.code == KeyCode::Esc {
             ModalResult::Close
         } else if key.code == KeyCode::Enter {
-            let value = self.input.value().trim();
-            ModalResult::CustomSelect(value.to_owned())
+            let value = self.input.value().trim().to_owned();
+            let validation = self.validation.as_ref();
+            match validation(value) {
+                Ok(valid) => ModalResult::CustomSelect(valid),
+                Err(error) => {
+                    self.error = Some(error);
+                    ModalResult::None
+                }
+            }
         } else {
             self.input.handle_event(&Event::Key(key));
             ModalResult::None
@@ -69,18 +79,24 @@ impl From<CustomSelectData> for CustomSelectModal {
     fn from(data: CustomSelectData) -> Self {
         Self {
             input: Input::new(data.value),
+            validation: data.validator,
+            error: None,
         }
     }
 }
 
 impl CustomSelectModal {
-    fn render_input_hints(area: Rect, frame: &mut Frame) {
-        let parts = Line::from(vec![
-            "Enter".gray().bold(),
-            ": confirm  ".gray(),
-            "Esc".gray().bold(),
-            ": close".gray(),
-        ]);
-        Paragraph::new(parts).render(area, frame.buffer_mut());
+    fn render_status(&self, area: Rect, frame: &mut Frame) {
+        let line = if let Some(error) = &self.error {
+            Line::from(error.as_str().red().bold()).centered()
+        } else {
+            Line::from(vec![
+                "Enter".gray().bold(),
+                ": confirm  ".gray(),
+                "Esc".gray().bold(),
+                ": close".gray(),
+            ])
+        };
+        Paragraph::new(line).render(area, frame.buffer_mut());
     }
 }

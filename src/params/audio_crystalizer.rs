@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::{
     params::{Parameter, ParameterData, SelectOption, macros::select_non_default_option},
     visitors::CommandBuilder,
@@ -19,8 +21,20 @@ impl AudioCrystalizer {
                 options: SelectOption::from_slice(&Self::VARIANTS),
                 selected_index: Some(3),
                 value: Self::DEFAULT.to_owned(),
+                validator: Arc::new(Self::validate),
             },
         )
+    }
+
+    fn validate(value: String) -> Result<String, String> {
+        if let Ok(num) = value.parse::<i32>()
+            && num >= -10
+            && num <= 10
+        {
+            Ok(num.to_string())
+        } else {
+            Err("Invalid value. Expected a number in range -10..10".to_owned())
+        }
     }
 
     pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {

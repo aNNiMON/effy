@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::{
     model::{InputConstraints, InputType},
-    params::{Parameter, ParameterData, SelectOption, macros::select_non_default_option},
+    params::{Parameter, ParameterData, SelectOption, macros::select_non_default_custom_value},
     visitors::CommandBuilder,
 };
 
@@ -27,6 +27,7 @@ impl AudioCrystalizer {
                     input_type: InputType::Integer,
                 },
                 validator: Arc::new(Self::validate),
+                formatter: None,
             },
         )
     }
@@ -43,10 +44,9 @@ impl AudioCrystalizer {
 
     pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {
         if !cb.discard_audio
-            && let Some(option) = select_non_default_option!(data)
+            && let Some(value) = select_non_default_custom_value!(data)
         {
-            cb.audio_filters
-                .push(format!("crystalizer={}", &option.value));
+            cb.audio_filters.push(format!("crystalizer={}", &value));
         }
     }
 }

@@ -16,10 +16,12 @@ pub(crate) struct TrimData {
 }
 
 pub(crate) type ValidationCallback = Arc<dyn Fn(&str) -> Result<String, &str> + Send + Sync>;
+pub(crate) type ValueFormatter = Arc<dyn Fn(&str) -> String + Send + Sync>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum InputType {
     Integer,
+    #[allow(dead_code)]
     Decimal,
 }
 

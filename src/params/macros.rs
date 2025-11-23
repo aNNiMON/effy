@@ -14,4 +14,17 @@ macro_rules! select_non_default_option {
     };
 }
 
+macro_rules! select_non_default_custom_value {
+    ($data:expr) => {
+        if let &ParameterData::CustomSelect { ref value, .. } = $data
+            && value != Self::DEFAULT
+        {
+            Some(value)
+        } else {
+            None
+        }
+    };
+}
+
+pub(crate) use select_non_default_custom_value;
 pub(crate) use select_non_default_option;

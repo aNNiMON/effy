@@ -21,8 +21,8 @@ pub(crate) type ValueFormatter = Arc<dyn Fn(&str) -> String + Send + Sync>;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum InputType {
     Integer,
-    #[allow(dead_code)]
-    Decimal,
+    PositiveInteger,
+    PositiveDecimal,
 }
 
 #[derive(Debug, Clone, Copy)]

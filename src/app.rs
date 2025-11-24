@@ -70,10 +70,10 @@ impl App {
                 Ok(AppEvent::AddOutput(output)) => self.add_output(&output),
                 Ok(AppEvent::SaveCompleted(success)) => self.on_save_complete(success),
                 Ok(AppEvent::OpenTrimModal(data)) => {
-                    self.modal = Some(Box::new(TrimModal::from(data)))
+                    self.modal = Some(Box::new(TrimModal::from(data)));
                 }
                 Ok(AppEvent::OpenCustomSelectModal(data)) => {
-                    self.modal = Some(Box::new(CustomSelectModal::from(data)))
+                    self.modal = Some(Box::new(CustomSelectModal::from(data)));
                 }
                 Ok(AppEvent::Redraw) | Err(_) => {}
             }

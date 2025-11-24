@@ -48,7 +48,7 @@ impl AudioVolume {
         if value == Self::DEFAULT {
             "original".to_owned()
         } else {
-            format!("{}dB", value)
+            format!("{}dB", &value)
         }
     }
 

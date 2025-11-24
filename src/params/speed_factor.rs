@@ -40,7 +40,7 @@ impl SpeedFactor {
         {
             Ok(num.to_string())
         } else {
-            Err("Invalid value. Expected a number in range 0.5..=100.0")
+            Err("Invalid value. Expected a number in range 0.5..100")
         }
     }
 

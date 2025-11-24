@@ -1,5 +1,8 @@
+use std::sync::Arc;
+
 use crate::{
-    params::{Parameter, ParameterData, SelectOption, macros::select_non_default_option},
+    model::{InputConstraints, InputType},
+    params::{Parameter, ParameterData, SelectOption, macros::select_non_default_custom_value},
     visitors::CommandBuilder,
 };
 
@@ -15,19 +18,36 @@ impl AudioPitch {
         Parameter::new(
             Self::ID,
             Self::NAME,
-            ParameterData::Select {
+            ParameterData::CustomSelect {
                 options: SelectOption::from_slice(&Self::VARIANTS),
                 selected_index: 3,
+                value: Self::DEFAULT.to_owned(),
+                constraints: InputConstraints {
+                    length: 4,
+                    input_type: InputType::PositiveDecimal,
+                },
+                validator: Arc::new(Self::validate),
+                formatter: None,
             },
         )
     }
 
+    fn validate(value: &str) -> Result<String, &str> {
+        if let Ok(num) = value.parse::<f64>()
+            && (0.01..=100.0).contains(&num)
+        {
+            Ok(num.to_string())
+        } else {
+            Err("Invalid value. Expected a number in range 0.01..=100.0")
+        }
+    }
+
     pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {
         if !cb.discard_audio
-            && let Some(option) = select_non_default_option!(data)
+            && let Some(value) = select_non_default_custom_value!(data)
         {
             cb.audio_filters
-                .push(format!("rubberband=pitchq=quality:pitch={}", &option.value));
+                .push(format!("rubberband=pitchq=quality:pitch={}", &value));
         }
     }
 }

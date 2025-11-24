@@ -1,5 +1,8 @@
+use std::sync::Arc;
+
 use crate::{
-    params::{Parameter, ParameterData, SelectOption, macros::select_non_default_option},
+    model::{InputConstraints, InputType},
+    params::{Parameter, ParameterData, SelectOption, macros::select_non_default_custom_value},
     visitors::{CommandBuilder, HWAccel},
 };
 
@@ -8,36 +11,54 @@ pub(crate) struct VideoScale;
 impl VideoScale {
     pub(crate) const ID: &'static str = "scale";
     pub(crate) const NAME: &'static str = "Video Scale";
-    const DEFAULT: &'static str = "original";
-    const VARIANT_PAIRS: [(&str, &str); 7] = [
-        ("144p", "144"),
-        ("240p", "240"),
-        ("360p", "360"),
-        ("original", "original"),
-        ("480p", "480"),
-        ("720p", "720"),
-        ("1080p", "1080"),
-    ];
+    const DEFAULT: &'static str = "0";
+    const VARIANTS: [&str; 7] = ["144", "240", "360", "0", "480", "720", "1080"];
 
     pub fn new_parameter() -> Parameter {
         Parameter::new(
             Self::ID,
             Self::NAME,
-            ParameterData::Select {
-                options: SelectOption::from_pairs(&Self::VARIANT_PAIRS),
+            ParameterData::CustomSelect {
+                options: SelectOption::from_slice(&Self::VARIANTS),
                 selected_index: 3,
+                value: Self::DEFAULT.to_owned(),
+                constraints: InputConstraints {
+                    length: 3,
+                    input_type: InputType::Integer,
+                },
+                validator: Arc::new(Self::validate),
+                formatter: Some(Arc::new(Self::format_value)),
             },
         )
     }
 
+    fn validate(value: &str) -> Result<String, &str> {
+        if let Ok(num) = value.parse::<i32>()
+            && (num == 0 || (80..=8192).contains(&num))
+        {
+            Ok(num.to_string())
+        } else {
+            Err("Invalid value. Expected a number in range 0..8192")
+        }
+    }
+
+    fn format_value(value: &str) -> String {
+        if value == Self::DEFAULT {
+            "original".to_owned()
+        } else {
+            format!("{}p", &value)
+        }
+    }
+
     pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {
-        if let Some(option) = select_non_default_option!(data) {
+        if let Some(value) = select_non_default_custom_value!(data) {
             // Use nvenc cuda scale only if there is no other video filter
             if (cb.hwaccel == HWAccel::Nvenc) && (cb.video_filters.is_empty()) {
                 cb.video_filters
-                    .push(format!("scale_cuda=-2:{}", &option.value));
+                    .push(format!("scale_cuda=-2:{}", Self::format_value(value)));
             } else {
-                cb.video_filters.push(format!("scale=-2:{}", &option.value));
+                cb.video_filters
+                    .push(format!("scale=-2:{}", Self::format_value(value)));
             }
         }
     }

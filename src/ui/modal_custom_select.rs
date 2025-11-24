@@ -77,10 +77,9 @@ impl KeyboardHandler for CustomSelectModal {
             }
             KeyCode::Char(x) if self.input.value().len() < self.constraints.length => {
                 match (self.constraints.input_type, x) {
-                    (InputType::Integer, '0'..='9' | '-') => {
-                        self.input.handle_event(&Event::Key(key));
-                    }
-                    (InputType::Decimal, '0'..='9' | '.' | '-') => {
+                    (InputType::Integer, '0'..='9' | '-')
+                    | (InputType::PositiveInteger, '0'..='9')
+                    | (InputType::PositiveDecimal, '0'..='9' | '.') => {
                         self.input.handle_event(&Event::Key(key));
                     }
                     _ => {}

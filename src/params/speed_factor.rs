@@ -1,5 +1,8 @@
+use std::sync::Arc;
+
 use crate::{
-    params::{Parameter, ParameterData, SelectOption, macros::select_non_default_option},
+    model::{InputConstraints, InputType},
+    params::{Parameter, ParameterData, SelectOption, macros::select_non_default_custom_value},
     visitors::CommandBuilder,
 };
 
@@ -17,21 +20,37 @@ impl SpeedFactor {
         Parameter::new(
             Self::ID,
             Self::NAME,
-            ParameterData::Select {
+            ParameterData::CustomSelect {
                 options: SelectOption::from_slice(&Self::VARIANTS),
                 selected_index: 4,
+                value: Self::DEFAULT.to_owned(),
+                constraints: InputConstraints {
+                    length: 4,
+                    input_type: InputType::PositiveDecimal,
+                },
+                validator: Arc::new(Self::validate),
+                formatter: None,
             },
         )
     }
 
+    fn validate(value: &str) -> Result<String, &str> {
+        if let Ok(num) = value.parse::<f64>()
+            && (0.5..=100.0).contains(&num)
+        {
+            Ok(num.to_string())
+        } else {
+            Err("Invalid value. Expected a number in range 0.5..=100.0")
+        }
+    }
+
     pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {
-        if let Some(option) = select_non_default_option!(data) {
-            cb.speed_factor = option.value.parse().ok();
+        if let Some(value) = select_non_default_custom_value!(data) {
+            cb.speed_factor = value.parse().ok();
             if !cb.discard_audio {
-                cb.audio_filters.push(format!("atempo={}", &option.value));
+                cb.audio_filters.push(format!("atempo={}", &value));
             }
-            cb.video_filters
-                .push(format!("setpts=PTS/{}", &option.value));
+            cb.video_filters.push(format!("setpts=PTS/{}", &value));
         }
     }
 }

@@ -40,7 +40,7 @@ impl AudioBitrate {
         {
             Ok(num.to_string())
         } else {
-            Err("Invalid value. Expected a number in range 4..1024")
+            Err("Invalid value. Expected a number in range 4..1024, or 0 - auto")
         }
     }
 

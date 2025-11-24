@@ -23,8 +23,8 @@ impl VideoScale {
                 selected_index: 3,
                 value: Self::DEFAULT.to_owned(),
                 constraints: InputConstraints {
-                    length: 3,
-                    input_type: InputType::Integer,
+                    length: 4,
+                    input_type: InputType::PositiveInteger,
                 },
                 validator: Arc::new(Self::validate),
                 formatter: Some(Arc::new(Self::format_value)),
@@ -34,11 +34,11 @@ impl VideoScale {
 
     fn validate(value: &str) -> Result<String, &str> {
         if let Ok(num) = value.parse::<i32>()
-            && (num == 0 || (80..=8192).contains(&num))
+            && (num == 0 || (64..=8192).contains(&num))
         {
             Ok(num.to_string())
         } else {
-            Err("Invalid value. Expected a number in range 0..8192")
+            Err("Invalid value. Expected a number in range 64..8192, or 0 - original")
         }
     }
 

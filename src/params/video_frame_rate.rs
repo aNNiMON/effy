@@ -33,11 +33,11 @@ impl VideoFrameRate {
 
     fn validate(value: &str) -> Result<String, &str> {
         if let Ok(num) = value.parse::<i32>()
-            && (0..=240).contains(&num)
+            && (0..=960).contains(&num)
         {
             Ok(num.to_string())
         } else {
-            Err("Invalid value. Expected a number in range 0..240")
+            Err("Invalid value. Expected a number in range 1..960, or 0 - original")
         }
     }
 

@@ -208,7 +208,7 @@ impl Parameter {
                     name: Arc::from(self.name.clone()), // todo: global param name to Arc
                     value: value.clone(),
                     constraints: *constraints,
-                    validator: validator.clone(),
+                    validator: Arc::clone(&validator),
                 }));
             }
             ParameterData::Trim(data) => {

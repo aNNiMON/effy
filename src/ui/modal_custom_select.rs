@@ -82,6 +82,9 @@ impl KeyboardHandler for CustomSelectModal {
                     | (InputType::PositiveDecimal, '0'..='9' | '.') => {
                         self.input.handle_event(&Event::Key(key));
                     }
+                    (InputType::Bitrate, '0'..='9' | 'k' | 'K' | 'm' | 'M') => {
+                        self.input.handle_event(&Event::Key(key));
+                    }
                     _ => {}
                 }
             }

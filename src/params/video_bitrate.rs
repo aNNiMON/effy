@@ -43,7 +43,7 @@ impl VideoBitrate {
         {
             Ok(bitrate.to_string())
         } else {
-            Err("Invalid value. Expected a number in range 4k..999M, or 0 - auto")
+            Err("Invalid value. Expected range is 4k..999M, or 0 - auto")
         }
     }
 

@@ -50,7 +50,7 @@ impl App {
             info_pane_current_line: 0,
             output: String::new(),
             output_pane_current_line: 0,
-            params: create_params(info),
+            params: create_params(info, fileext.as_str()),
             params_list_state: list_state,
             modal: None,
             save_ongoing: false,
@@ -256,7 +256,7 @@ impl App {
         let input = self.source.input.clone();
         let output_file = format!(
             "{}/{}.{}",
-            self.output_folder, self.output_filename, self.output_fileext
+            self.output_folder, self.output_filename, command_builder.ext
         );
         let tx = self.event_sender.clone();
         thread::spawn(move || {

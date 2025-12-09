@@ -7,6 +7,7 @@ mod audio_pitch;
 mod audio_volume;
 mod disable_audio;
 mod hardware_acceleration;
+mod output_format;
 mod speed_factor;
 mod trim;
 mod video_bitrate;
@@ -19,6 +20,7 @@ pub(crate) use audio_pitch::*;
 pub(crate) use audio_volume::*;
 pub(crate) use disable_audio::*;
 pub(crate) use hardware_acceleration::*;
+pub(crate) use output_format::*;
 pub(crate) use parameter::{Parameter, ParameterData, SelectOption};
 pub(crate) use speed_factor::*;
 pub(crate) use trim::*;
@@ -28,7 +30,7 @@ pub(crate) use video_scale::*;
 
 use crate::{info::Info, visitors::FFmpegParameterVisitor};
 
-pub(crate) fn create_params(info: &Info) -> Vec<Parameter> {
+pub(crate) fn create_params(info: &Info, source_ext: &str) -> Vec<Parameter> {
     let mut params: Vec<Parameter> = Vec::new();
     if info.has_non_empty_duration() {
         params.push(Trim::new_parameter());
@@ -49,6 +51,7 @@ pub(crate) fn create_params(info: &Info) -> Vec<Parameter> {
         params.push(VideoScale::new_parameter());
         params.push(HardwareAcceleration::new_parameter());
     }
+    params.push(OutputFormat::new_parameter(info, source_ext));
     params
 }
 
@@ -86,6 +89,7 @@ pub(crate) fn apply_visitor(visitor: &mut dyn FFmpegParameterVisitor, params: &[
             VideoFrameRate::ID => visitor.visit_video_frame_rate(&param.data),
             VideoScale::ID => visitor.visit_video_scale(&param.data),
             HardwareAcceleration::ID => visitor.visit_hardware_acceleration(&param.data),
+            OutputFormat::ID => visitor.visit_result_extension(&param.data),
             _ => {}
         }
     }

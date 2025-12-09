@@ -9,6 +9,7 @@ pub(crate) struct CommandBuilder {
     pub(crate) video_filters: Vec<String>,
     pub(crate) pre_input_args: Vec<String>,
     pub(crate) args: Vec<String>,
+    pub(crate) ext: String,
 }
 
 #[derive(PartialEq, Default)]
@@ -82,5 +83,9 @@ impl FFmpegParameterVisitor for CommandBuilder {
 
     fn visit_hardware_acceleration(&mut self, data: &ParameterData) {
         HardwareAcceleration::build_command(self, data);
+    }
+
+    fn visit_result_extension(&mut self, data: &ParameterData) {
+        OutputFormat::build_command(self, data);
     }
 }

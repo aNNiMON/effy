@@ -202,8 +202,8 @@ impl App {
             && let Some(mut param) = self.params.get_mut(selected).map(mem::take)
         {
             param.toggle_prev(&self.event_sender);
-            recheck_params(&mut self.params, &param);
             self.params[selected] = param;
+            recheck_params(&mut self.params);
         }
     }
 
@@ -212,8 +212,8 @@ impl App {
             && let Some(mut param) = self.params.get_mut(selected).map(mem::take)
         {
             param.toggle_next(&self.event_sender);
-            recheck_params(&mut self.params, &param);
             self.params[selected] = param;
+            recheck_params(&mut self.params);
         }
     }
 

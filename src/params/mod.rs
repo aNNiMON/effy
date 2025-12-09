@@ -28,7 +28,7 @@ pub(crate) use video_bitrate::*;
 pub(crate) use video_frame_rate::*;
 pub(crate) use video_scale::*;
 
-use crate::{info::Info, visitors::FFmpegParameterVisitor};
+use crate::{info::Info, params::macros::select_option, visitors::FFmpegParameterVisitor};
 
 pub(crate) fn create_params(info: &Info, source_ext: &str) -> Vec<Parameter> {
     let mut params: Vec<Parameter> = Vec::new();
@@ -55,20 +55,49 @@ pub(crate) fn create_params(info: &Info, source_ext: &str) -> Vec<Parameter> {
     params
 }
 
-pub(crate) fn recheck_params(params: &mut [Parameter], changed_param: &Parameter) {
-    if let Parameter {
-        id: DisableAudio::ID,
-        data: ParameterData::Toggle { value },
-        ..
-    } = changed_param
+pub(crate) fn recheck_params(params: &mut [Parameter]) {
+    let result_is_audio = if let Some(result_format) = params
+        .iter()
+        .filter(|param| param.id == OutputFormat::ID)
+        .filter_map(|param| select_option!(&param.data))
+        .next()
     {
-        for param in params {
-            if matches!(
-                param.id,
-                AudioBitrate::ID | AudioCrystalizer::ID | AudioPitch::ID | AudioVolume::ID
-            ) {
-                param.enabled = !*value;
-            }
+        OutputFormat::is_audio(&result_format.value)
+    } else {
+        false
+    };
+
+    let audio_is_disabled = if let Some(disable_audio) = params
+        .iter()
+        .filter(|param| param.id == DisableAudio::ID)
+        .filter_map(|param| match &param.data {
+            ParameterData::Toggle { value } => Some(value),
+            _ => None,
+        })
+        .next()
+    {
+        !result_is_audio && *disable_audio
+    } else {
+        false
+    };
+
+    for param in params {
+        if matches!(
+            param.id,
+            DisableAudio::ID
+                | VideoScale::ID
+                | VideoBitrate::ID
+                | VideoFrameRate::ID
+                | HardwareAcceleration::ID
+        ) {
+            param.enabled = !result_is_audio;
+        }
+
+        if matches!(
+            param.id,
+            AudioBitrate::ID | AudioCrystalizer::ID | AudioPitch::ID | AudioVolume::ID
+        ) {
+            param.enabled = !audio_is_disabled;
         }
     }
 }

@@ -1,3 +1,17 @@
+macro_rules! select_option {
+    ($data:expr) => {
+        if let &ParameterData::Select {
+            ref options,
+            ref selected_index,
+        } = $data
+        {
+            options.get(*selected_index)
+        } else {
+            None
+        }
+    };
+}
+
 macro_rules! select_non_default_option {
     ($data:expr) => {
         if let &ParameterData::Select {
@@ -28,3 +42,4 @@ macro_rules! select_non_default_custom_value {
 
 pub(crate) use select_non_default_custom_value;
 pub(crate) use select_non_default_option;
+pub(crate) use select_option;

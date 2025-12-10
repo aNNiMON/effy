@@ -11,7 +11,7 @@ A small and friendly terminal FFmpeg helper that simplifies common tasks.
 - change a video resolution, bitrate, frame rate, speed
 - change an audio bitrate, volume, pitch, tempo
 - apply audio effects (crystalizer)
-- remove audio from the video
+- extract or remove audio from the video
 - trim video/audio
 
 ## Usage

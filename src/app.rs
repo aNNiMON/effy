@@ -37,7 +37,7 @@ impl App {
         let mut list_state = ListState::default();
         list_state.select(Some(0));
         let folder = source.input_folder();
-        let (filename, fileext) = source.input_name_and_ext();
+        let (filename, fileext) = source.input_name_and_ext(info);
         Self {
             running: false,
             event_sender: tx,

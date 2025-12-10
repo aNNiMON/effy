@@ -52,6 +52,7 @@ pub(crate) fn create_params(info: &Info, source_ext: &str) -> Vec<Parameter> {
         params.push(HardwareAcceleration::new_parameter());
     }
     params.push(OutputFormat::new_parameter(info, source_ext));
+    recheck_params(&mut params);
     params
 }
 

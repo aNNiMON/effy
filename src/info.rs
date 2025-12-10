@@ -48,6 +48,10 @@ impl Info {
         self.has_stream_type("audio")
     }
 
+    pub fn has_audio_only(&self) -> bool {
+        self.has_audio() && !self.has_video()
+    }
+
     pub fn has_video(&self) -> bool {
         self.has_stream_type("video")
     }

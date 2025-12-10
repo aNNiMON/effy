@@ -1,5 +1,7 @@
 use std::path::Path;
 
+use crate::info::Info;
+
 pub(crate) struct Source {
     // Raw input string, e.g. file path or URL
     pub(crate) input: String,
@@ -39,17 +41,19 @@ impl Source {
         }
     }
 
-    pub(crate) fn input_name_and_ext(&self) -> (String, String) {
+    pub(crate) fn input_name_and_ext(&self, info: &Info) -> (String, String) {
         let path = Path::new(&self.input);
         let filename = path
             .file_stem()
             .or_else(|| path.file_name())
             .unwrap_or_else(|| "filename".as_ref())
             .to_string_lossy();
-        let ext = path
-            .extension()
-            .unwrap_or_else(|| "mp4".as_ref())
-            .to_string_lossy();
+        let default_ext = if info.has_audio_only() {
+            "mp3".as_ref()
+        } else {
+            "mp4".as_ref()
+        };
+        let ext = path.extension().unwrap_or(default_ext).to_string_lossy();
         (filename.to_string(), ext.to_string())
     }
 }

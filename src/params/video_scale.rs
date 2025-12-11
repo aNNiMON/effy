@@ -54,11 +54,9 @@ impl VideoScale {
         if let Some(value) = select_non_default_custom_value!(data) {
             // Use nvenc cuda scale only if there is no other video filter
             if (cb.hwaccel == HWAccel::Nvenc) && (cb.video_filters.is_empty()) {
-                cb.video_filters
-                    .push(format!("scale_cuda=-2:{}", Self::format_value(value)));
+                cb.video_filters.push(format!("scale_cuda=-2:{}", &value));
             } else {
-                cb.video_filters
-                    .push(format!("scale=-2:{}", Self::format_value(value)));
+                cb.video_filters.push(format!("scale=-2:{}", &value));
             }
         }
     }

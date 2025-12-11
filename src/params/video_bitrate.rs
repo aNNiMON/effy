@@ -58,7 +58,7 @@ impl VideoBitrate {
     pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {
         if let Some(value) = select_non_default_custom_value!(data) {
             cb.args.push("-b:v".into());
-            cb.args.push(Self::format_value(value));
+            cb.args.push(value.into());
         }
     }
 }

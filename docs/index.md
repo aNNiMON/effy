@@ -14,6 +14,6 @@ effy is a terminal FFmpeg helper that simplifies common tasks. It's small and fr
 - change a video resolution, bitrate, frame rate, speed
 - change an audio bitrate, volume, pitch, tempo
 - apply audio effects (crystalizer)
-- remove audio from video
+- extract or remove audio from video
 - trim video or audio
 

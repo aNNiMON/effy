@@ -33,6 +33,7 @@ nav = [
     "params/video-frame-rate.md",
     "params/video-scale.md",
     "params/hardware-acceleration.md",
+    "params/output-format.md",
   ] },
 
 ]

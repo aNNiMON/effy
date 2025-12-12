@@ -28,6 +28,12 @@ effy "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckB
 
 Download pre-compiled binaries from [Releases](https://github.com/aNNiMON/effy/releases)
 
+Or install using `cargo`:
+
+```bash
+cargo install effy
+```
+
 Or compile from source:
 
 1. Install [Rustup](https://rustup.rs/)

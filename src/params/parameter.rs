@@ -230,3 +230,12 @@ impl Default for Parameter {
         }
     }
 }
+
+impl ParameterData {
+    pub(crate) fn is_editable(&self) -> bool {
+        matches!(
+            self,
+            ParameterData::CustomSelect { .. } | ParameterData::Trim { .. }
+        )
+    }
+}

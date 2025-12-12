@@ -131,17 +131,28 @@ impl Widget for &App {
             let mut parts = vec![
                 Span::styled(" Tab", keystyle),
                 Span::raw(": switch tab  "),
+                Span::styled("s/", keystyle),
                 Span::styled("C", keystyle.underlined()),
                 Span::styled("-s", keystyle),
                 Span::raw(": render  "),
                 Span::styled("↑/↓/k/j", keystyle),
                 Span::raw(": navigate  "),
             ];
-            if matches!(self.current_pane, Pane::Params) {
+
+            if matches!(self.current_pane, Pane::Params)
+                && let Some(selected) = self.params_list_state.selected()
+                && let Some(param) = self.params.get(selected)
+            {
                 parts.append(&mut vec![
                     Span::styled("←/→/h/l", keystyle),
                     Span::raw(": toggle parameter  "),
                 ]);
+                if param.data.is_editable() {
+                    parts.append(&mut vec![
+                        Span::styled("Enter", keystyle),
+                        Span::raw(": edit  "),
+                    ]);
+                }
             }
             parts.append(&mut vec![
                 Span::styled("q/Esc", keystyle),

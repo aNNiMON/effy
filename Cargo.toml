@@ -10,6 +10,7 @@ repository = "https://github.com/aNNiMON/effy"
 homepage = "https://projects.annimon.com/projects/effy"
 categories = ["command-line-utilities", "multimedia"]
 readme = "README.md"
+exclude = ["mprocs.yaml"]
 
 [dependencies]
 crossterm = "0.29"

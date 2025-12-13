@@ -16,10 +16,16 @@ pub(crate) struct CommandBuilder {
 pub(crate) enum HWAccel {
     #[default]
     None,
+    #[cfg(any(target_os = "windows", target_os = "linux"))]
     Nvenc,
+    #[cfg(any(target_os = "windows", target_os = "linux"))]
     Amf,
+    #[cfg(any(target_os = "windows", target_os = "linux"))]
     Qsv,
+    #[cfg(target_os = "linux")]
     Vaapi,
+    #[cfg(target_os = "macos")]
+    VideoToolbox,
 }
 
 impl CommandBuilder {
@@ -325,7 +331,11 @@ mod tests {
 
         cb.visit_hardware_acceleration(&p.data);
 
+        #[cfg(any(target_os = "windows", target_os = "linux"))]
         assert_eq!(cb.args, vec!["-c:v", "h264_nvenc"]);
+
+        #[cfg(target_os = "macos")]
+        assert_eq!(cb.args, vec!["-c:v", "h264_videotoolbox"]);
     }
 
     #[test]

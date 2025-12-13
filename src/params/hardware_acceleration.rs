@@ -9,8 +9,13 @@ impl HardwareAcceleration {
     pub(crate) const ID: &'static str = "hwaccel";
     pub(crate) const NAME: &'static str = "HW Acceleration";
     const DEFAULT: &'static str = "none";
-    const VARIANT_PAIRS: [(&str, &str); 3] =
-        [("nvidia", "nvenc"), ("none", "none"), ("intel", "qsv")];
+    const VARIANT_PAIRS: [(&str, &str); 5] = [
+        ("intel", "qsv"),
+        ("vaapi", "vaapi"),
+        ("none", "none"),
+        ("nvidia", "nvenc"),
+        ("amd", "amf"),
+    ];
 
     pub fn new_parameter() -> Parameter {
         Parameter::new(
@@ -18,7 +23,7 @@ impl HardwareAcceleration {
             Self::NAME,
             ParameterData::Select {
                 options: SelectOption::from_pairs(&Self::VARIANT_PAIRS),
-                selected_index: 1,
+                selected_index: 2,
             },
         )
     }
@@ -32,6 +37,18 @@ impl HardwareAcceleration {
                     cb.pre_input_args.push("cuda".into());
                     cb.args.push("-c:v".into());
                     cb.args.push("h264_nvenc".into());
+                }
+                "amf" => {
+                    cb.hwaccel = HWAccel::Amf;
+                    cb.args.push("-c:v".into());
+                    cb.args.push("h264_amf".into());
+                }
+                "vaapi" => {
+                    cb.hwaccel = HWAccel::Vaapi;
+                    cb.pre_input_args.push("-hwaccel".into());
+                    cb.pre_input_args.push("vaapi".into());
+                    cb.args.push("-c:v".into());
+                    cb.args.push("h264_vaapi".into());
                 }
                 "qsv" => {
                     cb.hwaccel = HWAccel::Qsv;

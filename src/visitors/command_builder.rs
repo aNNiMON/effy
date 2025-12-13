@@ -17,7 +17,9 @@ pub(crate) enum HWAccel {
     #[default]
     None,
     Nvenc,
+    Amf,
     Qsv,
+    Vaapi,
 }
 
 impl CommandBuilder {
@@ -323,7 +325,7 @@ mod tests {
 
         cb.visit_hardware_acceleration(&p.data);
 
-        assert_eq!(cb.args, vec!["-c:v", "h264_qsv"]);
+        assert_eq!(cb.args, vec!["-c:v", "h264_nvenc"]);
     }
 
     #[test]

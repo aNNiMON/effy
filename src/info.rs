@@ -12,7 +12,7 @@ pub(crate) struct Info {
     pub streams: Vec<InfoStream>,
 }
 
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Deserialize, Default, Clone, Debug)]
 pub(crate) struct InfoFormat {
     pub filename: String,
     pub nb_streams: u32,

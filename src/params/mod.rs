@@ -119,7 +119,7 @@ pub(crate) fn apply_visitor(visitor: &mut dyn FFmpegParameterVisitor, params: &[
             VideoFrameRate::ID => visitor.visit_video_frame_rate(&param.data),
             VideoScale::ID => visitor.visit_video_scale(&param.data),
             HardwareAcceleration::ID => visitor.visit_hardware_acceleration(&param.data),
-            OutputFormat::ID => visitor.visit_result_extension(&param.data),
+            OutputFormat::ID => visitor.visit_output_format(&param.data),
             _ => {}
         }
     }

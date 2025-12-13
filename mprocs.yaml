@@ -9,6 +9,9 @@ procs:
     autostart: false
   check fmt:
     shell: cargo fmt -- --check
+  test:
+    shell: cargo test --locked --all-features --all-targets
+    autostart: false
 
   build release:
     shell: cargo build --release

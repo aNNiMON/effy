@@ -10,7 +10,7 @@ pub(crate) trait FFmpegParameterVisitor {
     fn visit_video_frame_rate(&mut self, data: &ParameterData);
     fn visit_video_scale(&mut self, data: &ParameterData);
     fn visit_hardware_acceleration(&mut self, data: &ParameterData);
-    fn visit_result_extension(&mut self, data: &ParameterData);
+    fn visit_output_format(&mut self, data: &ParameterData);
 }
 
 mod command_builder;

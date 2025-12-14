@@ -1,6 +1,6 @@
 use std::error::Error;
-use std::io::{BufReader, Read};
-use std::process::{Command, Stdio};
+use std::io::{BufReader, Read, Write};
+use std::process::{ChildStdin, Command, Stdio};
 use std::sync::mpsc::{Receiver, Sender};
 use std::{mem, thread};
 
@@ -29,7 +29,8 @@ pub(crate) struct App {
     pub(crate) params: Vec<Parameter>,
     pub(crate) params_list_state: ListState,
     modal: Option<Box<dyn UiModal>>,
-    save_ongoing: bool,
+    pub(crate) save_ongoing: bool,
+    render_stdin: Option<ChildStdin>,
 }
 
 impl App {
@@ -54,6 +55,7 @@ impl App {
             params_list_state: list_state,
             modal: None,
             save_ongoing: false,
+            render_stdin: None,
         }
     }
 
@@ -75,6 +77,7 @@ impl App {
                 Ok(AppEvent::OpenCustomSelectModal(data)) => {
                     self.modal = Some(Box::new(CustomSelectModal::from(data)));
                 }
+                Ok(AppEvent::RenderStarted(stdin)) => self.render_stdin = Some(stdin),
                 Ok(AppEvent::Redraw) | Err(_) => {}
             }
         }
@@ -268,7 +271,7 @@ impl App {
                 .arg(&input)
                 .args(command_builder.build_args())
                 .arg(&output_file)
-                .stdin(Stdio::null())
+                .stdin(Stdio::piped())
                 .stdout(Stdio::null())
                 .stderr(Stdio::piped())
                 .spawn()
@@ -282,6 +285,10 @@ impl App {
                     return;
                 }
             };
+
+            if let Some(stdin) = child.stdin.take() {
+                let _ = tx.send(AppEvent::RenderStarted(stdin));
+            }
 
             if let Some(stderr) = child.stderr.take() {
                 let mut reader = BufReader::new(stderr);
@@ -309,9 +316,17 @@ impl App {
         };
         self.add_output(msg);
         self.save_ongoing = false;
+        self.render_stdin = None;
     }
 
     fn quit(&mut self) {
-        self.running = false;
+        if self.save_ongoing
+            && let Some(mut stdin) = self.render_stdin.take()
+        {
+            let _ = stdin.write_all(b"q");
+            self.add_output("Stopping...\n");
+        } else {
+            self.running = false;
+        }
     }
 }

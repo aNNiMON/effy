@@ -1,5 +1,6 @@
 use std::{
     fmt::{Display, Formatter},
+    process::ChildStdin,
     str::FromStr,
     sync::Arc,
 };
@@ -95,4 +96,5 @@ pub(crate) enum AppEvent {
     Redraw,
     OpenTrimModal(TrimData),
     OpenCustomSelectModal(CustomSelectData),
+    RenderStarted(ChildStdin),
 }

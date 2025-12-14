@@ -156,7 +156,11 @@ impl Widget for &App {
             }
             parts.append(&mut vec![
                 Span::styled("q/Esc", keystyle),
-                Span::raw(": quit"),
+                Span::raw(if self.save_ongoing {
+                    ": stop render"
+                } else {
+                    ": quit"
+                }),
             ]);
 
             let lines = Line::from(parts);

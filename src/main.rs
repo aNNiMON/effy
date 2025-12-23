@@ -21,7 +21,10 @@ mod visitors;
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<String> = std::env::args().collect();
     if args.len() != 2 {
-        eprintln!("Usage: {} input", &args[0]);
+        const VERSION: &str = env!("CARGO_PKG_VERSION");
+        eprintln!("effy v{}", VERSION);
+        eprintln!("Usage: {} <input>", &args[0]);
+        eprintln!("  input: media file or URL");
         process::exit(1);
     }
     let source = Source::new(args[1].clone());

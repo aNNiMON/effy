@@ -13,7 +13,7 @@ use tui_input::Input;
 use tui_input::backend::crossterm::EventHandler as _;
 
 use crate::model::{CustomSelectData, InputConstraints, InputType, ValidationCallback};
-use crate::ui::{KeyboardHandler, ModalResult, UiModal, input_value_and_pos};
+use crate::ui::{KeyboardHandler, ModalResult, UiModal, input_value_and_pos, is_portrait};
 
 pub(crate) struct CustomSelectModal {
     name: Arc<str>,
@@ -26,8 +26,9 @@ pub(crate) struct CustomSelectModal {
 impl UiModal for CustomSelectModal {
     fn render(&self, frame: &mut Frame) {
         let area = frame.area();
+        let portrait = is_portrait(area);
         let [modal_area] = Layout::vertical([Constraint::Length(6)])
-            .horizontal_margin(area.width / 5)
+            .horizontal_margin(if portrait { 1 } else { area.width / 5 })
             .flex(Flex::Center)
             .areas(area);
         let [input_area, hints_area] =

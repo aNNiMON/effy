@@ -1,4 +1,5 @@
 use ratatui::{
+    layout::Rect,
     style::{Color, Stylize},
     text::Line,
 };
@@ -14,6 +15,11 @@ pub(crate) use modal::*;
 pub(crate) use modal_custom_select::*;
 pub(crate) use modal_save_as_file::*;
 pub(crate) use modal_trim::*;
+
+fn is_portrait(area: Rect) -> bool {
+    // TODO: real font size
+    (area.width as f32) < 2.2_f32 * (area.height as f32)
+}
 
 fn input_value_and_pos(input: &Input, width: u16) -> (String, u16) {
     let scroll = input.visual_scroll(width as usize).max(3) - 3;

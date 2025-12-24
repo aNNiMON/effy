@@ -9,13 +9,14 @@ use ratatui::{
     },
 };
 
-use crate::{app::App, model::Pane};
+use crate::{app::App, model::Pane, ui::is_portrait};
 
 impl Widget for &App {
     fn render(self, area: Rect, buf: &mut ratatui::prelude::Buffer)
     where
         Self: Sized,
     {
+        let portrait = is_portrait(area);
         let default_style = Style::new().dark_gray();
         let highlighted_style = default_style.white();
 
@@ -42,8 +43,13 @@ impl Widget for &App {
                 .render(info, buf);
         };
 
+        let main_direction = if portrait {
+            Direction::Vertical
+        } else {
+            Direction::Horizontal
+        };
         let [params, config] = Layout::default()
-            .direction(Direction::Horizontal)
+            .direction(main_direction)
             .constraints([Constraint::Fill(1), Constraint::Fill(3)])
             .areas(main);
         {

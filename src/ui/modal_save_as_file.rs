@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use crossterm::event::{Event, KeyCode, KeyEvent};
+use ratatui::text::Span;
 use ratatui::{layout::Layout, prelude::Frame};
 use ratatui::{
     layout::{Constraint, Flex, Position, Rect},
@@ -38,13 +39,13 @@ impl UiModal for SaveAsFileModal {
 
         Clear.render(modal_area, frame.buffer_mut());
         Block::bordered()
+            .title("Render as".light_blue())
             .border_set(symbols::border::THICK)
-            .title("Render as")
-            .fg(Color::Blue)
+            .border_style(Color::Blue)
             .render(modal_area, frame.buffer_mut());
         Paragraph::new(display_value)
-            .style(Style::new().white())
-            .block(Block::bordered().gray().dim())
+            .style(Color::White)
+            .block(Block::bordered().light_blue())
             .render(input_area, frame.buffer_mut());
         Self::render_input_hints(hints_area, frame);
 
@@ -84,11 +85,12 @@ impl SaveAsFileModal {
     }
 
     fn render_input_hints(area: Rect, frame: &mut Frame) {
+        let keystyle = Style::default().green();
         let parts = Line::from(vec![
-            "Enter".gray().bold(),
-            ": confirm  ".gray(),
-            "Esc".gray().bold(),
-            ": close".gray(),
+            Span::styled("Enter", keystyle),
+            Span::raw(": confirm  "),
+            Span::styled("Esc", keystyle),
+            Span::raw(": close"),
         ]);
         Paragraph::new(parts).render(area, frame.buffer_mut());
     }

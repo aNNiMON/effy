@@ -41,14 +41,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     };
 
-    let terminal = ratatui::init();
-    let (tx, rx) = mpsc::channel();
-    let event_tx = tx.clone();
-    thread::spawn(move || handle_crossterm_events(&event_tx));
-
-    let result = App::new(tx, &ffprobe_info, source).run(terminal, &rx);
-    ratatui::restore();
-    result
+    ratatui::run(|terminal| {
+        let (tx, rx) = mpsc::channel();
+        let event_tx = tx.clone();
+        thread::spawn(move || handle_crossterm_events(&event_tx));
+        App::new(tx, &ffprobe_info, source).run(terminal, &rx)
+    })
 }
 
 fn handle_crossterm_events(tx: &Sender<AppEvent>) -> ! {

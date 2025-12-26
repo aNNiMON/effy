@@ -61,7 +61,7 @@ impl App {
 
     pub fn run(
         mut self,
-        mut terminal: DefaultTerminal,
+        terminal: &mut DefaultTerminal,
         rx: &Receiver<AppEvent>,
     ) -> Result<(), Box<dyn Error>> {
         self.running = true;

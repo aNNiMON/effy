@@ -2,7 +2,9 @@
 
 A small and friendly terminal FFmpeg helper that simplifies common tasks.
 
-[![Documentation](https://img.shields.io/badge/documentation-blue?style=for-the-badge)](https://projects.annimon.com/projects/effy) [![GitHub Release](https://img.shields.io/github/v/release/annimon/effy?include_prereleases&sort=semver&style=for-the-badge)](https://github.com/aNNiMON/effy/releases)
+[![Documentation](https://img.shields.io/badge/documentation-blue?style=for-the-badge)](https://projects.annimon.com/projects/effy)
+[![GitHub Release](https://img.shields.io/github/v/release/annimon/effy?include_prereleases&sort=semver&style=for-the-badge)](https://github.com/aNNiMON/effy/releases)
+[![](https://img.shields.io/badge/Ratatui-000?logo=ratatui&logoColor=fff&style=for-the-badge)](https://ratatui.rs/)
 
 ![effy TUI](../docs/docs/assets/effy.png?raw=true)
 

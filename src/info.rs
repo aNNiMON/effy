@@ -2,6 +2,8 @@ use std::collections::HashMap;
 use std::io::{Error, Read};
 use std::process::{Command, Stdio};
 
+use ratatui::style::{Color, Style};
+use ratatui::text::{Line, Span, Text};
 use serde::Deserialize;
 
 // https://github.com/FFmpeg/FFmpeg/blob/master/doc/ffprobe.xsd
@@ -77,15 +79,23 @@ impl Info {
         }
     }
 
-    pub fn format(&self) -> String {
-        let mut r: Vec<String> = Vec::new();
+    pub fn format<'a>(&self) -> Text<'a> {
+        let mut lines = Vec::new();
+        let mut add = |k: &str, v: &str, i: u32| {
+            let color = [Color::LightYellow, Color::LightCyan, Color::LightMagenta][i as usize % 3];
+            lines.push(Line::from(vec![
+                Span::styled(format!("{: <24}", k), Style::default().fg(color)),
+                Span::styled(v.to_owned(), Style::default().fg(Color::Yellow)),
+            ]));
+        };
+
         let format = &self.format;
-        r.push(format!("filename: {}", &format.filename));
-        r.push(format!("nb_streams: {}", &format.nb_streams));
+        add("filename", &format.filename, 0);
+        add("nb_streams", &format.nb_streams.to_string(), 0);
         macro_rules! format_val {
             ($field:expr, $name:expr) => {
                 if let Some(ref v) = $field {
-                    r.push(format!("{}: {}", $name, v));
+                    add($name, v, 0);
                 }
             };
         }
@@ -108,7 +118,8 @@ impl Info {
             macro_rules! stream_val {
                 ($field:expr, $name:expr) => {
                     if let Some(ref v) = $field {
-                        r.push(format!("{}_{}: {}", stream_type, $name, v));
+                        let kb = format!("{}_{}", stream_type, $name);
+                        add(&kb, &v.to_string(), index + 1);
                     }
                 };
             }
@@ -123,17 +134,17 @@ impl Info {
             for (tag, value) in &stream.other {
                 match value {
                     serde_json::Value::String(s) => {
-                        r.push(format!("{stream_type}_{tag}: {s}"));
+                        add(&format!("{stream_type}_{tag}"), s, index + 1);
                     }
                     serde_json::Value::Number(n) => {
-                        r.push(format!("{stream_type}_{tag}: {n}"));
+                        add(&format!("{stream_type}_{tag}"), &n.to_string(), index + 1);
                     }
                     _ => {}
                 }
             }
         }
 
-        r.join("\n")
+        Text::from(lines)
     }
 }
 

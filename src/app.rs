@@ -5,6 +5,7 @@ use std::sync::mpsc::{Receiver, Sender};
 use std::{mem, thread};
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use ratatui::text::Text;
 use ratatui::{DefaultTerminal, Frame, widgets::ListState};
 
 use crate::info::Info;
@@ -14,7 +15,7 @@ use crate::source::Source;
 use crate::ui::{CustomSelectModal, ModalResult, SaveAsFileModal, TrimModal, UiModal};
 use crate::visitors::CommandBuilder;
 
-pub(crate) struct App {
+pub(crate) struct App<'a> {
     running: bool,
     event_sender: Sender<AppEvent>,
     pub(crate) current_pane: Pane,
@@ -22,7 +23,7 @@ pub(crate) struct App {
     output_folder: String,
     output_filename: String,
     output_fileext: String,
-    pub(crate) info_text: String,
+    pub(crate) info_text: Text<'a>,
     pub(crate) info_pane_current_line: u16,
     pub(crate) output: String,
     pub(crate) output_pane_current_line: u16,
@@ -33,7 +34,7 @@ pub(crate) struct App {
     render_stdin: Option<ChildStdin>,
 }
 
-impl App {
+impl App<'_> {
     pub fn new(tx: Sender<AppEvent>, info: &Info, source: Source) -> Self {
         let mut list_state = ListState::default();
         list_state.select(Some(0));
@@ -155,7 +156,7 @@ impl App {
     }
 
     fn scroll_info_pane_down(&mut self) {
-        let count = self.info_text.lines().count() as u16;
+        let count = self.info_text.lines.len() as u16;
         if self.info_pane_current_line < count - 1 {
             self.info_pane_current_line = self.info_pane_current_line.saturating_add(1);
         }

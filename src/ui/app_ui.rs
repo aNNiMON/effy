@@ -11,7 +11,7 @@ use ratatui::{
 
 use crate::{app::App, model::Pane, ui::is_portrait};
 
-impl Widget for &App {
+impl Widget for &App<'_> {
     fn render(self, area: Rect, buf: &mut ratatui::prelude::Buffer)
     where
         Self: Sized,

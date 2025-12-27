@@ -106,7 +106,7 @@ mod tests {
     // ------ Audio ------
 
     #[test]
-    fn test_audio_bitrate_default() {
+    fn audio_bitrate_default() {
         let mut cb = CommandBuilder::default();
         let p = AudioBitrate::new_parameter();
 
@@ -116,7 +116,7 @@ mod tests {
     }
 
     #[test]
-    fn test_audio_bitrate() {
+    fn audio_bitrate() {
         let mut cb = CommandBuilder::default();
         let mut p = AudioBitrate::new_parameter();
         set_custom_value(&mut p, "80");
@@ -127,7 +127,7 @@ mod tests {
     }
 
     #[test]
-    fn test_audio_crystalizer_default() {
+    fn audio_crystalizer_default() {
         let mut cb = CommandBuilder::default();
         let p = AudioCrystalizer::new_parameter();
 
@@ -137,7 +137,7 @@ mod tests {
     }
 
     #[test]
-    fn test_audio_crystalizer() {
+    fn audio_crystalizer() {
         let mut cb = CommandBuilder::default();
         let mut p = AudioCrystalizer::new_parameter();
         set_custom_value(&mut p, "-4");
@@ -148,7 +148,7 @@ mod tests {
     }
 
     #[test]
-    fn test_audio_pitch_default() {
+    fn audio_pitch_default() {
         let mut cb = CommandBuilder::default();
         let p = AudioPitch::new_parameter();
 
@@ -158,7 +158,7 @@ mod tests {
     }
 
     #[test]
-    fn test_audio_pitch() {
+    fn audio_pitch() {
         let mut cb = CommandBuilder::default();
         let mut p = AudioPitch::new_parameter();
         set_custom_value(&mut p, "1.5");
@@ -172,7 +172,7 @@ mod tests {
     }
 
     #[test]
-    fn test_audio_volume_default() {
+    fn audio_volume_default() {
         let mut cb = CommandBuilder::default();
         let p = AudioVolume::new_parameter();
 
@@ -182,7 +182,7 @@ mod tests {
     }
 
     #[test]
-    fn test_audio_volume() {
+    fn audio_volume() {
         let mut cb = CommandBuilder::default();
         let mut p = AudioVolume::new_parameter();
         set_custom_value(&mut p, "5");
@@ -193,7 +193,7 @@ mod tests {
     }
 
     #[test]
-    fn test_disable_audio_default() {
+    fn disable_audio_default() {
         let mut cb = CommandBuilder::default();
         let p = DisableAudio::new_parameter();
 
@@ -204,7 +204,7 @@ mod tests {
     }
 
     #[test]
-    fn test_disable_audio() {
+    fn disable_audio() {
         let mut cb = CommandBuilder::default();
         let mut p = DisableAudio::new_parameter();
         toggle_next(&mut p);
@@ -216,7 +216,7 @@ mod tests {
     }
 
     #[test]
-    fn test_disable_audio_should_disable_audio_filters() {
+    fn disable_audio_should_disable_audio_filters() {
         let mut cb = CommandBuilder::default();
         let mut p = DisableAudio::new_parameter();
         toggle_next(&mut p);
@@ -234,7 +234,7 @@ mod tests {
     // ------ Video ------
 
     #[test]
-    fn test_video_bitrate_default() {
+    fn video_bitrate_default() {
         let mut cb = CommandBuilder::default();
         let p = VideoBitrate::new_parameter();
 
@@ -244,7 +244,7 @@ mod tests {
     }
 
     #[test]
-    fn test_video_bitrate() {
+    fn video_bitrate() {
         let mut cb = CommandBuilder::default();
         let mut p = VideoBitrate::new_parameter();
         set_custom_value(&mut p, "2M");
@@ -255,7 +255,7 @@ mod tests {
     }
 
     #[test]
-    fn test_video_frame_rate_default() {
+    fn video_frame_rate_default() {
         let mut cb = CommandBuilder::default();
         let p = VideoFrameRate::new_parameter();
 
@@ -265,7 +265,7 @@ mod tests {
     }
 
     #[test]
-    fn test_video_frame_rate() {
+    fn video_frame_rate() {
         let mut cb = CommandBuilder::default();
         let mut p = VideoFrameRate::new_parameter();
         set_custom_value(&mut p, "25");
@@ -276,7 +276,7 @@ mod tests {
     }
 
     #[test]
-    fn test_video_scale_default() {
+    fn video_scale_default() {
         let mut cb = CommandBuilder::default();
         let p = VideoScale::new_parameter();
 
@@ -286,7 +286,7 @@ mod tests {
     }
 
     #[test]
-    fn test_video_scale() {
+    fn video_scale() {
         let mut cb = CommandBuilder::default();
         let mut p = VideoScale::new_parameter();
         set_custom_value(&mut p, "600");
@@ -299,7 +299,7 @@ mod tests {
     // ------ Common ------
 
     #[test]
-    fn test_speed_factor_default() {
+    fn speed_factor_default() {
         let mut cb = CommandBuilder::default();
         let p = SpeedFactor::new_parameter();
 
@@ -311,7 +311,7 @@ mod tests {
     }
 
     #[test]
-    fn test_speed_factor() {
+    fn speed_factor() {
         let mut cb = CommandBuilder::default();
         let mut p = SpeedFactor::new_parameter();
         set_custom_value(&mut p, "2");
@@ -324,7 +324,7 @@ mod tests {
     }
 
     #[test]
-    fn test_hardware_acceleration() {
+    fn hardware_acceleration() {
         let mut cb = CommandBuilder::default();
         let mut p = HardwareAcceleration::new_parameter();
         toggle_next(&mut p);
@@ -339,7 +339,7 @@ mod tests {
     }
 
     #[test]
-    fn test_output_format() {
+    fn output_format() {
         let mut cb = CommandBuilder::default();
         let info = Info {
             format: InfoFormat {
@@ -356,7 +356,7 @@ mod tests {
     }
 
     #[test]
-    fn test_build_args_with_filters() {
+    fn build_args_with_filters() {
         let mut cb = CommandBuilder::default();
         cb.args.push("-b:v".to_owned());
         cb.args.push("2M".to_owned());
@@ -371,12 +371,13 @@ mod tests {
     }
 
     #[test]
-    fn test_build_args_audio_disabled() {
-        let mut cb = CommandBuilder::default();
-        cb.discard_audio = true;
-        cb.audio_filters.push("volume=5dB".to_owned());
-        cb.video_filters.push("scale=-2:720".to_owned());
-
+    fn build_args_audio_disabled() {
+        let cb = CommandBuilder {
+            discard_audio: true,
+            audio_filters: vec!["volume=5dB".to_owned()],
+            video_filters: vec!["scale=-2:720".to_owned()],
+            ..Default::default()
+        };
         let result = cb.build_args();
         assert_eq!(result, vec!["-vf", "scale=-2:720"]);
     }

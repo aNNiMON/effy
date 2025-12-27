@@ -18,7 +18,7 @@ pub(crate) use modal_trim::*;
 
 fn is_portrait(area: Rect) -> bool {
     // TODO: real font size
-    (area.width as f32) < 2.2_f32 * (area.height as f32)
+    f32::from(area.width) < 2.2_f32 * f32::from(area.height)
 }
 
 fn input_value_and_pos(input: &Input, width: u16) -> (String, u16) {

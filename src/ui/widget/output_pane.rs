@@ -36,6 +36,7 @@ impl StatefulWidget for OutputPane {
         } else {
             0
         };
+        state.current_line = state.current_line.min(max_length);
 
         Paragraph::new(state.output.clone())
             .block(

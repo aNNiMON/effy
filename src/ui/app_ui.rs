@@ -1,18 +1,18 @@
 use ratatui::{
-    layout::{Constraint, Direction, Layout, Margin, Rect},
+    layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Style, Stylize},
     symbols,
     text::{Line, Span},
-    widgets::{
-        Block, Borders, List, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState,
-        StatefulWidget, Widget,
-    },
+    widgets::{Block, Borders, List, Paragraph, StatefulWidget, Widget},
 };
 
 use crate::{
     app::App,
     model::Pane,
-    ui::{is_portrait, widget::InfoPane},
+    ui::{
+        is_portrait,
+        widget::{InfoPane, OutputPane},
+    },
 };
 
 impl Widget for &App<'_> {
@@ -91,44 +91,12 @@ impl Widget for &App<'_> {
             } else {
                 default_style
             };
-
-            let output_lines = self.output.lines().count() as u16;
-            let pane_height = config.height.saturating_sub(2);
-            let max_length = output_lines.saturating_sub(pane_height);
-            let offset = if output_lines > pane_height {
-                max_length
-                    .saturating_sub(self.output_pane_current_line)
-                    .min(max_length)
-            } else {
-                0
-            };
-
-            Paragraph::new(self.output.clone())
-                .block(
-                    Block::default()
-                        .borders(Borders::ALL)
-                        .border_set(symbols::border::ROUNDED)
-                        .border_style(style)
-                        .title_top(Line::from("Output").blue().left_aligned()),
-                )
-                .scroll((offset, 0))
-                .render(config, buf);
-
-            if output_lines > pane_height {
-                let mut scrollbar_state =
-                    ScrollbarState::new(max_length as usize).position(offset as usize);
-                Scrollbar::new(ScrollbarOrientation::VerticalRight)
-                    .begin_symbol(Some("↑"))
-                    .end_symbol(Some("↓"))
-                    .render(
-                        config.inner(Margin {
-                            vertical: 1,
-                            horizontal: 0,
-                        }),
-                        buf,
-                        &mut scrollbar_state,
-                    );
-            }
+            StatefulWidget::render(
+                OutputPane::new(style),
+                config,
+                buf,
+                &mut self.out_state.clone(),
+            );
         };
 
         {

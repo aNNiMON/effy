@@ -11,7 +11,7 @@ use crate::info::Info;
 use crate::model::{AppEvent, Pane};
 use crate::params::{Parameter, ParameterData, Trim, apply_visitor, create_params, recheck_params};
 use crate::source::Source;
-use crate::ui::state::InfoPaneState;
+use crate::ui::state::{InfoPaneState, OutputPaneState};
 use crate::ui::{CustomSelectModal, ModalResult, SaveAsFileModal, TrimModal, UiModal};
 use crate::visitors::CommandBuilder;
 
@@ -21,11 +21,10 @@ pub(crate) struct App<'a> {
     pub(crate) current_pane: Pane,
     pub(crate) source: Source,
     pub(crate) info_state: InfoPaneState<'a>,
+    pub(crate) out_state: OutputPaneState,
     output_folder: String,
     output_filename: String,
     output_fileext: String,
-    pub(crate) output: String,
-    pub(crate) output_pane_current_line: u16,
     pub(crate) params: Vec<Parameter>,
     pub(crate) params_list_state: ListState,
     modal: Option<Box<dyn UiModal>>,
@@ -44,12 +43,11 @@ impl App<'_> {
             event_sender: tx,
             current_pane: Pane::Params,
             source,
+            info_state: InfoPaneState::new(info.format()),
+            out_state: OutputPaneState::new(String::new()),
             output_folder: folder,
             output_filename: format!("{filename}_out"),
             output_fileext: fileext.clone(),
-            info_state: InfoPaneState::new(info.format()),
-            output: String::new(),
-            output_pane_current_line: 0,
             params: create_params(info, fileext.as_str()),
             params_list_state: list_state,
             modal: None,
@@ -68,7 +66,7 @@ impl App<'_> {
             terminal.draw(|frame| self.render(frame))?;
             match rx.recv() {
                 Ok(AppEvent::Input(key)) => self.on_key_event(key),
-                Ok(AppEvent::AddOutput(output)) => self.add_output(&output),
+                Ok(AppEvent::AddOutput(output)) => self.out_state.add_output(&output),
                 Ok(AppEvent::SaveCompleted(success)) => self.on_save_complete(success),
                 Ok(AppEvent::OpenTrimModal(data)) => {
                     self.modal = Some(Box::new(TrimModal::from(data)));
@@ -81,11 +79,6 @@ impl App<'_> {
             }
         }
         Ok(())
-    }
-
-    fn add_output(&mut self, output: &str) {
-        self.output.push_str(output);
-        self.output_pane_current_line = 0;
     }
 
     fn render(&self, frame: &mut Frame) {
@@ -142,29 +135,14 @@ impl App<'_> {
             }
             (Pane::Info, _, KeyCode::Down | KeyCode::Char('j')) => self.info_state.scroll_down(),
             (Pane::Info, _, KeyCode::Up | KeyCode::Char('k')) => self.info_state.scroll_up(),
-            (Pane::Output, _, KeyCode::Down | KeyCode::Char('j')) => self.scroll_output_pane_down(),
-            (Pane::Output, _, KeyCode::Up | KeyCode::Char('k')) => self.scroll_output_pane_up(),
+            (Pane::Output, _, KeyCode::Down | KeyCode::Char('j')) => self.out_state.scroll_down(),
+            (Pane::Output, _, KeyCode::Up | KeyCode::Char('k')) => self.out_state.scroll_up(),
             (Pane::Params, _, KeyCode::Down | KeyCode::Char('j')) => self.select_next_param(),
             (Pane::Params, _, KeyCode::Up | KeyCode::Char('k')) => self.select_prev_param(),
             (Pane::Params, _, KeyCode::Left | KeyCode::Char('h')) => self.prev_option(),
             (Pane::Params, _, KeyCode::Right | KeyCode::Char('l')) => self.next_option(),
             (Pane::Params, _, KeyCode::Enter) => self.open_param_modal(),
             _ => {}
-        }
-    }
-
-    fn scroll_output_pane_down(&mut self) {
-        let count = self.output.lines().count() as u16;
-        if count > 0 {
-            self.output_pane_current_line = self.output_pane_current_line.saturating_sub(1);
-        }
-    }
-
-    fn scroll_output_pane_up(&mut self) {
-        let count = self.output.lines().count() as u16;
-        if self.output_pane_current_line < count {
-            self.output_pane_current_line =
-                self.output_pane_current_line.saturating_add(1).min(count);
         }
     }
 
@@ -239,8 +217,7 @@ impl App<'_> {
 
         let mut command_builder = CommandBuilder::default();
         apply_visitor(&mut command_builder, &self.params);
-        self.output_pane_current_line = 0;
-        "Starting FFmpeg...\n".clone_into(&mut self.output);
+        self.out_state.set_output("Starting FFmpeg...\n");
 
         let input = self.source.input.clone();
         let output_file = format!(
@@ -300,7 +277,7 @@ impl App<'_> {
         } else {
             "FFmpeg encountered an error.\n\n"
         };
-        self.add_output(msg);
+        self.out_state.add_output(msg);
         self.save_ongoing = false;
         self.render_stdin = None;
     }
@@ -310,7 +287,7 @@ impl App<'_> {
             && let Some(mut stdin) = self.render_stdin.take()
         {
             let _ = stdin.write_all(b"q");
-            self.add_output("Stopping...\n");
+            self.out_state.add_output("Stopping...\n");
         } else {
             self.running = false;
         }

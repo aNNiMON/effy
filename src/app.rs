@@ -5,13 +5,13 @@ use std::sync::mpsc::{Receiver, Sender};
 use std::{mem, thread};
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use ratatui::text::Text;
 use ratatui::{DefaultTerminal, Frame, widgets::ListState};
 
 use crate::info::Info;
 use crate::model::{AppEvent, Pane};
 use crate::params::{Parameter, ParameterData, Trim, apply_visitor, create_params, recheck_params};
 use crate::source::Source;
+use crate::ui::state::InfoPaneState;
 use crate::ui::{CustomSelectModal, ModalResult, SaveAsFileModal, TrimModal, UiModal};
 use crate::visitors::CommandBuilder;
 
@@ -20,11 +20,10 @@ pub(crate) struct App<'a> {
     event_sender: Sender<AppEvent>,
     pub(crate) current_pane: Pane,
     pub(crate) source: Source,
+    pub(crate) info_state: InfoPaneState<'a>,
     output_folder: String,
     output_filename: String,
     output_fileext: String,
-    pub(crate) info_text: Text<'a>,
-    pub(crate) info_pane_current_line: u16,
     pub(crate) output: String,
     pub(crate) output_pane_current_line: u16,
     pub(crate) params: Vec<Parameter>,
@@ -48,8 +47,7 @@ impl App<'_> {
             output_folder: folder,
             output_filename: format!("{filename}_out"),
             output_fileext: fileext.clone(),
-            info_text: info.format(),
-            info_pane_current_line: 0,
+            info_state: InfoPaneState::new(info.format()),
             output: String::new(),
             output_pane_current_line: 0,
             params: create_params(info, fileext.as_str()),
@@ -142,8 +140,8 @@ impl App<'_> {
                     &self.output_fileext,
                 )));
             }
-            (Pane::Info, _, KeyCode::Down | KeyCode::Char('j')) => self.scroll_info_pane_down(),
-            (Pane::Info, _, KeyCode::Up | KeyCode::Char('k')) => self.scroll_info_pane_up(),
+            (Pane::Info, _, KeyCode::Down | KeyCode::Char('j')) => self.info_state.scroll_down(),
+            (Pane::Info, _, KeyCode::Up | KeyCode::Char('k')) => self.info_state.scroll_up(),
             (Pane::Output, _, KeyCode::Down | KeyCode::Char('j')) => self.scroll_output_pane_down(),
             (Pane::Output, _, KeyCode::Up | KeyCode::Char('k')) => self.scroll_output_pane_up(),
             (Pane::Params, _, KeyCode::Down | KeyCode::Char('j')) => self.select_next_param(),
@@ -152,19 +150,6 @@ impl App<'_> {
             (Pane::Params, _, KeyCode::Right | KeyCode::Char('l')) => self.next_option(),
             (Pane::Params, _, KeyCode::Enter) => self.open_param_modal(),
             _ => {}
-        }
-    }
-
-    fn scroll_info_pane_down(&mut self) {
-        let count = self.info_text.lines.len() as u16;
-        if self.info_pane_current_line < count - 1 {
-            self.info_pane_current_line = self.info_pane_current_line.saturating_add(1);
-        }
-    }
-
-    fn scroll_info_pane_up(&mut self) {
-        if self.info_pane_current_line > 0 {
-            self.info_pane_current_line = self.info_pane_current_line.saturating_sub(1);
         }
     }
 

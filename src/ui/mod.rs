@@ -10,6 +10,8 @@ mod modal;
 mod modal_custom_select;
 mod modal_save_as_file;
 mod modal_trim;
+pub mod state;
+pub mod widget;
 
 pub(crate) use modal::*;
 pub(crate) use modal_custom_select::*;

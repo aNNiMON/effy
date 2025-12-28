@@ -9,7 +9,11 @@ use ratatui::{
     },
 };
 
-use crate::{app::App, model::Pane, ui::is_portrait};
+use crate::{
+    app::App,
+    model::Pane,
+    ui::{is_portrait, widget::InfoPane},
+};
 
 impl Widget for &App<'_> {
     fn render(self, area: Rect, buf: &mut ratatui::prelude::Buffer)
@@ -30,17 +34,12 @@ impl Widget for &App<'_> {
             } else {
                 default_style
             };
-            Paragraph::new(self.info_text.clone())
-                .block(
-                    Block::default()
-                        .borders(Borders::ALL)
-                        .border_set(symbols::border::ROUNDED)
-                        .border_style(style)
-                        .title_top(Line::from("effy").bold().blue().centered())
-                        .title_top(Line::from("Info").blue().left_aligned()),
-                )
-                .scroll((self.info_pane_current_line, 0))
-                .render(info, buf);
+            StatefulWidget::render(
+                InfoPane::new(style),
+                info,
+                buf,
+                &mut self.info_state.clone(),
+            );
         };
 
         let main_direction = if portrait {

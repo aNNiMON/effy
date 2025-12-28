@@ -5,7 +5,7 @@ use std::sync::mpsc::{Receiver, Sender};
 use std::{mem, thread};
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use ratatui::{DefaultTerminal, Frame, widgets::ListState};
+use ratatui::{DefaultTerminal, widgets::ListState};
 
 use crate::info::Info;
 use crate::model::{AppEvent, Pane};
@@ -63,7 +63,12 @@ impl App<'_> {
     ) -> Result<(), Box<dyn Error>> {
         self.running = true;
         while self.running {
-            terminal.draw(|frame| self.render(frame))?;
+            terminal.draw(|frame| {
+                frame.render_widget(&mut self, frame.area());
+                if let Some(modal) = &self.modal {
+                    modal.render(frame);
+                }
+            })?;
             match rx.recv() {
                 Ok(AppEvent::Input(key)) => self.on_key_event(key),
                 Ok(AppEvent::AddOutput(output)) => self.out_state.add_output(&output),
@@ -79,13 +84,6 @@ impl App<'_> {
             }
         }
         Ok(())
-    }
-
-    fn render(&self, frame: &mut Frame) {
-        frame.render_widget(self, frame.area());
-        if let Some(modal) = &self.modal {
-            modal.render(frame);
-        }
     }
 
     fn on_key_event(&mut self, key: KeyEvent) {

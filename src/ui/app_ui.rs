@@ -15,7 +15,7 @@ use crate::{
     },
 };
 
-impl Widget for &App<'_> {
+impl Widget for &mut App<'_> {
     fn render(self, area: Rect, buf: &mut ratatui::prelude::Buffer)
     where
         Self: Sized,
@@ -34,12 +34,7 @@ impl Widget for &App<'_> {
             } else {
                 default_style
             };
-            StatefulWidget::render(
-                InfoPane::new(style),
-                info,
-                buf,
-                &mut self.info_state.clone(),
-            );
+            StatefulWidget::render(InfoPane::new(style), info, buf, &mut self.info_state);
         };
 
         let main_direction = if portrait {
@@ -81,7 +76,7 @@ impl Widget for &App<'_> {
                     .highlight_style(Style::default().fg(Color::Black).bg(list_sel_color)),
                 params,
                 buf,
-                &mut self.params_list_state.clone(),
+                &mut self.params_list_state,
             )
         };
 
@@ -91,12 +86,7 @@ impl Widget for &App<'_> {
             } else {
                 default_style
             };
-            StatefulWidget::render(
-                OutputPane::new(style),
-                config,
-                buf,
-                &mut self.out_state.clone(),
-            );
+            StatefulWidget::render(OutputPane::new(style), config, buf, &mut self.out_state);
         };
 
         {

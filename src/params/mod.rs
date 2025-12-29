@@ -60,8 +60,7 @@ pub(crate) fn recheck_params(params: &mut [Parameter]) {
     let result_is_audio = if let Some(result_format) = params
         .iter()
         .filter(|param| param.id == OutputFormat::ID)
-        .filter_map(|param| select_option!(&param.data))
-        .next()
+        .find_map(|param| select_option!(&param.data))
     {
         OutputFormat::is_audio(&result_format.value)
     } else {
@@ -71,12 +70,10 @@ pub(crate) fn recheck_params(params: &mut [Parameter]) {
     let audio_is_disabled = if let Some(disable_audio) = params
         .iter()
         .filter(|param| param.id == DisableAudio::ID)
-        .filter_map(|param| match &param.data {
+        .find_map(|param| match &param.data {
             ParameterData::Toggle { value } => Some(value),
             _ => None,
-        })
-        .next()
-    {
+        }) {
         !result_is_audio && *disable_audio
     } else {
         false

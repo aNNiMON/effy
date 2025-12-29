@@ -116,7 +116,7 @@ impl Parameter {
                     value.clone_from(&options[*selected_index].value);
                 }
             }
-            _ => self.open_modal(event_sender),
+            ParameterData::Trim(_) => self.open_modal(event_sender),
         }
     }
 
@@ -155,7 +155,7 @@ impl Parameter {
                     value.clone_from(&options[*selected_index].value);
                 }
             }
-            _ => self.open_modal(event_sender),
+            ParameterData::Trim(_) => self.open_modal(event_sender),
         }
     }
 

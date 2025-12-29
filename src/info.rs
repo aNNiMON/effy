@@ -84,7 +84,7 @@ impl Info {
         let mut add = |k: &str, v: &str, i: u32| {
             let color = [Color::LightYellow, Color::LightCyan, Color::LightMagenta][i as usize % 3];
             lines.push(Line::from(vec![
-                Span::styled(format!("{: <24}", k), Style::default().fg(color)),
+                Span::styled(format!("{k: <24}"), Style::default().fg(color)),
                 Span::styled(v.to_owned(), Style::default().fg(Color::Yellow)),
             ]));
         };

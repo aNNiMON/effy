@@ -21,6 +21,7 @@ nav = [
   { "Install" = "install.md" },
   { "Usage" = "usage.md" },
   { "Key Bindings" = "keys.md" },
+  { "Changelog" = "changelog.md" },
   { "Parameters" = [
     "params/trim.md",
     "params/disable-audio.md",

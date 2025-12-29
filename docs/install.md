@@ -8,6 +8,12 @@ icon: lucide/file-terminal
 
 Download from [Releases](https://github.com/aNNiMON/effy/releases)
 
+## Install using `cargo`
+
+```bash
+cargo install effy
+```
+
 ## Compile from source
 
 1. Install [Rustup](https://rustup.rs/)

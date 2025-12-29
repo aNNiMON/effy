@@ -8,7 +8,7 @@ tags:
 
 Changes the video scale (resolution), while keeping the same aspect ratio.
 
-Expected value: height number.
+Expected value: height number in pixels.
 
 - Default: `original` - keep resolution unchanged.
 - Minimal height is 64 pixels.

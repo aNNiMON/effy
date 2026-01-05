@@ -3,7 +3,7 @@ use ratatui::{
     style::{Color, Style, Stylize},
     symbols,
     text::{Line, Span},
-    widgets::{Block, Borders, List, Paragraph, StatefulWidget, Widget},
+    widgets::{Block, Borders, List, StatefulWidget, Widget},
 };
 
 use crate::{
@@ -26,7 +26,7 @@ impl Widget for &mut App<'_> {
 
         let [info, main, help] = Layout::default()
             .direction(Direction::Vertical)
-            .constraints([Constraint::Max(5), Constraint::Fill(1), Constraint::Max(3)])
+            .constraints([Constraint::Max(5), Constraint::Fill(1), Constraint::Max(1)])
             .areas(area);
         {
             let style = if matches!(self.current_pane, Pane::Info) {
@@ -44,7 +44,7 @@ impl Widget for &mut App<'_> {
         };
         let [params, config] = Layout::default()
             .direction(main_direction)
-            .constraints([Constraint::Fill(1), Constraint::Fill(3)])
+            .constraints([Constraint::Min(5), Constraint::Fill(3)])
             .areas(main);
         {
             let (style, list_sel_color) = if matches!(self.current_pane, Pane::Params) {
@@ -92,7 +92,7 @@ impl Widget for &mut App<'_> {
         {
             let keystyle = Style::default().green();
             let mut parts = vec![
-                Span::styled(" Tab", keystyle),
+                Span::styled("Tab", keystyle),
                 Span::raw(": switch tab  "),
                 Span::styled("s/", keystyle),
                 Span::styled("C", keystyle.underlined()),
@@ -126,16 +126,7 @@ impl Widget for &mut App<'_> {
                 }),
             ]);
 
-            let lines = Line::from(parts);
-            Paragraph::new(lines)
-                .block(
-                    Block::default()
-                        .borders(Borders::ALL)
-                        .border_set(symbols::border::ROUNDED)
-                        .border_style(default_style)
-                        .title_top(Line::from("Help").blue().left_aligned()),
-                )
-                .render(help, buf);
+            Line::from(parts).render(help, buf);
         };
     }
 }

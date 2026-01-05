@@ -16,3 +16,10 @@ procs:
   build release:
     shell: cargo build --release
     autostart: false
+  publish dry:
+    shell: cargo publish --dry-run --verbose
+    autostart: false
+  publish:
+    shell: cargo publish
+    autostart: false
+

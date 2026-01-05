@@ -74,6 +74,15 @@ impl HardwareAcceleration {
                     cb.hwaccel = HWAccel::Vaapi;
                     cb.pre_input_args.push("-hwaccel".into());
                     cb.pre_input_args.push("vaapi".into());
+                    cb.pre_input_args.push("-hwaccel_device".into());
+                    let device = std::env::var("EFFY_VAAPI_DEVICE")
+                        .ok()
+                        .filter(|s| {
+                            s.chars()
+                                .all(|c| c.is_alphanumeric() || c == '/' || c == '.')
+                        })
+                        .unwrap_or_else(|| "/dev/dri/renderD128".into());
+                    cb.pre_input_args.push(device);
                     cb.args.push("-c:v".into());
                     cb.args.push("h264_vaapi".into());
                 }

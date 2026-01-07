@@ -214,7 +214,7 @@ impl App<'_> {
         self.save_ongoing = true;
 
         let mut command_builder = CommandBuilder::default();
-        apply_visitor(&mut command_builder, &self.params);
+        apply_visitor(&mut command_builder, &mut self.params);
         self.out_state.set_output("Starting FFmpeg...\n");
 
         let input = self.source.input.clone();

@@ -49,51 +49,51 @@ impl CommandBuilder {
 }
 
 impl FFmpegParameterVisitor for CommandBuilder {
-    fn visit_trim(&mut self, data: &ParameterData) {
+    fn visit_trim(&mut self, data: &mut ParameterData) {
         Trim::build_command(self, data);
     }
 
-    fn visit_disable_audio(&mut self, data: &ParameterData) {
+    fn visit_disable_audio(&mut self, data: &mut ParameterData) {
         DisableAudio::build_command(self, data);
     }
 
-    fn visit_audio_bitrate(&mut self, data: &ParameterData) {
+    fn visit_audio_bitrate(&mut self, data: &mut ParameterData) {
         AudioBitrate::build_command(self, data);
     }
 
-    fn visit_audio_crystalizer(&mut self, data: &ParameterData) {
+    fn visit_audio_crystalizer(&mut self, data: &mut ParameterData) {
         AudioCrystalizer::build_command(self, data);
     }
 
-    fn visit_audio_volume(&mut self, data: &ParameterData) {
+    fn visit_audio_volume(&mut self, data: &mut ParameterData) {
         AudioVolume::build_command(self, data);
     }
 
-    fn visit_audio_pitch(&mut self, data: &ParameterData) {
+    fn visit_audio_pitch(&mut self, data: &mut ParameterData) {
         AudioPitch::build_command(self, data);
     }
 
-    fn visit_speed_factor(&mut self, data: &ParameterData) {
+    fn visit_speed_factor(&mut self, data: &mut ParameterData) {
         SpeedFactor::build_command(self, data);
     }
 
-    fn visit_video_bitrate(&mut self, data: &ParameterData) {
+    fn visit_video_bitrate(&mut self, data: &mut ParameterData) {
         VideoBitrate::build_command(self, data);
     }
 
-    fn visit_video_frame_rate(&mut self, data: &ParameterData) {
+    fn visit_video_frame_rate(&mut self, data: &mut ParameterData) {
         VideoFrameRate::build_command(self, data);
     }
 
-    fn visit_video_scale(&mut self, data: &ParameterData) {
+    fn visit_video_scale(&mut self, data: &mut ParameterData) {
         VideoScale::build_command(self, data);
     }
 
-    fn visit_hardware_acceleration(&mut self, data: &ParameterData) {
+    fn visit_hardware_acceleration(&mut self, data: &mut ParameterData) {
         HardwareAcceleration::build_command(self, data);
     }
 
-    fn visit_output_format(&mut self, data: &ParameterData) {
+    fn visit_output_format(&mut self, data: &mut ParameterData) {
         OutputFormat::build_command(self, data);
     }
 }
@@ -108,9 +108,9 @@ mod tests {
     #[test]
     fn audio_bitrate_default() {
         let mut cb = CommandBuilder::default();
-        let p = AudioBitrate::new_parameter();
+        let mut p = AudioBitrate::new_parameter();
 
-        cb.visit_audio_bitrate(&p.data);
+        cb.visit_audio_bitrate(&mut p.data);
 
         assert!(cb.args.is_empty());
     }
@@ -121,7 +121,7 @@ mod tests {
         let mut p = AudioBitrate::new_parameter();
         set_custom_value(&mut p, "80");
 
-        cb.visit_audio_bitrate(&p.data);
+        cb.visit_audio_bitrate(&mut p.data);
 
         assert_eq!(cb.args, vec!["-b:a", "80k"]);
     }
@@ -129,9 +129,9 @@ mod tests {
     #[test]
     fn audio_crystalizer_default() {
         let mut cb = CommandBuilder::default();
-        let p = AudioCrystalizer::new_parameter();
+        let mut p = AudioCrystalizer::new_parameter();
 
-        cb.visit_audio_crystalizer(&p.data);
+        cb.visit_audio_crystalizer(&mut p.data);
 
         assert!(cb.audio_filters.is_empty());
     }
@@ -142,7 +142,7 @@ mod tests {
         let mut p = AudioCrystalizer::new_parameter();
         set_custom_value(&mut p, "-4");
 
-        cb.visit_audio_crystalizer(&p.data);
+        cb.visit_audio_crystalizer(&mut p.data);
 
         assert_eq!(cb.audio_filters, vec!["crystalizer=-4"]);
     }
@@ -150,9 +150,9 @@ mod tests {
     #[test]
     fn audio_pitch_default() {
         let mut cb = CommandBuilder::default();
-        let p = AudioPitch::new_parameter();
+        let mut p = AudioPitch::new_parameter();
 
-        cb.visit_audio_pitch(&p.data);
+        cb.visit_audio_pitch(&mut p.data);
 
         assert!(cb.audio_filters.is_empty());
     }
@@ -163,7 +163,7 @@ mod tests {
         let mut p = AudioPitch::new_parameter();
         set_custom_value(&mut p, "1.5");
 
-        cb.visit_audio_pitch(&p.data);
+        cb.visit_audio_pitch(&mut p.data);
 
         assert_eq!(
             cb.audio_filters,
@@ -174,9 +174,9 @@ mod tests {
     #[test]
     fn audio_volume_default() {
         let mut cb = CommandBuilder::default();
-        let p = AudioVolume::new_parameter();
+        let mut p = AudioVolume::new_parameter();
 
-        cb.visit_audio_volume(&p.data);
+        cb.visit_audio_volume(&mut p.data);
 
         assert!(cb.audio_filters.is_empty());
     }
@@ -187,7 +187,7 @@ mod tests {
         let mut p = AudioVolume::new_parameter();
         set_custom_value(&mut p, "5");
 
-        cb.visit_audio_volume(&p.data);
+        cb.visit_audio_volume(&mut p.data);
 
         assert_eq!(cb.audio_filters, vec!["volume=5dB"]);
     }
@@ -195,9 +195,9 @@ mod tests {
     #[test]
     fn disable_audio_default() {
         let mut cb = CommandBuilder::default();
-        let p = DisableAudio::new_parameter();
+        let mut p = DisableAudio::new_parameter();
 
-        cb.visit_disable_audio(&p.data);
+        cb.visit_disable_audio(&mut p.data);
 
         assert!(!cb.discard_audio);
         assert!(cb.args.is_empty());
@@ -209,7 +209,7 @@ mod tests {
         let mut p = DisableAudio::new_parameter();
         toggle_next(&mut p);
 
-        cb.visit_disable_audio(&p.data);
+        cb.visit_disable_audio(&mut p.data);
 
         assert!(cb.discard_audio);
         assert_eq!(cb.args, vec!["-an"]);
@@ -223,8 +223,8 @@ mod tests {
         let mut volume = AudioVolume::new_parameter();
         set_custom_value(&mut volume, "5");
 
-        cb.visit_disable_audio(&p.data);
-        cb.visit_audio_volume(&p.data);
+        cb.visit_disable_audio(&mut p.data);
+        cb.visit_audio_volume(&mut volume.data);
 
         assert!(cb.discard_audio);
         assert_eq!(cb.args, vec!["-an"]);
@@ -236,9 +236,9 @@ mod tests {
     #[test]
     fn video_bitrate_default() {
         let mut cb = CommandBuilder::default();
-        let p = VideoBitrate::new_parameter();
+        let mut p = VideoBitrate::new_parameter();
 
-        cb.visit_video_bitrate(&p.data);
+        cb.visit_video_bitrate(&mut p.data);
 
         assert!(cb.args.is_empty());
     }
@@ -249,7 +249,7 @@ mod tests {
         let mut p = VideoBitrate::new_parameter();
         set_custom_value(&mut p, "2M");
 
-        cb.visit_video_bitrate(&p.data);
+        cb.visit_video_bitrate(&mut p.data);
 
         assert_eq!(cb.args, vec!["-b:v", "2M"]);
     }
@@ -257,9 +257,9 @@ mod tests {
     #[test]
     fn video_frame_rate_default() {
         let mut cb = CommandBuilder::default();
-        let p = VideoFrameRate::new_parameter();
+        let mut p = VideoFrameRate::new_parameter();
 
-        cb.visit_video_frame_rate(&p.data);
+        cb.visit_video_frame_rate(&mut p.data);
 
         assert!(cb.args.is_empty());
     }
@@ -270,7 +270,7 @@ mod tests {
         let mut p = VideoFrameRate::new_parameter();
         set_custom_value(&mut p, "25");
 
-        cb.visit_video_frame_rate(&p.data);
+        cb.visit_video_frame_rate(&mut p.data);
 
         assert_eq!(cb.args, vec!["-r", "25"]);
     }
@@ -278,9 +278,9 @@ mod tests {
     #[test]
     fn video_scale_default() {
         let mut cb = CommandBuilder::default();
-        let p = VideoScale::new_parameter();
+        let mut p = VideoScale::new_parameter();
 
-        cb.visit_video_scale(&p.data);
+        cb.visit_video_scale(&mut p.data);
 
         assert!(cb.video_filters.is_empty());
     }
@@ -291,7 +291,7 @@ mod tests {
         let mut p = VideoScale::new_parameter();
         set_custom_value(&mut p, "600");
 
-        cb.visit_video_scale(&p.data);
+        cb.visit_video_scale(&mut p.data);
 
         assert_eq!(cb.video_filters, vec!["scale=-2:600"]);
     }
@@ -301,9 +301,9 @@ mod tests {
     #[test]
     fn speed_factor_default() {
         let mut cb = CommandBuilder::default();
-        let p = SpeedFactor::new_parameter();
+        let mut p = SpeedFactor::new_parameter();
 
-        cb.visit_speed_factor(&p.data);
+        cb.visit_speed_factor(&mut p.data);
 
         assert!(cb.audio_filters.is_empty());
         assert!(cb.video_filters.is_empty());
@@ -316,7 +316,7 @@ mod tests {
         let mut p = SpeedFactor::new_parameter();
         set_custom_value(&mut p, "2");
 
-        cb.visit_speed_factor(&p.data);
+        cb.visit_speed_factor(&mut p.data);
 
         assert_eq!(cb.audio_filters, vec!["atempo=2"]);
         assert_eq!(cb.video_filters, vec!["setpts=PTS/2"]);
@@ -329,7 +329,7 @@ mod tests {
         let mut p = HardwareAcceleration::new_parameter();
         toggle_next(&mut p);
 
-        cb.visit_hardware_acceleration(&p.data);
+        cb.visit_hardware_acceleration(&mut p.data);
 
         #[cfg(any(target_os = "windows", target_os = "linux"))]
         assert_eq!(cb.args, vec!["-c:v", "h264_nvenc"]);
@@ -348,9 +348,9 @@ mod tests {
             },
             streams: vec![],
         };
-        let p = OutputFormat::new_parameter(&info, "mp4");
+        let mut p = OutputFormat::new_parameter(&info, "mp4");
 
-        cb.visit_output_format(&p.data);
+        cb.visit_output_format(&mut p.data);
 
         assert_eq!(cb.ext, "mp4");
     }

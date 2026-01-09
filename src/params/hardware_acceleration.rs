@@ -1,5 +1,7 @@
 use crate::{
-    params::{Parameter, ParameterData, SelectOption, macros::select_non_default_option},
+    params::{
+        Parameter, ParameterData, PresetParameter, SelectOption, macros::select_non_default_option,
+    },
     visitors::{CommandBuilder, HWAccel},
 };
 
@@ -97,5 +99,15 @@ impl HardwareAcceleration {
         } else {
             cb.hwaccel = HWAccel::None;
         }
+    }
+}
+
+impl PresetParameter for HardwareAcceleration {
+    fn apply_preset(data: &mut ParameterData, preset_value: &str) {
+        Self::set_parameter_value(data, preset_value);
+    }
+
+    fn save_preset(_data: &mut ParameterData) -> String {
+        todo!()
     }
 }

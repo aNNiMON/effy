@@ -1,6 +1,6 @@
 use crate::{
     info::Info,
-    params::{Parameter, ParameterData, SelectOption},
+    params::{Parameter, ParameterData, PresetParameter, SelectOption},
     visitors::CommandBuilder,
 };
 
@@ -54,5 +54,15 @@ impl OutputFormat {
         {
             cb.ext.clone_from(&option.value);
         }
+    }
+}
+
+impl PresetParameter for OutputFormat {
+    fn apply_preset(data: &mut ParameterData, preset_value: &str) {
+        Self::set_parameter_value(data, preset_value);
+    }
+
+    fn save_preset(_data: &mut ParameterData) -> String {
+        todo!()
     }
 }

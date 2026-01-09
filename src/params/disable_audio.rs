@@ -1,5 +1,5 @@
 use crate::{
-    params::{Parameter, ParameterData},
+    params::{Parameter, ParameterData, PresetParameter},
     visitors::CommandBuilder,
 };
 
@@ -20,5 +20,15 @@ impl DisableAudio {
             cb.discard_audio = true;
             cb.args.push("-an".into());
         }
+    }
+}
+
+impl PresetParameter for DisableAudio {
+    fn apply_preset(data: &mut ParameterData, preset_value: &str) {
+        Self::set_parameter_value(data, preset_value);
+    }
+
+    fn save_preset(_data: &mut ParameterData) -> String {
+        todo!()
     }
 }

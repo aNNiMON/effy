@@ -21,16 +21,21 @@ pub(crate) use audio_volume::*;
 pub(crate) use disable_audio::*;
 pub(crate) use hardware_acceleration::*;
 pub(crate) use output_format::*;
-pub(crate) use parameter::{Parameter, ParameterData, SelectOption};
+pub(crate) use parameter::{Parameter, ParameterData, PresetParameter, SelectOption};
 pub(crate) use speed_factor::*;
 pub(crate) use trim::*;
 pub(crate) use video_bitrate::*;
 pub(crate) use video_frame_rate::*;
 pub(crate) use video_scale::*;
 
-use crate::{info::Info, params::macros::select_option, visitors::FFmpegParameterVisitor};
+use crate::{
+    info::Info,
+    params::macros::select_option,
+    visitors::{FFmpegParameterVisitor, PresetApplier},
+};
+use std::collections::HashMap;
 
-pub(crate) fn create_params(info: &Info, source_ext: &str) -> Vec<Parameter> {
+pub(crate) fn create_params(info: &Info, preset: Option<&str>, source_ext: &str) -> Vec<Parameter> {
     let mut params: Vec<Parameter> = Vec::new();
     if info.has_non_empty_duration() {
         params.push(Trim::new_parameter());
@@ -52,8 +57,20 @@ pub(crate) fn create_params(info: &Info, source_ext: &str) -> Vec<Parameter> {
         params.push(HardwareAcceleration::new_parameter());
     }
     params.push(OutputFormat::new_parameter(info, source_ext));
+    if let Some(preset_value) = preset {
+        apply_preset(&mut params, preset_value);
+    }
     recheck_params(&mut params);
     params
+}
+
+pub(crate) fn apply_preset(params: &mut [Parameter], preset: &str) {
+    let preset_map = preset
+        .split(';')
+        .filter_map(|p| p.split_once(':'))
+        .collect::<HashMap<&str, &str>>();
+    let mut preset_applier = PresetApplier::new(preset_map);
+    apply_visitor(&mut preset_applier, params);
 }
 
 pub(crate) fn recheck_params(params: &mut [Parameter]) {

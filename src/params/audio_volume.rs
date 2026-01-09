@@ -2,7 +2,10 @@ use std::sync::Arc;
 
 use crate::{
     model::{InputConstraints, InputType},
-    params::{Parameter, ParameterData, SelectOption, macros::select_non_default_custom_value},
+    params::{
+        Parameter, ParameterData, PresetParameter, SelectOption,
+        macros::select_non_default_custom_value,
+    },
     visitors::CommandBuilder,
 };
 
@@ -59,5 +62,17 @@ impl AudioVolume {
             cb.audio_filters
                 .push(format!("volume={}", Self::format_value(value)));
         }
+    }
+}
+
+impl PresetParameter for AudioVolume {
+    fn apply_preset(data: &mut ParameterData, preset_value: &str) {
+        if Self::validate(preset_value).is_ok() {
+            Self::set_parameter_value(data, preset_value);
+        }
+    }
+
+    fn save_preset(_data: &mut ParameterData) -> String {
+        todo!()
     }
 }

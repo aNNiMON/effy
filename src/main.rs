@@ -19,15 +19,30 @@ mod ui;
 mod visitors;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let args: Vec<String> = std::env::args().collect();
-    if args.len() != 2 {
+    let mut args: Vec<String> = std::env::args().skip(1).rev().collect();
+    let mut preset = None;
+    let mut input = None;
+    while let Some(arg) = args.pop() {
+        if arg == "--preset" {
+            if args.is_empty() {
+                eprintln!("Error: --preset requires an argument");
+                process::exit(1);
+            }
+            preset = args.pop();
+        } else {
+            input = Some(arg);
+        }
+    }
+
+    if input.is_none() {
         const VERSION: &str = env!("CARGO_PKG_VERSION");
         eprintln!("effy v{VERSION}");
-        eprintln!("Usage: {} <input>", &args[0]);
+        eprintln!("Usage: effy [--preset <preset>] <input>");
         eprintln!("  input: media file or URL");
+        eprintln!("  preset: preset to apply");
         process::exit(1);
     }
-    let source = Source::new(args[1].clone());
+    let source = Source::new(input.unwrap());
     source.validate().map_err(|e| {
         eprintln!("Error: {e}");
         process::exit(1);
@@ -45,7 +60,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let (tx, rx) = mpsc::channel();
         let event_tx = tx.clone();
         thread::spawn(move || handle_crossterm_events(&event_tx));
-        App::new(tx, &ffprobe_info, source).run(terminal, &rx)
+        App::new(tx, &ffprobe_info, source, preset).run(terminal, &rx)
     })
 }
 

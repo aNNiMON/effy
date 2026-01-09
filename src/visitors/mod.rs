@@ -14,7 +14,9 @@ pub(crate) trait FFmpegParameterVisitor {
 }
 
 mod command_builder;
+mod preset_applier;
 
 pub(crate) use command_builder::*;
+pub(crate) use preset_applier::*;
 
 use crate::params::ParameterData;

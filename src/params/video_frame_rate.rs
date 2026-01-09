@@ -2,7 +2,10 @@ use std::sync::Arc;
 
 use crate::{
     model::{InputConstraints, InputType},
-    params::{Parameter, ParameterData, SelectOption, macros::select_non_default_custom_value},
+    params::{
+        Parameter, ParameterData, PresetParameter, SelectOption,
+        macros::select_non_default_custom_value,
+    },
     visitors::CommandBuilder,
 };
 pub(crate) struct VideoFrameRate;
@@ -54,5 +57,17 @@ impl VideoFrameRate {
             cb.args.push("-r".into());
             cb.args.push(value.into());
         }
+    }
+}
+
+impl PresetParameter for VideoFrameRate {
+    fn apply_preset(data: &mut ParameterData, preset_value: &str) {
+        if Self::validate(preset_value).is_ok() {
+            Self::set_parameter_value(data, preset_value);
+        }
+    }
+
+    fn save_preset(_data: &mut ParameterData) -> String {
+        todo!()
     }
 }

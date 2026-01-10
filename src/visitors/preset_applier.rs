@@ -8,17 +8,17 @@ pub(crate) struct PresetApplier<'a> {
 }
 
 impl<'a> PresetApplier<'a> {
-    pub(crate) fn new(preset_map: HashMap<&'a str, &'a str>) -> Self {
+    pub(crate) fn new(preset: &'a str) -> Self {
+        let preset_map = preset
+            .split(';')
+            .filter_map(|p| p.split_once(':'))
+            .collect::<HashMap<&str, &str>>();
         Self { preset_map }
     }
 }
 
 impl FFmpegParameterVisitor for PresetApplier<'_> {
-    fn visit_trim(&mut self, _data: &mut ParameterData) {
-        if let Some(_preset_value) = self.preset_map.get(Trim::ID) {
-            todo!("Unavailable")
-        }
-    }
+    fn visit_trim(&mut self, _data: &mut ParameterData) {}
 
     fn visit_disable_audio(&mut self, data: &mut ParameterData) {
         if let Some(preset_value) = self.preset_map.get(DisableAudio::ID) {

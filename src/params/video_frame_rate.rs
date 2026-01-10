@@ -67,7 +67,7 @@ impl PresetParameter for VideoFrameRate {
         }
     }
 
-    fn save_preset(_data: &mut ParameterData) -> String {
-        todo!()
+    fn save_preset(data: &ParameterData) -> Option<&str> {
+        select_non_default_custom_value!(data)
     }
 }

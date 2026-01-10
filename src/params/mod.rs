@@ -31,7 +31,7 @@ pub(crate) use video_scale::*;
 use crate::{
     info::Info,
     params::macros::select_option,
-    visitors::{FFmpegParameterVisitor, PresetApplier},
+    visitors::{FFmpegParameterVisitor, PresetApplier, PresetSaver},
 };
 
 pub(crate) fn create_params(info: &Info, preset: Option<&str>, source_ext: &str) -> Vec<Parameter> {
@@ -66,6 +66,12 @@ pub(crate) fn create_params(info: &Info, preset: Option<&str>, source_ext: &str)
 pub(crate) fn apply_preset(params: &mut [Parameter], preset: &str) {
     let mut preset_applier = PresetApplier::new(preset);
     apply_visitor(&mut preset_applier, params);
+}
+
+pub(crate) fn save_preset(params: &mut [Parameter]) -> String {
+    let mut preset_saver = PresetSaver::new();
+    apply_visitor(&mut preset_saver, params);
+    preset_saver.collect()
 }
 
 pub(crate) fn recheck_params(params: &mut [Parameter]) {

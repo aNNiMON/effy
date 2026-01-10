@@ -242,8 +242,7 @@ impl ParameterData {
 
 pub trait PresetParameter {
     fn apply_preset(data: &mut ParameterData, preset_value: &str);
-    #[allow(unused)]
-    fn save_preset(data: &mut ParameterData) -> String;
+    fn save_preset<'a>(data: &'a ParameterData) -> Option<&'a str>;
 
     fn set_parameter_value(data: &mut ParameterData, new_value: &str) {
         match data {

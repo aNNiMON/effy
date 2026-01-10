@@ -28,7 +28,13 @@ impl PresetParameter for DisableAudio {
         Self::set_parameter_value(data, preset_value);
     }
 
-    fn save_preset(_data: &mut ParameterData) -> String {
-        todo!()
+    fn save_preset(data: &ParameterData) -> Option<&str> {
+        if let ParameterData::Toggle { value } = data
+            && *value
+        {
+            Some("1")
+        } else {
+            None
+        }
     }
 }

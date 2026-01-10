@@ -107,7 +107,7 @@ impl PresetParameter for HardwareAcceleration {
         Self::set_parameter_value(data, preset_value);
     }
 
-    fn save_preset(_data: &mut ParameterData) -> String {
-        todo!()
+    fn save_preset(data: &ParameterData) -> Option<&str> {
+        select_non_default_option!(data).map(|option| option.value.as_str())
     }
 }

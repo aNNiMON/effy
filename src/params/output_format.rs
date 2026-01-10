@@ -62,7 +62,16 @@ impl PresetParameter for OutputFormat {
         Self::set_parameter_value(data, preset_value);
     }
 
-    fn save_preset(_data: &mut ParameterData) -> String {
-        todo!()
+    fn save_preset(data: &ParameterData) -> Option<&str> {
+        if let ParameterData::Select {
+            options,
+            selected_index,
+        } = data
+            && let Some(option) = options.get(*selected_index)
+        {
+            Some(&option.value)
+        } else {
+            None
+        }
     }
 }

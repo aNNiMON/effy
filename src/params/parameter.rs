@@ -248,7 +248,7 @@ pub trait PresetParameter {
     fn set_parameter_value(data: &mut ParameterData, new_value: &str) {
         match data {
             ParameterData::Toggle { value } => {
-                *value = new_value == "true";
+                *value = new_value == "true" || new_value == "1";
             }
             ParameterData::CustomSelect { value, .. } => {
                 new_value.clone_into(value);

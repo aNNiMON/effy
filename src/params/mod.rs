@@ -33,7 +33,6 @@ use crate::{
     params::macros::select_option,
     visitors::{FFmpegParameterVisitor, PresetApplier},
 };
-use std::collections::HashMap;
 
 pub(crate) fn create_params(info: &Info, preset: Option<&str>, source_ext: &str) -> Vec<Parameter> {
     let mut params: Vec<Parameter> = Vec::new();
@@ -65,11 +64,7 @@ pub(crate) fn create_params(info: &Info, preset: Option<&str>, source_ext: &str)
 }
 
 pub(crate) fn apply_preset(params: &mut [Parameter], preset: &str) {
-    let preset_map = preset
-        .split(';')
-        .filter_map(|p| p.split_once(':'))
-        .collect::<HashMap<&str, &str>>();
-    let mut preset_applier = PresetApplier::new(preset_map);
+    let mut preset_applier = PresetApplier::new(preset);
     apply_visitor(&mut preset_applier, params);
 }
 

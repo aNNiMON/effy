@@ -239,3 +239,31 @@ impl ParameterData {
         )
     }
 }
+
+pub trait PresetParameter {
+    fn apply_preset(data: &mut ParameterData, preset_value: &str);
+    fn save_preset(data: &ParameterData) -> Option<&str>;
+
+    fn set_parameter_value(data: &mut ParameterData, new_value: &str) {
+        match data {
+            ParameterData::Toggle { value } => {
+                *value = new_value == "true" || new_value == "1";
+            }
+            ParameterData::CustomSelect { value, .. } => {
+                new_value.clone_into(value);
+            }
+            ParameterData::Select {
+                options,
+                selected_index,
+            } => {
+                for (i, option) in options.iter().enumerate() {
+                    if option.value == new_value {
+                        *selected_index = i;
+                        break;
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+}

@@ -13,6 +13,7 @@ readme = "README.md"
 exclude = ["mprocs.yaml"]
 
 [dependencies]
+clipboard = "0.5.0"
 crossterm = "0.29"
 ratatui = "0.30.0"
 regex = { version = "1.12.2", default-features = false, features = ["std"] }

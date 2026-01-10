@@ -21,16 +21,20 @@ pub(crate) use audio_volume::*;
 pub(crate) use disable_audio::*;
 pub(crate) use hardware_acceleration::*;
 pub(crate) use output_format::*;
-pub(crate) use parameter::{Parameter, ParameterData, SelectOption};
+pub(crate) use parameter::{Parameter, ParameterData, PresetParameter, SelectOption};
 pub(crate) use speed_factor::*;
 pub(crate) use trim::*;
 pub(crate) use video_bitrate::*;
 pub(crate) use video_frame_rate::*;
 pub(crate) use video_scale::*;
 
-use crate::{info::Info, params::macros::select_option, visitors::FFmpegParameterVisitor};
+use crate::{
+    info::Info,
+    params::macros::select_option,
+    visitors::{FFmpegParameterVisitor, PresetApplier, PresetSaver},
+};
 
-pub(crate) fn create_params(info: &Info, source_ext: &str) -> Vec<Parameter> {
+pub(crate) fn create_params(info: &Info, preset: Option<&str>, source_ext: &str) -> Vec<Parameter> {
     let mut params: Vec<Parameter> = Vec::new();
     if info.has_non_empty_duration() {
         params.push(Trim::new_parameter());
@@ -52,8 +56,22 @@ pub(crate) fn create_params(info: &Info, source_ext: &str) -> Vec<Parameter> {
         params.push(HardwareAcceleration::new_parameter());
     }
     params.push(OutputFormat::new_parameter(info, source_ext));
+    if let Some(preset_value) = preset {
+        apply_preset(&mut params, preset_value);
+    }
     recheck_params(&mut params);
     params
+}
+
+pub(crate) fn apply_preset(params: &mut [Parameter], preset: &str) {
+    let mut preset_applier = PresetApplier::new(preset);
+    apply_visitor(&mut preset_applier, params);
+}
+
+pub(crate) fn save_preset(params: &mut [Parameter]) -> String {
+    let mut preset_saver = PresetSaver::new();
+    apply_visitor(&mut preset_saver, params);
+    preset_saver.collect()
 }
 
 pub(crate) fn recheck_params(params: &mut [Parameter]) {
@@ -100,23 +118,24 @@ pub(crate) fn recheck_params(params: &mut [Parameter]) {
     }
 }
 
-pub(crate) fn apply_visitor(visitor: &mut dyn FFmpegParameterVisitor, params: &[Parameter]) {
-    let mut sorted_params: Vec<&Parameter> = params.iter().filter(|param| param.enabled).collect();
+pub(crate) fn apply_visitor(visitor: &mut dyn FFmpegParameterVisitor, params: &mut [Parameter]) {
+    let mut sorted_params: Vec<&mut Parameter> =
+        params.iter_mut().filter(|param| param.enabled).collect();
     sorted_params.sort_by_key(|param| param.order);
     for param in sorted_params {
         match param.id {
-            Trim::ID => visitor.visit_trim(&param.data),
-            DisableAudio::ID => visitor.visit_disable_audio(&param.data),
-            AudioVolume::ID => visitor.visit_audio_volume(&param.data),
-            AudioBitrate::ID => visitor.visit_audio_bitrate(&param.data),
-            AudioCrystalizer::ID => visitor.visit_audio_crystalizer(&param.data),
-            AudioPitch::ID => visitor.visit_audio_pitch(&param.data),
-            SpeedFactor::ID => visitor.visit_speed_factor(&param.data),
-            VideoBitrate::ID => visitor.visit_video_bitrate(&param.data),
-            VideoFrameRate::ID => visitor.visit_video_frame_rate(&param.data),
-            VideoScale::ID => visitor.visit_video_scale(&param.data),
-            HardwareAcceleration::ID => visitor.visit_hardware_acceleration(&param.data),
-            OutputFormat::ID => visitor.visit_output_format(&param.data),
+            Trim::ID => visitor.visit_trim(&mut param.data),
+            DisableAudio::ID => visitor.visit_disable_audio(&mut param.data),
+            AudioVolume::ID => visitor.visit_audio_volume(&mut param.data),
+            AudioBitrate::ID => visitor.visit_audio_bitrate(&mut param.data),
+            AudioCrystalizer::ID => visitor.visit_audio_crystalizer(&mut param.data),
+            AudioPitch::ID => visitor.visit_audio_pitch(&mut param.data),
+            SpeedFactor::ID => visitor.visit_speed_factor(&mut param.data),
+            VideoBitrate::ID => visitor.visit_video_bitrate(&mut param.data),
+            VideoFrameRate::ID => visitor.visit_video_frame_rate(&mut param.data),
+            VideoScale::ID => visitor.visit_video_scale(&mut param.data),
+            HardwareAcceleration::ID => visitor.visit_hardware_acceleration(&mut param.data),
+            OutputFormat::ID => visitor.visit_output_format(&mut param.data),
             _ => {}
         }
     }

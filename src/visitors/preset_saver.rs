@@ -23,46 +23,68 @@ impl FFmpegParameterVisitor for PresetSaver {
     fn visit_trim(&mut self, _data: &mut ParameterData) {}
 
     fn visit_disable_audio(&mut self, data: &mut ParameterData) {
-        DisableAudio::save_preset(data).map(|v| self.add(DisableAudio::ID, v));
+        if let Some(v) = DisableAudio::save_preset(data) {
+            self.add(DisableAudio::ID, v);
+        }
     }
 
     fn visit_audio_bitrate(&mut self, data: &mut ParameterData) {
-        AudioBitrate::save_preset(data).map(|v| self.add(AudioBitrate::ID, v));
+        if let Some(v) = AudioBitrate::save_preset(data) {
+            self.add(AudioBitrate::ID, v);
+        }
     }
 
     fn visit_audio_crystalizer(&mut self, data: &mut ParameterData) {
-        AudioCrystalizer::save_preset(data).map(|v| self.add(AudioCrystalizer::ID, v));
+        if let Some(v) = AudioCrystalizer::save_preset(data) {
+            self.add(AudioCrystalizer::ID, v);
+        }
     }
 
     fn visit_audio_volume(&mut self, data: &mut ParameterData) {
-        AudioVolume::save_preset(data).map(|v| self.add(AudioVolume::ID, v));
+        if let Some(v) = AudioVolume::save_preset(data) {
+            self.add(AudioVolume::ID, v);
+        }
     }
 
     fn visit_audio_pitch(&mut self, data: &mut ParameterData) {
-        AudioPitch::save_preset(data).map(|v| self.add(AudioPitch::ID, v));
+        if let Some(v) = AudioPitch::save_preset(data) {
+            self.add(AudioPitch::ID, v);
+        }
     }
 
     fn visit_speed_factor(&mut self, data: &mut ParameterData) {
-        SpeedFactor::save_preset(data).map(|v| self.add(SpeedFactor::ID, v));
+        if let Some(v) = SpeedFactor::save_preset(data) {
+            self.add(SpeedFactor::ID, v);
+        }
     }
 
     fn visit_video_bitrate(&mut self, data: &mut ParameterData) {
-        VideoBitrate::save_preset(data).map(|v| self.add(VideoBitrate::ID, v));
+        if let Some(v) = VideoBitrate::save_preset(data) {
+            self.add(VideoBitrate::ID, v);
+        }
     }
 
     fn visit_video_frame_rate(&mut self, data: &mut ParameterData) {
-        VideoFrameRate::save_preset(data).map(|v| self.add(VideoFrameRate::ID, v));
+        if let Some(v) = VideoFrameRate::save_preset(data) {
+            self.add(VideoFrameRate::ID, v);
+        }
     }
 
     fn visit_video_scale(&mut self, data: &mut ParameterData) {
-        VideoScale::save_preset(data).map(|v| self.add(VideoScale::ID, v));
+        if let Some(v) = VideoScale::save_preset(data) {
+            self.add(VideoScale::ID, v);
+        }
     }
 
     fn visit_hardware_acceleration(&mut self, data: &mut ParameterData) {
-        HardwareAcceleration::save_preset(data).map(|v| self.add(HardwareAcceleration::ID, v));
+        if let Some(v) = HardwareAcceleration::save_preset(data) {
+            self.add(HardwareAcceleration::ID, v);
+        }
     }
 
     fn visit_output_format(&mut self, data: &mut ParameterData) {
-        OutputFormat::save_preset(data).map(|v| self.add(OutputFormat::ID, v));
+        if let Some(v) = OutputFormat::save_preset(data) {
+            self.add(OutputFormat::ID, v);
+        }
     }
 }

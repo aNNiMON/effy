@@ -36,7 +36,7 @@ pub(crate) struct App<'a> {
 }
 
 impl App<'_> {
-    pub fn new(tx: Sender<AppEvent>, info: &Info, source: Source, preset: Option<String>) -> Self {
+    pub fn new(tx: Sender<AppEvent>, info: &Info, source: Source, preset: Option<&str>) -> Self {
         let mut list_state = ListState::default();
         list_state.select(Some(0));
         let folder = source.input_folder();
@@ -51,7 +51,7 @@ impl App<'_> {
             output_folder: folder,
             output_filename: format!("{filename}_out"),
             output_fileext: fileext.clone(),
-            params: create_params(info, preset.as_deref(), fileext.as_str()),
+            params: create_params(info, preset, fileext.as_str()),
             params_list_state: list_state,
             modal: None,
             save_ongoing: false,
@@ -149,12 +149,10 @@ impl App<'_> {
     }
 
     fn copy_preset(&mut self) {
-        ClipboardProvider::new()
-            .ok()
-            .map(|mut ctx: ClipboardContext| {
-                let preset = save_preset(&mut self.params);
-                let _ = ctx.set_contents(preset);
-            });
+        if let Ok(mut ctx) = ClipboardProvider::new().map(|ctx: ClipboardContext| ctx) {
+            let preset = save_preset(&mut self.params);
+            let _ = ctx.set_contents(preset);
+        }
     }
 
     fn select_prev_param(&mut self) {

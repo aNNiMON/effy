@@ -60,7 +60,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let (tx, rx) = mpsc::channel();
         let event_tx = tx.clone();
         thread::spawn(move || handle_crossterm_events(&event_tx));
-        App::new(tx, &ffprobe_info, source, preset).run(terminal, &rx)
+        App::new(tx, &ffprobe_info, source, preset.as_deref()).run(terminal, &rx)
     })
 }
 

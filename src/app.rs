@@ -4,12 +4,15 @@ use std::process::{ChildStdin, Command, Stdio};
 use std::sync::mpsc::{Receiver, Sender};
 use std::{mem, thread};
 
+use clipboard::{ClipboardContext, ClipboardProvider};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::{DefaultTerminal, widgets::ListState};
 
 use crate::info::Info;
 use crate::model::{AppEvent, Pane};
-use crate::params::{Parameter, ParameterData, Trim, apply_visitor, create_params, recheck_params};
+use crate::params::{
+    Parameter, ParameterData, Trim, apply_visitor, create_params, recheck_params, save_preset,
+};
 use crate::source::Source;
 use crate::ui::state::{InfoPaneState, OutputPaneState};
 use crate::ui::{CustomSelectModal, ModalResult, SaveAsFileModal, TrimModal, UiModal};
@@ -140,8 +143,18 @@ impl App<'_> {
             (Pane::Params, _, KeyCode::Left | KeyCode::Char('h')) => self.prev_option(),
             (Pane::Params, _, KeyCode::Right | KeyCode::Char('l')) => self.next_option(),
             (Pane::Params, _, KeyCode::Enter) => self.open_param_modal(),
+            (Pane::Params, _, KeyCode::Char('p')) => self.copy_preset(),
             _ => {}
         }
+    }
+
+    fn copy_preset(&mut self) {
+        ClipboardProvider::new()
+            .ok()
+            .map(|mut ctx: ClipboardContext| {
+                let preset = save_preset(&mut self.params);
+                let _ = ctx.set_contents(preset);
+            });
     }
 
     fn select_prev_param(&mut self) {

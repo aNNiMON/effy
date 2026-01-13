@@ -92,7 +92,7 @@ impl App<'_> {
     }
 
     pub fn run_cli(&mut self) {
-        let args = self.build_ffmpeg_command();
+        let args = self.build_ffmpeg_command(false);
         println!("Starting FFmpeg\nCommand: ffmpeg {}", args.join(" "));
         Command::new("ffmpeg")
             .args(args)
@@ -242,7 +242,7 @@ impl App<'_> {
         self.modal = None;
         self.save_ongoing = true;
 
-        let args = self.build_ffmpeg_command();
+        let args = self.build_ffmpeg_command(true);
         self.out_state.set_output("Starting FFmpeg...\n");
 
         let tx = self.event_sender.clone();
@@ -308,7 +308,7 @@ impl App<'_> {
         }
     }
 
-    fn build_ffmpeg_command(&mut self) -> Vec<String> {
+    fn build_ffmpeg_command(&mut self, overwrite: bool) -> Vec<String> {
         let mut command_builder = CommandBuilder::default();
         apply_visitor(&mut command_builder, &mut self.params);
         let input = self.source.input.clone();
@@ -318,7 +318,9 @@ impl App<'_> {
         );
 
         let mut args: Vec<String> = Vec::new();
-        args.push("-y".into());
+        if overwrite {
+            args.push("-y".into());
+        }
         args.push("-hide_banner".into());
         args.extend(command_builder.build_pre_input_args().iter().cloned());
         args.push("-i".into());

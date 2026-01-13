@@ -29,7 +29,7 @@ pub(crate) enum HWAccel {
 }
 
 impl CommandBuilder {
-    pub(crate) fn build_pre_input_args(&self) -> &Vec<String> {
+    pub(crate) fn build_pre_input_args(&self) -> &[String] {
         &self.pre_input_args
     }
 

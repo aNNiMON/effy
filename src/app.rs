@@ -91,6 +91,18 @@ impl App<'_> {
         Ok(())
     }
 
+    pub fn run_cli(&mut self) {
+        let args = self.build_ffmpeg_command();
+        println!("Starting FFmpeg\nCommand: ffmpeg {}", args.join(" "));
+        Command::new("ffmpeg")
+            .args(args)
+            .stdin(Stdio::inherit())
+            .stdout(Stdio::inherit())
+            .stderr(Stdio::inherit())
+            .status()
+            .expect("Failed to start FFmpeg");
+    }
+
     fn on_key_event(&mut self, key: KeyEvent) {
         if let Some(modal) = &mut self.modal {
             match modal.handle_key(key) {
@@ -230,25 +242,13 @@ impl App<'_> {
         self.modal = None;
         self.save_ongoing = true;
 
-        let mut command_builder = CommandBuilder::default();
-        apply_visitor(&mut command_builder, &mut self.params);
+        let args = self.build_ffmpeg_command();
         self.out_state.set_output("Starting FFmpeg...\n");
 
-        let input = self.source.input.clone();
-        let output_file = format!(
-            "{}/{}.{}",
-            self.output_folder, self.output_filename, command_builder.ext
-        );
         let tx = self.event_sender.clone();
         thread::spawn(move || {
             let mut child = match Command::new("ffmpeg")
-                .arg("-y")
-                .arg("-hide_banner")
-                .args(command_builder.build_pre_input_args())
-                .arg("-i")
-                .arg(&input)
-                .args(command_builder.build_args())
-                .arg(&output_file)
+                .args(&args)
                 .stdin(Stdio::piped())
                 .stdout(Stdio::null())
                 .stderr(Stdio::piped())
@@ -306,5 +306,25 @@ impl App<'_> {
         } else {
             self.running = false;
         }
+    }
+
+    fn build_ffmpeg_command(&mut self) -> Vec<String> {
+        let mut command_builder = CommandBuilder::default();
+        apply_visitor(&mut command_builder, &mut self.params);
+        let input = self.source.input.clone();
+        let output_file = format!(
+            "{}/{}.{}",
+            self.output_folder, self.output_filename, command_builder.ext
+        );
+
+        let mut args: Vec<String> = Vec::new();
+        args.push("-y".into());
+        args.push("-hide_banner".into());
+        args.extend(command_builder.build_pre_input_args().iter().cloned());
+        args.push("-i".into());
+        args.push(input);
+        args.extend(command_builder.build_args());
+        args.push(output_file);
+        args
     }
 }

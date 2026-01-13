@@ -15,7 +15,7 @@ impl PresetSaver {
     }
 
     fn add(&mut self, id: &str, value: &str) {
-        self.preset.push(format!("{}:{}", id, value));
+        self.preset.push(format!("{id}:{value}"));
     }
 }
 

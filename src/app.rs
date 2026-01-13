@@ -15,7 +15,9 @@ use crate::params::{
 };
 use crate::source::Source;
 use crate::ui::state::{InfoPaneState, OutputPaneState};
-use crate::ui::{CustomSelectModal, ModalResult, SaveAsFileModal, TrimModal, UiModal};
+use crate::ui::{
+    AlertKind, AlertModal, CustomSelectModal, ModalResult, SaveAsFileModal, TrimModal, UiModal,
+};
 use crate::visitors::CommandBuilder;
 
 pub(crate) struct App<'a> {
@@ -149,10 +151,14 @@ impl App<'_> {
     }
 
     fn copy_preset(&mut self) {
-        if let Ok(mut ctx) = ClipboardProvider::new().map(|ctx: ClipboardContext| ctx) {
+        let (kind, msg) = match ClipboardProvider::new().map(|mut ctx: ClipboardContext| {
             let preset = save_preset(&mut self.params);
-            let _ = ctx.set_contents(preset);
-        }
+            ctx.set_contents(preset)
+        }) {
+            Ok(_) => (AlertKind::Info, "Preset has been copied to clipboard"),
+            Err(_) => (AlertKind::Error, "Failed to copy the preset to clipboard"),
+        };
+        self.modal = Some(Box::new(AlertModal::new(kind, msg)));
     }
 
     fn select_prev_param(&mut self) {

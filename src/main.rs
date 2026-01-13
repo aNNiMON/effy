@@ -22,6 +22,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut args: Vec<String> = std::env::args().skip(1).rev().collect();
     let mut preset = None;
     let mut input = None;
+    let mut apply = false;
     while let Some(arg) = args.pop() {
         if arg == "--preset" {
             if args.is_empty() {
@@ -29,6 +30,8 @@ fn main() -> Result<(), Box<dyn Error>> {
                 process::exit(1);
             }
             preset = args.pop();
+        } else if arg == "--apply" {
+            apply = true;
         } else {
             input = Some(arg);
         }
@@ -37,9 +40,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     if input.is_none() {
         const VERSION: &str = env!("CARGO_PKG_VERSION");
         eprintln!("effy v{VERSION}");
-        eprintln!("Usage: effy [--preset <preset>] <input>");
+        eprintln!("Usage: effy [--preset <preset>] [--apply] <input>");
         eprintln!("  input: media file or URL");
-        eprintln!("  preset: preset to apply");
+        eprintln!("  preset: parameter values to preset");
+        eprintln!("  --apply: apply preset immediately without UI");
         process::exit(1);
     }
     let source = Source::new(input.unwrap());
@@ -55,6 +59,17 @@ fn main() -> Result<(), Box<dyn Error>> {
             process::exit(1);
         }
     };
+
+    if apply {
+        if preset.is_none() {
+            eprintln!("Preset is required when --apply is specified");
+            process::exit(1);
+        } else {
+            let (tx, _) = mpsc::channel();
+            App::new(tx, &ffprobe_info, source, preset.as_deref()).run_cli();
+            process::exit(0);
+        }
+    }
 
     ratatui::run(|terminal| {
         let (tx, rx) = mpsc::channel();

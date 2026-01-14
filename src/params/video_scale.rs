@@ -36,12 +36,26 @@ impl VideoScale {
     }
 
     fn validate(value: &str) -> Result<String, &str> {
+        Self::validate_range(value)
+            .and_then(Self::validate_divisible_by_2)
+            .map(|num| num.to_string())
+    }
+
+    fn validate_range(value: &str) -> Result<i32, &str> {
         if let Ok(num) = value.parse::<i32>()
             && (num == 0 || (64..=8192).contains(&num))
         {
-            Ok(num.to_string())
+            Ok(num)
         } else {
             Err("Invalid value. Expected a number in range 64..8192, or 0 - original")
+        }
+    }
+
+    fn validate_divisible_by_2<'a>(num: i32) -> Result<i32, &'a str> {
+        if num % 2 == 0 {
+            Ok(num)
+        } else {
+            Err("Invalid value. Expected a number divisible by 2")
         }
     }
 

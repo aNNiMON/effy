@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::io::{BufReader, Read, Write};
+use std::path::PathBuf;
 use std::process::{ChildStdin, Command, Stdio};
 use std::sync::mpsc::{Receiver, Sender};
 use std::{mem, thread};
@@ -312,10 +313,11 @@ impl App<'_> {
         let mut command_builder = CommandBuilder::default();
         apply_visitor(&mut command_builder, &mut self.params);
         let input = self.source.input.clone();
-        let output_file = format!(
-            "{}/{}.{}",
-            self.output_folder, self.output_filename, command_builder.ext
-        );
+        let mut path = PathBuf::new()
+            .join(&*self.output_folder)
+            .join(&*self.output_filename);
+        path.set_extension(&*command_builder.ext);
+        let output_file = path.display().to_string();
 
         let mut args: Vec<String> = Vec::new();
         if overwrite {

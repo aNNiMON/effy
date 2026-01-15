@@ -16,6 +16,7 @@ Key | Action
 ++space++ | Toggle a checkbox in the modal
 ++s++ | :lucide-save: Open the 'Render As' modal
 ++ctrl+s++ | :lucide-save: Quick render
+++p++ | Copy a preset to clipboard
 ++esc++ | Close an active modal (if any opened)
 ++esc++, ++q++, ++ctrl+c++ | :lucide-square-stop: Stop rendering if it's in progress<br>:lucide-x: Quit the application
 

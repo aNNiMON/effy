@@ -15,6 +15,8 @@ A small and friendly terminal FFmpeg helper that simplifies common tasks.
 - apply audio effects (crystalizer)
 - extract or remove audio from the video
 - trim video/audio
+- use hardware acceleration
+- apply presets (preload in the UI, or immediately from the CLI)
 
 ## Usage
 
@@ -24,6 +26,10 @@ A small and friendly terminal FFmpeg helper that simplifies common tasks.
 ```bash
 effy input.mp4
 effy "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+
+# Presets
+effy --preset "noaudio:1;scale:250;output:mp4" input.mp4
+effy --preset "noaudio:1;scale:250;output:mp4" --apply input.mp4
 ```
 
 ## Install
@@ -33,7 +39,7 @@ Download pre-compiled binaries from [Releases](https://github.com/aNNiMON/effy/r
 Or install using `cargo`:
 
 ```bash
-cargo install effy
+cargo install --locked effy
 ```
 
 Or compile from source:

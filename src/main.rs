@@ -39,11 +39,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     if input.is_none() {
         const VERSION: &str = env!("CARGO_PKG_VERSION");
-        eprintln!("effy v{VERSION}");
-        eprintln!("Usage: effy [--preset <preset>] [--apply] <input>");
-        eprintln!("  input: media file or URL");
-        eprintln!("  preset: parameter values to preset");
-        eprintln!("  --apply: apply preset immediately without UI");
+        println!("effy v{VERSION}");
+        println!("Usage: effy [--preset <preset>] [--apply] <input>");
+        println!("\nArguments:");
+        println!("  <input>    Media file or URL");
+        println!("\nOptions:");
+        println!("  --preset <preset>  Specify parameter values");
+        println!("  --apply            Apply preset immediately without UI");
         process::exit(1);
     }
     let source = Source::new(input.unwrap());

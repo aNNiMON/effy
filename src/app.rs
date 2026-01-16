@@ -5,7 +5,7 @@ use std::process::{ChildStdin, Command, Stdio};
 use std::sync::mpsc::{Receiver, Sender};
 use std::{mem, thread};
 
-use clipboard::{ClipboardContext, ClipboardProvider};
+use arboard::Clipboard;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::{DefaultTerminal, widgets::ListState};
 
@@ -164,9 +164,9 @@ impl App<'_> {
     }
 
     fn copy_preset(&mut self) {
-        let (kind, msg) = match ClipboardProvider::new().map(|mut ctx: ClipboardContext| {
+        let (kind, msg) = match Clipboard::new().map(|mut ctx| {
             let preset = save_preset(&mut self.params);
-            ctx.set_contents(preset)
+            ctx.set_text(preset)
         }) {
             Ok(_) => (AlertKind::Info, "Preset has been copied to clipboard"),
             Err(_) => (AlertKind::Error, "Failed to copy the preset to clipboard"),

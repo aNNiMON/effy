@@ -1,6 +1,6 @@
 [package]
 name = "effy"
-version = "0.7.0"
+version = "0.7.1"
 description = "A small and friendly terminal FFmpeg helper that simplifies common tasks"
 keywords = ["ffmpeg", "tui", "ratatui"]
 authors = ["aNNiMON <annimon119@gmail.com>"]
@@ -13,7 +13,7 @@ readme = "README.md"
 exclude = ["mprocs.yaml"]
 
 [dependencies]
-clipboard = "0.5.0"
+arboard = { version = "3.6.1", default-features = false }
 crossterm = "0.29"
 ratatui = "0.30.0"
 regex = { version = "1.12.2", default-features = false, features = ["std"] }

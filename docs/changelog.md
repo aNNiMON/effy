@@ -6,13 +6,14 @@ icon: lucide/scroll-text
 
 See also [GitHub Releases](https://github.com/aNNiMON/effy/releases)
 
-## 0.7.0 - Presets
+## 0.7.1 - Presets
 
 - Added presets ([docs](usage.md#presets)). Press ++p++ to copy preset to clipboard.
 - Load preset (`--preset ..`) or apply it without displaying TUI (`--preset .. --apply`) to start processing immediately.
 - ==[Linux]== Specify default VAAPI device `/dev/dri/renderD128` with [ability to override it](params/hardware-acceleration.md) with `EFFY_VAAPI_DEVICE` environment variable
 - Added missing validation for height not divisible by 2
 - Fixed output file incorrectly constructed in some cases
+- **v0.7.1**: switch to a newer clipboard library
 
 
 ## 0.6.0

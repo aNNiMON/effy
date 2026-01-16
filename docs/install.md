@@ -11,7 +11,7 @@ Download from [Releases](https://github.com/aNNiMON/effy/releases)
 ## Install using `cargo`
 
 ```bash
-cargo install effy
+cargo install --locked effy
 ```
 
 ## Compile from source

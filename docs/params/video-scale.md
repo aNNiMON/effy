@@ -13,6 +13,7 @@ Expected value: height number in pixels.
 - Default: `original` - keep resolution unchanged.
 - Minimal height is 64 pixels.
 - Maximal height is 8192 pixels.
+- Height must be divisible by 2 (required by most codecs).
 - `0` resets the value to `original`.
 
 

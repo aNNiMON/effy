@@ -143,6 +143,8 @@ impl App<'_> {
             | (_, KeyModifiers::CONTROL, KeyCode::Char('c') | KeyCode::Char('C')) => self.quit(),
             (_, _, KeyCode::BackTab) => self.prev_pane(),
             (_, _, KeyCode::Tab) => self.next_pane(),
+            (_, _, KeyCode::Char('i')) => self.select_info_pane(),
+            (_, _, KeyCode::Char('o')) => self.select_output_pane(),
             (_, KeyModifiers::CONTROL, KeyCode::Char('s')) => self.save(),
             (_, _, KeyCode::Char('s')) => {
                 self.modal = Some(Box::new(SaveAsFileModal::new(
@@ -246,6 +248,16 @@ impl App<'_> {
             Pane::Params => Pane::Info,
             Pane::Output => Pane::Params,
         };
+    }
+
+    fn select_info_pane(&mut self) {
+        self.active_out_pane = Pane::Info;
+        self.current_pane = Pane::Info;
+    }
+
+    fn select_output_pane(&mut self) {
+        self.active_out_pane = Pane::Output;
+        self.current_pane = Pane::Output;
     }
 
     fn save(&mut self) {

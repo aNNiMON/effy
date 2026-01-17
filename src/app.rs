@@ -25,6 +25,7 @@ pub(crate) struct App<'a> {
     running: bool,
     event_sender: Sender<AppEvent>,
     pub(crate) current_pane: Pane,
+    pub(crate) active_out_pane: Pane,
     pub(crate) source: Source,
     pub(crate) info_state: InfoPaneState<'a>,
     pub(crate) out_state: OutputPaneState,
@@ -48,6 +49,7 @@ impl App<'_> {
             running: false,
             event_sender: tx,
             current_pane: Pane::Params,
+            active_out_pane: Pane::Info,
             source,
             info_state: InfoPaneState::new(info.format()),
             out_state: OutputPaneState::new(String::new()),
@@ -221,18 +223,28 @@ impl App<'_> {
     }
 
     fn prev_pane(&mut self) {
-        self.current_pane = match self.current_pane {
-            Pane::Info => Pane::Output,
-            Pane::Params => Pane::Info,
-            Pane::Output => Pane::Params,
-        };
-    }
-
-    fn next_pane(&mut self) {
+        if self.current_pane == Pane::Params {
+            self.active_out_pane = Pane::Output;
+        } else {
+            self.active_out_pane = Pane::Info;
+        }
         self.current_pane = match self.current_pane {
             Pane::Info => Pane::Params,
             Pane::Params => Pane::Output,
             Pane::Output => Pane::Info,
+        };
+    }
+
+    fn next_pane(&mut self) {
+        if self.current_pane == Pane::Params {
+            self.active_out_pane = Pane::Info
+        } else {
+            self.active_out_pane = Pane::Output;
+        }
+        self.current_pane = match self.current_pane {
+            Pane::Info => Pane::Output,
+            Pane::Params => Pane::Info,
+            Pane::Output => Pane::Params,
         };
     }
 
@@ -242,6 +254,7 @@ impl App<'_> {
         }
         self.modal = None;
         self.save_ongoing = true;
+        self.active_out_pane = Pane::Output;
 
         let args = self.build_ffmpeg_command(true);
         self.out_state.set_output("Starting FFmpeg...\n");

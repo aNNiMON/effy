@@ -1,27 +1,18 @@
-use std::marker::PhantomData;
-
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
-    style::{Style, Stylize as _},
-    symbols,
-    text::Line,
-    widgets::{Block, Borders, Paragraph, StatefulWidget, Widget},
+    widgets::{Block, Paragraph, StatefulWidget, Widget},
 };
 
 use crate::ui::state::InfoPaneState;
 
 pub struct InfoPane<'a> {
-    pub border_style: Style,
-    marker: PhantomData<&'a ()>,
+    pub block: Block<'a>,
 }
 
 impl<'a> InfoPane<'a> {
-    pub fn new(border_style: Style) -> InfoPane<'a> {
-        InfoPane {
-            border_style,
-            marker: PhantomData,
-        }
+    pub fn new(block: Block<'a>) -> InfoPane<'a> {
+        InfoPane { block }
     }
 }
 
@@ -30,14 +21,7 @@ impl<'a> StatefulWidget for InfoPane<'a> {
 
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
         Paragraph::new(state.text.clone())
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .border_set(symbols::border::ROUNDED)
-                    .border_style(self.border_style)
-                    .title_top(Line::from("effy").bold().blue().centered())
-                    .title_top(Line::from("Info").blue().left_aligned()),
-            )
+            .block(self.block)
             .scroll((state.current_line, 0))
             .render(area, buf);
     }

@@ -1,28 +1,24 @@
 use ratatui::{
     buffer::Buffer,
     layout::{Margin, Rect},
-    style::{Style, Stylize as _},
-    symbols,
-    text::Line,
     widgets::{
-        Block, Borders, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState, StatefulWidget,
-        Widget,
+        Block, Paragraph, Scrollbar, ScrollbarOrientation, ScrollbarState, StatefulWidget, Widget,
     },
 };
 
 use crate::ui::state::OutputPaneState;
 
-pub struct OutputPane {
-    pub border_style: Style,
+pub struct OutputPane<'a> {
+    pub block: Block<'a>,
 }
 
-impl OutputPane {
-    pub fn new(border_style: Style) -> OutputPane {
-        OutputPane { border_style }
+impl OutputPane<'_> {
+    pub fn new(block: Block<'_>) -> OutputPane<'_> {
+        OutputPane { block }
     }
 }
 
-impl StatefulWidget for OutputPane {
+impl StatefulWidget for OutputPane<'_> {
     type State = OutputPaneState;
 
     fn render(self, area: Rect, buf: &mut Buffer, state: &mut Self::State) {
@@ -39,13 +35,7 @@ impl StatefulWidget for OutputPane {
         state.current_line = state.current_line.min(max_length);
 
         Paragraph::new(state.output.clone())
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .border_set(symbols::border::ROUNDED)
-                    .border_style(self.border_style)
-                    .title_top(Line::from("Output").blue().left_aligned()),
-            )
+            .block(self.block)
             .scroll((offset, 0))
             .render(area, buf);
 

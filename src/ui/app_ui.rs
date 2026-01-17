@@ -24,25 +24,17 @@ impl Widget for &mut App<'_> {
         let default_style = Style::new().dark_gray();
         let highlighted_style = default_style.white();
 
-        let [info, main, help] = Layout::default()
+        let [main, help] = Layout::default()
             .direction(Direction::Vertical)
-            .constraints([Constraint::Max(5), Constraint::Fill(1), Constraint::Max(1)])
+            .constraints([Constraint::Fill(1), Constraint::Max(1)])
             .areas(area);
-        {
-            let style = if matches!(self.current_pane, Pane::Info) {
-                highlighted_style
-            } else {
-                default_style
-            };
-            StatefulWidget::render(InfoPane::new(style), info, buf, &mut self.info_state);
-        };
 
         let main_direction = if portrait {
             Direction::Vertical
         } else {
             Direction::Horizontal
         };
-        let [params, config] = Layout::default()
+        let [params, output] = Layout::default()
             .direction(main_direction)
             .constraints([Constraint::Min(5), Constraint::Fill(3)])
             .areas(main);
@@ -63,15 +55,17 @@ impl Widget for &mut App<'_> {
                     Line::styled(param.describe(), default_style)
                 }
             });
+            let mut block = Block::default()
+                .borders(Borders::ALL)
+                .border_set(symbols::border::ROUNDED)
+                .border_style(style)
+                .title_top(Line::from("Params").blue().left_aligned());
+            if portrait {
+                block = block.title_top(Line::from("effy").bold().blue().centered());
+            }
             StatefulWidget::render(
                 List::new(items)
-                    .block(
-                        Block::default()
-                            .borders(Borders::ALL)
-                            .border_set(symbols::border::ROUNDED)
-                            .border_style(style)
-                            .title_top(Line::from("Params").blue().left_aligned()),
-                    )
+                    .block(block)
                     .style(Style::default().fg(Color::White))
                     .highlight_style(Style::default().fg(Color::Black).bg(list_sel_color)),
                 params,
@@ -81,12 +75,31 @@ impl Widget for &mut App<'_> {
         };
 
         {
-            let style = if matches!(self.current_pane, Pane::Output) {
+            let border_style = if matches!(self.current_pane, Pane::Info | Pane::Output) {
                 highlighted_style
             } else {
                 default_style
             };
-            StatefulWidget::render(OutputPane::new(style), config, buf, &mut self.out_state);
+            let (info_style, output_style) = if matches!(self.active_out_pane, Pane::Output) {
+                (Style::default().gray(), Style::default().blue().on_black())
+            } else {
+                (Style::default().blue().on_black(), Style::default().gray())
+            };
+            let mut block = Block::default()
+                .borders(Borders::ALL)
+                .border_set(symbols::border::ROUNDED)
+                .border_style(border_style)
+                .title_top(Line::styled("Info", info_style))
+                .title_top(Line::styled("Output", output_style).left_aligned());
+            if !portrait {
+                block = block.title_top(Line::from("effy").bold().blue().centered());
+            }
+
+            if matches!(self.active_out_pane, Pane::Output) {
+                StatefulWidget::render(OutputPane::new(block), output, buf, &mut self.out_state)
+            } else {
+                StatefulWidget::render(InfoPane::new(block), output, buf, &mut self.info_state)
+            }
         };
 
         {

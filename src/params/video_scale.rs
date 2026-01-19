@@ -70,10 +70,21 @@ impl VideoScale {
     pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {
         if let Some(value) = select_non_default_custom_value!(data) {
             // Use nvenc cuda scale only if there is no other video filter
-            #[cfg(any(target_os = "windows", target_os = "linux"))]
+            #[cfg(target_os = "windows")]
             {
                 if (cb.hwaccel == HWAccel::Nvenc) && (cb.video_filters.is_empty()) {
                     cb.video_filters.push(format!("scale_cuda=-2:{}", &value));
+                } else {
+                    cb.video_filters.push(format!("scale=-2:{}", &value));
+                }
+            }
+
+            #[cfg(target_os = "linux")]
+            {
+                if (cb.hwaccel == HWAccel::Nvenc) && (cb.video_filters.is_empty()) {
+                    cb.video_filters.push(format!("scale_cuda=-2:{}", &value));
+                } else if cb.hwaccel == HWAccel::Vaapi {
+                    cb.video_filters.push(format!("scale_vaapi=-2:{}", &value));
                 } else {
                     cb.video_filters.push(format!("scale=-2:{}", &value));
                 }

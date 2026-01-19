@@ -74,9 +74,7 @@ impl HardwareAcceleration {
                 #[cfg(target_os = "linux")]
                 "vaapi" => {
                     cb.hwaccel = HWAccel::Vaapi;
-                    cb.pre_input_args.push("-hwaccel".into());
-                    cb.pre_input_args.push("vaapi".into());
-                    cb.pre_input_args.push("-hwaccel_device".into());
+                    cb.pre_input_args.push("-vaapi_device".into());
                     let device = std::env::var("EFFY_VAAPI_DEVICE")
                         .ok()
                         .filter(|s| {
@@ -85,6 +83,8 @@ impl HardwareAcceleration {
                         })
                         .unwrap_or_else(|| "/dev/dri/renderD128".into());
                     cb.pre_input_args.push(device);
+                    cb.video_filters.push("format=nv12".into());
+                    cb.video_filters.push("hwupload".into());
                     cb.args.push("-c:v".into());
                     cb.args.push("h264_vaapi".into());
                 }

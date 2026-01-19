@@ -26,6 +26,14 @@ jobs:
           - filename: aarch64-linux.tar.gz
             target: aarch64-unknown-linux-gnu
             build_with: cross
+          - filename: x86_64-apple-darwin.tar.gz
+            target: x86_64-apple-darwin
+            os: macos-latest
+            build_with: cargo
+          - filename: aarch64-apple-darwin.tar.gz
+            target: aarch64-apple-darwin
+            os: macos-latest
+            build_with: cargo
 
     runs-on: ${{ matrix.os || 'ubuntu-latest' }}
     timeout-minutes: 60

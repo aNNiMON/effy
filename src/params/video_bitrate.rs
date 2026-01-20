@@ -35,6 +35,7 @@ impl VideoBitrate {
                 formatter: Some(Arc::new(Self::format_value)),
             },
         )
+        .with_order(2010)
     }
 
     fn validate(value: &str) -> Result<String, &str> {
@@ -60,8 +61,8 @@ impl VideoBitrate {
 
     pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {
         if let Some(value) = select_non_default_custom_value!(data) {
-            cb.args.push("-b:v".into());
-            cb.args.push(value.into());
+            cb.pre_output_args.push("-b:v".into());
+            cb.pre_output_args.push(value.into());
         }
     }
 }

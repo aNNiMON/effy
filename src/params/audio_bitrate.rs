@@ -35,6 +35,7 @@ impl AudioBitrate {
                 formatter: Some(Arc::new(Self::format_value)),
             },
         )
+        .with_order(2010)
     }
 
     fn validate(value: &str) -> Result<String, &str> {
@@ -59,8 +60,8 @@ impl AudioBitrate {
         if !cb.discard_audio
             && let Some(value) = select_non_default_custom_value!(data)
         {
-            cb.args.push("-b:a".into());
-            cb.args.push(Self::format_value(value));
+            cb.pre_output_args.push("-b:a".into());
+            cb.pre_output_args.push(Self::format_value(value));
         }
     }
 }

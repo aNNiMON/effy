@@ -115,7 +115,7 @@ mod tests {
 
         cb.visit_audio_bitrate(&mut p.data);
 
-        assert!(cb.args.is_empty());
+        assert!(cb.pre_output_args.is_empty());
     }
 
     #[test]
@@ -126,7 +126,7 @@ mod tests {
 
         cb.visit_audio_bitrate(&mut p.data);
 
-        assert_eq!(cb.args, vec!["-b:a", "80k"]);
+        assert_eq!(cb.pre_output_args, vec!["-b:a", "80k"]);
     }
 
     #[test]
@@ -243,7 +243,7 @@ mod tests {
 
         cb.visit_video_bitrate(&mut p.data);
 
-        assert!(cb.args.is_empty());
+        assert!(cb.pre_output_args.is_empty());
     }
 
     #[test]
@@ -254,7 +254,7 @@ mod tests {
 
         cb.visit_video_bitrate(&mut p.data);
 
-        assert_eq!(cb.args, vec!["-b:v", "2M"]);
+        assert_eq!(cb.pre_output_args, vec!["-b:v", "2M"]);
     }
 
     #[test]

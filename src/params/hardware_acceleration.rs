@@ -33,6 +33,7 @@ impl HardwareAcceleration {
                 selected_index: 0,
             },
         )
+        .with_order(2000)
     }
 
     pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {
@@ -43,14 +44,14 @@ impl HardwareAcceleration {
                     cb.hwaccel = HWAccel::Nvenc;
                     cb.pre_input_args.push("-hwaccel".into());
                     cb.pre_input_args.push("cuda".into());
-                    cb.args.push("-c:v".into());
-                    cb.args.push("h264_nvenc".into());
+                    cb.pre_output_args.push("-c:v".into());
+                    cb.pre_output_args.push("h264_nvenc".into());
                 }
                 #[cfg(any(target_os = "windows", target_os = "linux"))]
                 "amf" => {
                     cb.hwaccel = HWAccel::Amf;
-                    cb.args.push("-c:v".into());
-                    cb.args.push("h264_amf".into());
+                    cb.pre_output_args.push("-c:v".into());
+                    cb.pre_output_args.push("h264_amf".into());
                 }
                 #[cfg(any(target_os = "windows", target_os = "linux"))]
                 "qsv" => {
@@ -68,8 +69,8 @@ impl HardwareAcceleration {
                     }
                     cb.pre_input_args.push("-hwaccel_output_format".into());
                     cb.pre_input_args.push("qsv".into());
-                    cb.args.push("-c:v".into());
-                    cb.args.push("h264_qsv".into());
+                    cb.pre_output_args.push("-c:v".into());
+                    cb.pre_output_args.push("h264_qsv".into());
                 }
                 #[cfg(target_os = "linux")]
                 "vaapi" => {
@@ -85,14 +86,14 @@ impl HardwareAcceleration {
                     cb.pre_input_args.push(device);
                     cb.video_filters.push("format=nv12".into());
                     cb.video_filters.push("hwupload".into());
-                    cb.args.push("-c:v".into());
-                    cb.args.push("h264_vaapi".into());
+                    cb.pre_output_args.push("-c:v".into());
+                    cb.pre_output_args.push("h264_vaapi".into());
                 }
                 #[cfg(target_os = "macos")]
                 "videotoolbox" => {
                     cb.hwaccel = HWAccel::VideoToolbox;
-                    cb.args.push("-c:v".into());
-                    cb.args.push("h264_videotoolbox".into());
+                    cb.pre_output_args.push("-c:v".into());
+                    cb.pre_output_args.push("h264_videotoolbox".into());
                 }
                 _ => cb.hwaccel = HWAccel::None,
             }

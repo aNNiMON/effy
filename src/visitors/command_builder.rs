@@ -9,6 +9,8 @@ pub(crate) struct CommandBuilder {
     pub(crate) video_filters: Vec<String>,
     pub(crate) pre_input_args: Vec<String>,
     pub(crate) args: Vec<String>,
+    // Mainly for output codec
+    pub(crate) pre_output_args: Vec<String>,
     pub(crate) ext: String,
 }
 
@@ -44,6 +46,7 @@ impl CommandBuilder {
             args.push("-vf".to_owned());
             args.push(self.video_filters.join(","));
         }
+        args.extend(self.pre_output_args.iter().cloned());
         args
     }
 }
@@ -332,10 +335,10 @@ mod tests {
         cb.visit_hardware_acceleration(&mut p.data);
 
         #[cfg(any(target_os = "windows", target_os = "linux"))]
-        assert_eq!(cb.args, vec!["-c:v", "h264_nvenc"]);
+        assert_eq!(cb.pre_output_args, vec!["-c:v", "h264_nvenc"]);
 
         #[cfg(target_os = "macos")]
-        assert_eq!(cb.args, vec!["-c:v", "h264_videotoolbox"]);
+        assert_eq!(cb.pre_output_args, vec!["-c:v", "h264_videotoolbox"]);
     }
 
     #[test]

@@ -15,10 +15,18 @@ use tui_input::backend::crossterm::EventHandler as _;
 
 use crate::ui::{KeyboardHandler, ModalResult, UiModal, input_value_and_pos, is_portrait};
 
+#[derive(PartialEq)]
+enum Overwrite {
+    Reset,
+    Prompted,
+    Confirmed,
+}
+
 pub(crate) struct SaveAsFileModal {
     filename: Input,
     folder: Box<str>,
     ext: Box<str>,
+    overwrite: Overwrite,
 }
 
 impl UiModal for SaveAsFileModal {
@@ -47,7 +55,7 @@ impl UiModal for SaveAsFileModal {
             .style(Color::White)
             .block(Block::bordered().light_blue())
             .render(input_area, frame.buffer_mut());
-        Self::render_input_hints(hints_area, frame);
+        self.render_input_hints(hints_area, frame);
 
         frame.set_cursor_position(Position {
             x: input_area.x + x,
@@ -61,14 +69,19 @@ impl KeyboardHandler for SaveAsFileModal {
         if key.code == KeyCode::Esc {
             ModalResult::Close
         } else if key.code == KeyCode::Enter {
+            if self.overwrite == Overwrite::Prompted {
+                self.overwrite = Overwrite::Confirmed;
+            }
             let filename = self.filename.value().trim();
             let valid = !filename.is_empty() && !self.is_file_exists(filename);
-            if valid {
+            if valid || self.overwrite == Overwrite::Confirmed {
                 ModalResult::Filename(filename.to_owned())
             } else {
+                self.overwrite = Overwrite::Prompted;
                 ModalResult::None
             }
         } else {
+            self.overwrite = Overwrite::Reset;
             self.filename.handle_event(&Event::Key(key));
             ModalResult::None
         }
@@ -81,18 +94,29 @@ impl SaveAsFileModal {
             filename: Input::new(filename.to_owned()),
             folder: folder.into(),
             ext: ext.into(),
+            overwrite: Overwrite::Reset,
         }
     }
 
-    fn render_input_hints(area: Rect, frame: &mut Frame) {
-        let keystyle = Style::default().green();
-        let parts = Line::from(vec![
-            Span::styled("Enter", keystyle),
-            Span::raw(": confirm  "),
-            Span::styled("Esc", keystyle),
-            Span::raw(": close"),
-        ]);
-        Paragraph::new(parts).render(area, frame.buffer_mut());
+    fn render_input_hints(&self, area: Rect, frame: &mut Frame) {
+        let line = if self.overwrite == Overwrite::Prompted {
+            let error = Style::default().red().bold();
+            Line::from(vec![
+                Span::styled("File already exists. Press ", error),
+                Span::styled("Enter", error.not_bold()),
+                Span::styled(" again to overwrite", error),
+            ])
+            .centered()
+        } else {
+            let keystyle = Style::default().green();
+            Line::from(vec![
+                Span::styled("Enter", keystyle),
+                Span::raw(": confirm  "),
+                Span::styled("Esc", keystyle),
+                Span::raw(": close"),
+            ])
+        };
+        Paragraph::new(line).render(area, frame.buffer_mut());
     }
 
     fn is_file_exists(&self, filename: &str) -> bool {

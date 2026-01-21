@@ -163,6 +163,7 @@ impl App<'_> {
             (Pane::Params, _, KeyCode::Right | KeyCode::Char('l')) => self.next_option(),
             (Pane::Params, _, KeyCode::Enter) => self.open_param_modal(),
             (Pane::Params, _, KeyCode::Char('p')) => self.copy_preset(),
+            (Pane::Params, _, KeyCode::Char('y')) => self.copy_command(),
             _ => {}
         }
     }
@@ -174,6 +175,17 @@ impl App<'_> {
         }) {
             Ok(_) => (AlertKind::Info, "Preset has been copied to clipboard"),
             Err(_) => (AlertKind::Error, "Failed to copy the preset to clipboard"),
+        };
+        self.modal = Some(Box::new(AlertModal::new(kind, msg)));
+    }
+
+    fn copy_command(&mut self) {
+        let (kind, msg) = match Clipboard::new().map(|mut ctx| {
+            let args = self.build_ffmpeg_command(false);
+            ctx.set_text(format!("ffmpeg {}", args.join(" ")))
+        }) {
+            Ok(_) => (AlertKind::Info, "Command has been copied to clipboard"),
+            Err(_) => (AlertKind::Error, "Failed to copy the command to clipboard"),
         };
         self.modal = Some(Box::new(AlertModal::new(kind, msg)));
     }

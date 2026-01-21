@@ -12,7 +12,8 @@ use ratatui::{DefaultTerminal, widgets::ListState};
 use crate::info::Info;
 use crate::model::{AppEvent, Pane};
 use crate::params::{
-    Parameter, ParameterData, Trim, apply_visitor, create_params, recheck_params, save_preset,
+    Parameter, ParameterData, Trim, apply_visitor, create_params, get_output_format,
+    recheck_params, save_preset,
 };
 use crate::source::Source;
 use crate::ui::state::{InfoPaneState, OutputPaneState};
@@ -147,10 +148,12 @@ impl App<'_> {
             (_, _, KeyCode::Char('o')) => self.select_output_pane(),
             (_, KeyModifiers::CONTROL, KeyCode::Char('s')) => self.save(),
             (_, _, KeyCode::Char('s')) => {
+                let output_ext = get_output_format(&self.params)
+                    .map_or(&self.output_fileext, |option| &option.value);
                 self.modal = Some(Box::new(SaveAsFileModal::new(
                     &self.output_folder,
                     &self.output_filename,
-                    &self.output_fileext,
+                    &output_ext,
                 )));
             }
             (Pane::Info, _, KeyCode::Down | KeyCode::Char('j')) => self.info_state.scroll_down(),

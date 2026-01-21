@@ -75,11 +75,7 @@ pub(crate) fn save_preset(params: &mut [Parameter]) -> String {
 }
 
 pub(crate) fn recheck_params(params: &mut [Parameter]) {
-    let result_is_audio = if let Some(result_format) = params
-        .iter()
-        .filter(|param| param.id == OutputFormat::ID)
-        .find_map(|param| select_option!(&param.data))
-    {
+    let result_is_audio = if let Some(result_format) = get_output_format(params) {
         OutputFormat::is_audio(&result_format.value)
     } else {
         false
@@ -116,6 +112,13 @@ pub(crate) fn recheck_params(params: &mut [Parameter]) {
             param.enabled = !audio_is_disabled;
         }
     }
+}
+
+pub(crate) fn get_output_format(params: &[Parameter]) -> Option<&SelectOption> {
+    params
+        .iter()
+        .filter(|param| param.id == OutputFormat::ID)
+        .find_map(|param| select_option!(&param.data))
 }
 
 pub(crate) fn apply_visitor(visitor: &mut dyn FFmpegParameterVisitor, params: &mut [Parameter]) {

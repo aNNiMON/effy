@@ -98,9 +98,9 @@ impl Widget for &mut App<'_> {
             }
 
             if matches!(self.active_out_pane, Pane::Output) {
-                StatefulWidget::render(OutputPane::new(block), output, buf, &mut self.out_state)
+                StatefulWidget::render(OutputPane::new(block), output, buf, &mut self.out_state);
             } else {
-                StatefulWidget::render(InfoPane::new(block), output, buf, &mut self.info_state)
+                StatefulWidget::render(InfoPane::new(block), output, buf, &mut self.info_state);
             }
         };
 

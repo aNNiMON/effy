@@ -5,7 +5,7 @@ procs:
     shell: cargo clippy -- -Wclippy::str_to_string -Wclippy::needless_pass_by_value -Wclippy::implicit_clone -Wclippy::assigning_clones
     autostart: false
   check clippy verbose:
-    shell: cargo clippy --all-targets -- -Wclippy::style -Wclippy::pedantic -Wclippy::restriction -Aclippy::missing_docs_in_private_items -Aclippy::single_call_fn -Aclippy::implicit_return -Aclippy::non_ascii_literal -Aclippy::arbitrary_source_item_ordering -Aclippy::let_underscore_untyped -Aclippy::absolute_paths -Aclippy::min_ident_chars -Aclippy::let_underscore_must_use -Aclippy::wildcard_imports -Aclippy::as_conversions -Aclippy::cast_possible_truncation -Aclippy::arithmetic_side_effects -Aclippy::integer_division_remainder_used -Aclippy::wildcard_enum_match_arm -Aclippy::integer_division -Aclippy::pub_with_shorthand -Aclippy::separated_literal_suffix -Aclippy::field_scoped_visibility_modifiers
+    shell: cargo clippy --all-targets -- -Wclippy::style -Wclippy::pedantic -Wclippy::restriction -Aclippy::missing_docs_in_private_items -Aclippy::single_call_fn -Aclippy::implicit_return -Aclippy::non_ascii_literal -Aclippy::arbitrary_source_item_ordering -Aclippy::let_underscore_untyped -Aclippy::absolute_paths -Aclippy::min_ident_chars -Aclippy::let_underscore_must_use -Aclippy::wildcard_imports -Aclippy::as_conversions -Aclippy::cast_possible_truncation -Aclippy::arithmetic_side_effects -Aclippy::integer_division_remainder_used -Aclippy::wildcard_enum_match_arm -Aclippy::integer_division -Aclippy::pub_with_shorthand -Aclippy::separated_literal_suffix -Aclippy::field_scoped_visibility_modifiers -Aclippy::missing_trait_methods
     autostart: false
   check fmt:
     shell: cargo fmt -- --check

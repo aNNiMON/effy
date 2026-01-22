@@ -1,6 +1,6 @@
 [package]
 name = "effy"
-version = "0.7.1"
+version = "0.7.2"
 description = "A small and friendly terminal FFmpeg helper that simplifies common tasks"
 keywords = ["ffmpeg", "tui", "ratatui"]
 authors = ["aNNiMON <annimon119@gmail.com>"]

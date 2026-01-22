@@ -80,10 +80,12 @@ impl Widget for &mut App<'_> {
             } else {
                 default_style
             };
+            let grayed_style = Style::default().gray();
+            let highlight_style = Style::default().blue().on_black();
             let (info_style, output_style) = if matches!(self.active_out_pane, Pane::Output) {
-                (Style::default().gray(), Style::default().blue().on_black())
+                (grayed_style, highlight_style)
             } else {
-                (Style::default().blue().on_black(), Style::default().gray())
+                (highlight_style, grayed_style)
             };
             let mut block = Block::default()
                 .borders(Borders::ALL)

@@ -153,7 +153,7 @@ impl App<'_> {
                 self.modal = Some(Box::new(SaveAsFileModal::new(
                     &self.output_folder,
                     &self.output_filename,
-                    &output_ext,
+                    output_ext,
                 )));
             }
             (Pane::Info, _, KeyCode::Down | KeyCode::Char('j')) => self.info_state.scroll_down(),

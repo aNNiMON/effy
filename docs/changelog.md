@@ -6,10 +6,19 @@ icon: lucide/scroll-text
 
 See also [GitHub Releases](https://github.com/aNNiMON/effy/releases)
 
+## 0.7.2
+
+- Combined Info and Output panes as tabs. Use ++i++ and ++o++ keys for quick switch
+- Copy ffmpeg command by pressing ++y++
+- Added file overwrite confirmation in 'Render as' modal
+- Fix output format is not considered in 'Render as' modal
+- ==[Linux]== Fixed VAAPI initialization. Added `scale_vaapi` filter support
+- Add macos builds to CI
+
 ## 0.7.1 - Presets
 
-- Added presets ([docs](usage.md#presets)). Press ++p++ to copy preset to clipboard.
-- Load preset (`--preset ..`) or apply it without displaying TUI (`--preset .. --apply`) to start processing immediately.
+- Added presets ([docs](usage.md#presets)). Press ++p++ to copy preset to clipboard
+- Load preset (`--preset ..`) or apply it without displaying TUI (`--preset .. --apply`) to start processing immediately
 - ==[Linux]== Specify default VAAPI device `/dev/dri/renderD128` with [ability to override it](params/hardware-acceleration.md) with `EFFY_VAAPI_DEVICE` environment variable
 - Added missing validation for height not divisible by 2
 - Fixed output file incorrectly constructed in some cases
@@ -28,7 +37,7 @@ See also [GitHub Releases](https://github.com/aNNiMON/effy/releases)
 ## 0.5.0 - Custom values, Output parameter
 
 * Ability to set custom value for parameters by pressing Enter
-* Added Output parameter ([docs](https://projects.annimon.com/projects/effy/params/output-format/)). It allows to specify a different output format, for example, extract audio from the given video source.
+* Added Output parameter ([docs](https://projects.annimon.com/projects/effy/params/output-format/)). It allows to specify a different output format, for example, extract audio from the given video source
 * Adjust precise trim time based on the speed factor
 * Better extension defaults for URL inputs
 

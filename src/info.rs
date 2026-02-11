@@ -37,6 +37,8 @@ pub(crate) struct InfoStream {
     pub duration: Option<String>,
     pub bit_rate: Option<String>,
     pub max_bit_rate: Option<String>,
+    // stream-based
+    pub avg_frame_rate: Option<String>,
     #[serde(flatten)]
     pub other: HashMap<String, serde_json::Value>,
 }
@@ -59,7 +61,32 @@ impl Info {
     }
 
     pub fn has_non_empty_duration(&self) -> bool {
-        self.get_duration().is_some_and(|dur| dur > 0.0_f64)
+        self.get_duration().is_some_and(|dur| dur > 0.0_f64) && self.has_more_than_one_frame()
+    }
+
+    fn has_more_than_one_frame(&self) -> bool {
+        self.streams.iter().any(|s| {
+            let fps = s
+                .avg_frame_rate
+                .as_deref()
+                .and_then(|fr| {
+                    // avg_frame_rate 25/1
+                    let (num, den) = fr.split_once('/')?;
+                    let num = num.parse::<f64>().ok()?;
+                    let den = den.parse::<f64>().ok()?;
+                    if den == 0.0 { None } else { Some(num / den) }
+                })
+                .unwrap_or(0.0);
+
+            let duration = s
+                .duration
+                .as_deref()
+                .or(self.format.duration.as_deref())
+                .and_then(|d| d.parse::<f64>().ok())
+                .unwrap_or(0.0);
+
+            duration * fps > 1.0
+        })
     }
 
     pub fn get_duration(&self) -> Option<f64> {
@@ -131,6 +158,7 @@ impl Info {
             stream_val!(stream.duration, "duration");
             stream_val!(stream.bit_rate, "bit_rate");
             stream_val!(stream.max_bit_rate, "max_bit_rate");
+            stream_val!(stream.avg_frame_rate, "avg_frame_rate");
             for (tag, value) in &stream.other {
                 match value {
                     serde_json::Value::String(s) => {

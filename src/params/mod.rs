@@ -48,7 +48,9 @@ pub(crate) fn create_params(info: &Info, preset: Option<&str>, source_ext: &str)
         params.push(AudioVolume::new_parameter());
         params.push(AudioPitch::new_parameter());
     }
-    params.push(SpeedFactor::new_parameter());
+    if info.has_non_empty_duration() {
+        params.push(SpeedFactor::new_parameter());
+    }
     if info.has_video() {
         params.push(VideoBitrate::new_parameter());
         params.push(VideoFrameRate::new_parameter());

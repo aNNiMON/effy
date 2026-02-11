@@ -11,7 +11,7 @@ use crate::{
     model::Pane,
     ui::{
         is_portrait,
-        widget::{InfoPane, OutputPane},
+        widget::{InfoPane, OutputPane, Tab, TabStyle, tabs_line},
     },
 };
 
@@ -75,24 +75,34 @@ impl Widget for &mut App<'_> {
         };
 
         {
-            let border_style = if matches!(self.current_pane, Pane::Info | Pane::Output) {
-                highlighted_style
-            } else {
-                default_style
-            };
-            let grayed_style = Style::default().gray();
-            let highlight_style = Style::default().blue().on_black();
-            let (info_style, output_style) = if matches!(self.active_out_pane, Pane::Output) {
-                (grayed_style, highlight_style)
-            } else {
-                (highlight_style, grayed_style)
+            let (border_style, tab_color) =
+                if matches!(self.current_pane, Pane::Info | Pane::Output) {
+                    (highlighted_style, Color::Blue)
+                } else {
+                    (default_style, Color::DarkGray)
+                };
+            let info_active = matches!(self.active_out_pane, Pane::Info);
+            let tabs = [
+                Tab {
+                    label: "Info",
+                    active: info_active,
+                },
+                Tab {
+                    label: "Output",
+                    active: !info_active,
+                },
+            ];
+            let tabs_style = TabStyle {
+                active_style: highlighted_style,
+                inactive_style: Style::default().gray(),
+                active_bg: tab_color,
+                inactive_bg: Color::Black,
             };
             let mut block = Block::default()
                 .borders(Borders::ALL)
                 .border_set(symbols::border::ROUNDED)
                 .border_style(border_style)
-                .title_top(Line::styled("Info", info_style))
-                .title_top(Line::styled("Output", output_style).left_aligned());
+                .title_top(tabs_line(&tabs, tabs_style).left_aligned());
             if !portrait {
                 block = block.title_top(Line::from("effy").bold().blue().centered());
             }

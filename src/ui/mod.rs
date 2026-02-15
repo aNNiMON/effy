@@ -9,6 +9,7 @@ mod app_ui;
 mod modal;
 mod modal_alert;
 mod modal_custom_select;
+mod modal_help;
 mod modal_save_as_file;
 mod modal_trim;
 pub mod state;
@@ -17,6 +18,7 @@ pub mod widget;
 pub(crate) use modal::*;
 pub(crate) use modal_alert::*;
 pub(crate) use modal_custom_select::*;
+pub(crate) use modal_help::*;
 pub(crate) use modal_save_as_file::*;
 pub(crate) use modal_trim::*;
 

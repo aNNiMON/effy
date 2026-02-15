@@ -18,7 +18,8 @@ use crate::params::{
 use crate::source::Source;
 use crate::ui::state::{InfoPaneState, OutputPaneState};
 use crate::ui::{
-    AlertKind, AlertModal, CustomSelectModal, ModalResult, SaveAsFileModal, TrimModal, UiModal,
+    AlertKind, AlertModal, CustomSelectModal, HelpModal, ModalResult, SaveAsFileModal, TrimModal,
+    UiModal,
 };
 use crate::visitors::CommandBuilder;
 
@@ -146,6 +147,7 @@ impl App<'_> {
             (_, _, KeyCode::Tab) => self.next_pane(),
             (_, _, KeyCode::Char('i')) => self.select_info_pane(),
             (_, _, KeyCode::Char('o')) => self.select_output_pane(),
+            (_, _, KeyCode::F(1) | KeyCode::Char('?')) => self.help(),
             (_, KeyModifiers::CONTROL, KeyCode::Char('s')) => self.save(),
             (_, _, KeyCode::Char('s')) => {
                 let output_ext = get_output_format(&self.params)
@@ -273,6 +275,10 @@ impl App<'_> {
     fn select_output_pane(&mut self) {
         self.active_out_pane = Pane::Output;
         self.current_pane = Pane::Output;
+    }
+
+    fn help(&mut self) {
+        self.modal = Some(Box::new(HelpModal::new()));
     }
 
     fn save(&mut self) {

@@ -21,7 +21,7 @@ impl UiModal for HelpModal<'static> {
     fn render(&self, frame: &mut Frame) {
         let area = frame.area();
         let portrait = is_portrait(area);
-        let [modal_area] = Layout::vertical([Constraint::Length(12)])
+        let [modal_area] = Layout::vertical([Constraint::Length(15)])
             .horizontal_margin(if portrait { 1 } else { area.width / 4 })
             .flex(Flex::Center)
             .areas(area);
@@ -65,27 +65,13 @@ impl<'a> HelpModal<'a> {
 
     fn help_lines() -> Text<'a> {
         let mut lines = Vec::new();
-        lines.push(Line::from("       Key Action").blue().bold());
+        lines.push(Line::from("         Key Action").blue().bold());
         lines.extend(Self::help_navigation_lines());
         lines.extend(Self::help_render_lines());
         lines.extend(Self::help_modals_lines());
         lines.extend(Self::help_clipboard_lines());
         lines.extend(Self::logo());
         Text::from(lines)
-    }
-
-    fn logo() -> Vec<Line<'a>> {
-        let style = Style::default().green().on_black();
-        let mut lines = vec![""];
-        lines.push("░█▀▀░█▀▀░█▀▀░█░█");
-        lines.push("░█▀▀░█▀▀░█▀▀░░█░");
-        lines.push("░▀▀▀░▀░░░▀░░░░▀░");
-        lines.push("version");
-        lines.push(env!("CARGO_PKG_VERSION"));
-        lines
-            .iter()
-            .map(|line| Line::from(Span::styled(*line, style)).centered())
-            .collect()
     }
 
     fn help_navigation_lines() -> Vec<Line<'a>> {
@@ -159,7 +145,7 @@ impl<'a> HelpModal<'a> {
             .enumerate()
             .map(|(i, k)| {
                 Line::from(vec![
-                    Span::styled(format!("{k: >10} "), key_style),
+                    Span::styled(format!("{k: >12} "), key_style),
                     Span::styled(
                         v.to_owned(),
                         if i == 0 { text_style } else { repeated_style },
@@ -167,5 +153,43 @@ impl<'a> HelpModal<'a> {
                 ])
             })
             .collect()
+    }
+
+    fn logo() -> Vec<Line<'a>> {
+        let style = Style::default().green().on_black();
+        let mut lines: Vec<Line> = vec![];
+        let logo = [
+            "",
+            "           /████████ /████████       ",
+            "          | ██_____/| ██_____/       ",
+            "  /██████ | ██      | ██    /██   /██",
+            " /██__  ██| █████   | █████| ██  | ██",
+            "| ████████| ██__/   | ██__/| ██  | ██",
+            "| ██_____/| ██      | ██   | ██  | ██",
+            "|  ███████| ██      | ██   |  ███████",
+            r" \_______/|__/      |__/    \____  ██",
+            "                            /██  | ██",
+        ];
+        for line in logo {
+            lines.push(Line::from(Span::styled(line, style)).centered());
+        }
+        lines.push(
+            Line::from(Span::styled(
+                format!(
+                    "               v{}      |  ██████/",
+                    env!("CARGO_PKG_VERSION")
+                ),
+                style,
+            ))
+            .centered(),
+        );
+        lines.push(
+            Line::from(Span::styled(
+                r"             by aNNiMON     \______/ ",
+                style,
+            ))
+            .centered(),
+        );
+        lines
     }
 }

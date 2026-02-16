@@ -1,44 +1,78 @@
 use crossterm::event::{KeyCode, KeyEvent};
-use ratatui::layout::{Flex, Layout};
+use ratatui::layout::{Constraint, Flex, Layout, Offset};
 use ratatui::prelude::Frame;
 use ratatui::style::{Color, Style, Stylize};
 use ratatui::text::{Line, Span, Text};
-use ratatui::widgets::{Block, BorderType, Borders, StatefulWidget};
-use ratatui::{
-    layout::Constraint,
-    widgets::{Clear, Widget as _},
-};
+use ratatui::widgets::{Block, BorderType, Borders, Clear, RatatuiLogo, Widget as _};
 
 use crate::ui::state::InfoPaneState;
-use crate::ui::widget::InfoPane;
+use crate::ui::widget::{InfoPane, Tab, TabStyle, tabs_line};
 use crate::ui::{KeyboardHandler, ModalResult, UiModal, is_portrait};
+
+#[derive(PartialEq, Eq)]
+enum HelpTab {
+    KeyBindings,
+    About,
+}
 
 pub(crate) struct HelpModal<'a> {
     help_state: InfoPaneState<'a>,
+    help_tab: HelpTab,
+    effy_logo: Text<'a>,
+    ratatui_logo: RatatuiLogo,
 }
 
 impl UiModal for HelpModal<'static> {
     fn render(&self, frame: &mut Frame) {
         let area = frame.area();
         let portrait = is_portrait(area);
-        let [modal_area] = Layout::vertical([Constraint::Length(15)])
+        let [modal_area] = Layout::vertical([Constraint::Length(17)])
             .horizontal_margin(if portrait { 1 } else { area.width / 4 })
             .flex(Flex::Center)
             .areas(area);
 
+        let keys_tab_active = self.help_tab == HelpTab::KeyBindings;
+        let tabs = [
+            Tab {
+                label: "Keys",
+                active: keys_tab_active,
+            },
+            Tab {
+                label: "About",
+                active: !keys_tab_active,
+            },
+        ];
+        let tabs_style = TabStyle {
+            active_style: Style::default().white().bold(),
+            inactive_style: Style::default().gray(),
+            active_bg: Color::Blue,
+            inactive_bg: Color::Black,
+        };
+
         let block = Block::default()
-            .title_top(Line::from("Help"))
+            .title_top(tabs_line(&tabs, tabs_style).left_aligned())
             .borders(Borders::all())
             .border_type(BorderType::Thick)
             .border_style(Color::Blue);
 
         Clear.render(modal_area, frame.buffer_mut());
-        StatefulWidget::render(
-            InfoPane::new(block),
-            modal_area,
-            frame.buffer_mut(),
-            &mut self.help_state.clone(),
-        );
+        if keys_tab_active {
+            frame.render_stateful_widget(
+                InfoPane::new(block),
+                modal_area,
+                &mut self.help_state.clone(),
+            );
+        } else {
+            let [logo_area] = Layout::horizontal([Constraint::Length(27)])
+                .flex(Flex::Center)
+                .areas(modal_area);
+            frame.render_widget(block, modal_area);
+            frame.render_widget(&self.effy_logo, modal_area);
+            let logo_area = logo_area.offset(Offset::new(0, 1 + self.effy_logo.height() as i32));
+            frame.render_widget("Built with Rust. Powered by".yellow(), logo_area);
+            let logo_area = logo_area.offset(Offset::new(0, 1));
+            frame.render_widget(self.ratatui_logo, logo_area);
+        }
     }
 }
 
@@ -47,6 +81,12 @@ impl KeyboardHandler for HelpModal<'_> {
         match key.code {
             KeyCode::Char('q') | KeyCode::Char('?') | KeyCode::F(1) | KeyCode::Esc => {
                 return ModalResult::Close;
+            }
+            KeyCode::Tab | KeyCode::BackTab => {
+                self.help_tab = match self.help_tab {
+                    HelpTab::KeyBindings => HelpTab::About,
+                    HelpTab::About => HelpTab::KeyBindings,
+                }
             }
             KeyCode::Down | KeyCode::Char('j') => self.help_state.scroll_down(),
             KeyCode::Up | KeyCode::Char('k') => self.help_state.scroll_up(),
@@ -60,6 +100,9 @@ impl<'a> HelpModal<'a> {
     pub(crate) fn new() -> HelpModal<'a> {
         Self {
             help_state: InfoPaneState::new(Self::help_lines()),
+            help_tab: HelpTab::KeyBindings,
+            effy_logo: Text::from(Self::logo()),
+            ratatui_logo: RatatuiLogo::small(),
         }
     }
 
@@ -70,7 +113,6 @@ impl<'a> HelpModal<'a> {
         lines.extend(Self::help_render_lines());
         lines.extend(Self::help_modals_lines());
         lines.extend(Self::help_clipboard_lines());
-        lines.extend(Self::logo());
         Text::from(lines)
     }
 
@@ -85,8 +127,8 @@ impl<'a> HelpModal<'a> {
             &["↓", "j"],
             "Scroll down in the Info, Parameter or Output pane",
         ));
-        lines.extend(Self::lines(&["Tab"], "Focus next pane"));
-        lines.extend(Self::lines(&["Shift+Tab"], "Focus previous pane"));
+        lines.extend(Self::lines(&["Tab"], "Focus next pane/tab"));
+        lines.extend(Self::lines(&["Shift+Tab"], "Focus previous pane/tab"));
         lines.extend(Self::lines(&["i"], "Focus Info pane"));
         lines.extend(Self::lines(
             &["←", "h"],

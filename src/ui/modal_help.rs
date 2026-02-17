@@ -1,9 +1,9 @@
 use crossterm::event::{KeyCode, KeyEvent};
-use ratatui::layout::{Constraint, Flex, Layout, Offset};
+use ratatui::layout::{Constraint, Flex, Layout};
 use ratatui::prelude::Frame;
 use ratatui::style::{Color, Style, Stylize};
 use ratatui::text::{Line, Span, Text};
-use ratatui::widgets::{Block, BorderType, Borders, Clear, RatatuiLogo, Widget as _};
+use ratatui::widgets::{Block, BorderType, Borders, Clear, Widget as _};
 
 use crate::ui::state::InfoPaneState;
 use crate::ui::widget::{InfoPane, Tab, TabStyle, tabs_line};
@@ -11,27 +11,26 @@ use crate::ui::{KeyboardHandler, ModalResult, UiModal, is_portrait};
 
 #[derive(PartialEq, Eq)]
 enum HelpTab {
-    KeyBindings,
+    Keys,
     About,
 }
 
 pub(crate) struct HelpModal<'a> {
     help_state: InfoPaneState<'a>,
+    about_state: InfoPaneState<'a>,
     help_tab: HelpTab,
-    effy_logo: Text<'a>,
-    ratatui_logo: RatatuiLogo,
 }
 
 impl UiModal for HelpModal<'static> {
     fn render(&self, frame: &mut Frame) {
         let area = frame.area();
         let portrait = is_portrait(area);
-        let [modal_area] = Layout::vertical([Constraint::Length(17)])
+        let [modal_area] = Layout::vertical([Constraint::Length(21)])
             .horizontal_margin(if portrait { 1 } else { area.width / 4 })
             .flex(Flex::Center)
             .areas(area);
 
-        let keys_tab_active = self.help_tab == HelpTab::KeyBindings;
+        let keys_tab_active = self.help_tab == HelpTab::Keys;
         let tabs = [
             Tab {
                 label: "Keys",
@@ -56,40 +55,30 @@ impl UiModal for HelpModal<'static> {
             .border_style(Color::Blue);
 
         Clear.render(modal_area, frame.buffer_mut());
-        if keys_tab_active {
-            frame.render_stateful_widget(
-                InfoPane::new(block),
-                modal_area,
-                &mut self.help_state.clone(),
-            );
-        } else {
-            let [logo_area] = Layout::horizontal([Constraint::Length(27)])
-                .flex(Flex::Center)
-                .areas(modal_area);
-            frame.render_widget(block, modal_area);
-            frame.render_widget(&self.effy_logo, modal_area);
-            let logo_area = logo_area.offset(Offset::new(0, 1 + self.effy_logo.height() as i32));
-            frame.render_widget("Built with Rust. Powered by".yellow(), logo_area);
-            let logo_area = logo_area.offset(Offset::new(0, 1));
-            frame.render_widget(self.ratatui_logo, logo_area);
-        }
+        frame.render_stateful_widget(
+            InfoPane::new(block),
+            modal_area,
+            &mut if keys_tab_active {
+                self.help_state.clone()
+            } else {
+                self.about_state.clone()
+            },
+        );
     }
 }
 
 impl KeyboardHandler for HelpModal<'_> {
     fn handle_key(&mut self, key: KeyEvent) -> ModalResult {
-        match key.code {
-            KeyCode::Char('q') | KeyCode::Char('?') | KeyCode::F(1) | KeyCode::Esc => {
+        match (&self.help_tab, key.code) {
+            (_, KeyCode::Char('q') | KeyCode::Char('?') | KeyCode::F(1) | KeyCode::Esc) => {
                 return ModalResult::Close;
             }
-            KeyCode::Tab | KeyCode::BackTab => {
-                self.help_tab = match self.help_tab {
-                    HelpTab::KeyBindings => HelpTab::About,
-                    HelpTab::About => HelpTab::KeyBindings,
-                }
-            }
-            KeyCode::Down | KeyCode::Char('j') => self.help_state.scroll_down(),
-            KeyCode::Up | KeyCode::Char('k') => self.help_state.scroll_up(),
+            (HelpTab::Keys, KeyCode::Tab | KeyCode::BackTab) => self.help_tab = HelpTab::About,
+            (HelpTab::Keys, KeyCode::Down | KeyCode::Char('j')) => self.help_state.scroll_down(),
+            (HelpTab::Keys, KeyCode::Up | KeyCode::Char('k')) => self.help_state.scroll_up(),
+            (HelpTab::About, KeyCode::Tab | KeyCode::BackTab) => self.help_tab = HelpTab::Keys,
+            (HelpTab::About, KeyCode::Down | KeyCode::Char('j')) => self.about_state.scroll_down(),
+            (HelpTab::About, KeyCode::Up | KeyCode::Char('k')) => self.about_state.scroll_up(),
             _ => {}
         }
         ModalResult::None
@@ -100,9 +89,8 @@ impl<'a> HelpModal<'a> {
     pub(crate) fn new() -> HelpModal<'a> {
         Self {
             help_state: InfoPaneState::new(Self::help_lines()),
-            help_tab: HelpTab::KeyBindings,
-            effy_logo: Text::from(Self::logo()),
-            ratatui_logo: RatatuiLogo::small(),
+            about_state: InfoPaneState::new(Self::about_lines()),
+            help_tab: HelpTab::Keys,
         }
     }
 
@@ -198,7 +186,7 @@ impl<'a> HelpModal<'a> {
     }
 
     fn logo() -> Vec<Line<'a>> {
-        let style = Style::default().green().on_black();
+        let style = Style::default().green();
         let mut lines: Vec<Line> = vec![];
         let logo = [
             "",
@@ -227,11 +215,43 @@ impl<'a> HelpModal<'a> {
         );
         lines.push(
             Line::from(Span::styled(
-                r"             by aNNiMON     \______/ ",
+                r"                            \______/ ",
                 style,
             ))
             .centered(),
         );
         lines
+    }
+
+    fn ratatui_logo() -> Vec<Line<'a>> {
+        let mut lines: Vec<Line> = vec![Line::default()];
+        let logo = [
+            "Built with Rust. Powered by".yellow(),
+            "█▀▀▄ ▄▀▀▄▝▜▛▘▄▀▀▄▝▜▛▘█  █ █".white(),
+            "█▀▀▄ █▀▀█ ▐▌ █▀▀█ ▐▌ ▀▄▄▀ █".white(),
+        ];
+        for line in logo {
+            lines.push(Line::from(line).centered());
+        }
+        lines
+    }
+
+    fn links() -> Vec<Line<'a>> {
+        let link = Style::default()
+            .light_blue()
+            .underlined()
+            .underline_color(Color::LightBlue);
+        vec![
+            Line::default(),
+            Line::from(Span::styled("https://github.com/aNNiMON/effy", link)).centered(),
+        ]
+    }
+
+    fn about_lines() -> Text<'a> {
+        let mut lines = Vec::new();
+        lines.extend(Self::logo());
+        lines.extend(Self::links());
+        lines.extend(Self::ratatui_logo());
+        Text::from(lines)
     }
 }

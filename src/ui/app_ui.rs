@@ -145,10 +145,12 @@ impl Widget for &mut App<'_> {
             parts.append(&mut vec![
                 Span::styled("q/Esc", keystyle),
                 Span::raw(if self.save_ongoing {
-                    ": stop render"
+                    ": stop render  "
                 } else {
-                    ": quit"
+                    ": quit  "
                 }),
+                Span::styled("F1/?", keystyle),
+                Span::raw(": help"),
             ]);
 
             Line::from(parts).render(help, buf);

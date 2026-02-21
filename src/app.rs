@@ -24,20 +24,25 @@ use crate::ui::{
 use crate::visitors::CommandBuilder;
 
 pub(crate) struct App<'a> {
+    // App state
     running: bool,
     event_sender: Sender<AppEvent>,
-    pub(crate) current_pane: Pane,
-    pub(crate) active_out_pane: Pane,
-    pub(crate) source: Source,
-    pub(crate) info_state: InfoPaneState<'a>,
-    pub(crate) out_state: OutputPaneState,
+    // UI
+    pub current_pane: Pane,
+    pub active_out_pane: Pane,
+    modal: Option<Box<dyn UiModal>>,
+    // Params
+    pub params: Vec<Parameter>,
+    pub params_list_state: ListState,
+    // Input
+    pub source: Source,
+    pub info_state: InfoPaneState<'a>,
+    // Output
+    pub out_state: OutputPaneState,
     output_folder: String,
     output_filename: String,
     output_fileext: String,
-    pub(crate) params: Vec<Parameter>,
-    pub(crate) params_list_state: ListState,
-    modal: Option<Box<dyn UiModal>>,
-    pub(crate) save_ongoing: bool,
+    pub save_ongoing: bool,
     render_stdin: Option<ChildStdin>,
 }
 
@@ -50,17 +55,21 @@ impl App<'_> {
         Self {
             running: false,
             event_sender: tx,
+            // UI
             current_pane: Pane::Params,
             active_out_pane: Pane::Info,
+            modal: None,
+            // Params
+            params: create_params(info, preset, fileext.as_str()),
+            params_list_state: list_state,
+            // Info
             source,
             info_state: InfoPaneState::new(info.format()),
+            // Output
             out_state: OutputPaneState::new(String::new()),
             output_folder: folder,
             output_filename: format!("{filename}_out"),
             output_fileext: fileext.clone(),
-            params: create_params(info, preset, fileext.as_str()),
-            params_list_state: list_state,
-            modal: None,
             save_ongoing: false,
             render_stdin: None,
         }

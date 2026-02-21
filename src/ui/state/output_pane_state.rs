@@ -1,4 +1,4 @@
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct OutputPaneState {
     pub output: String,
     pub current_line: u16,

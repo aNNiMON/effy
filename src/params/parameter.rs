@@ -76,6 +76,7 @@ impl Parameter {
         }
     }
 
+    /// Set logical order
     pub(crate) fn with_order(mut self, order: usize) -> Self {
         self.order = order;
         self

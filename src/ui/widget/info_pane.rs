@@ -6,6 +6,9 @@ use ratatui::{
 
 use crate::ui::state::InfoPaneState;
 
+// Scrollable Text widget
+
+#[derive(Debug)]
 pub struct InfoPane<'a> {
     pub block: Block<'a>,
 }

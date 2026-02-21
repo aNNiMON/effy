@@ -31,9 +31,10 @@ pub(crate) use video_scale::*;
 use crate::{
     info::Info,
     params::macros::select_option,
-    visitors::{FFmpegParameterVisitor, PresetApplier, PresetSaver},
+    visitors::{ParameterVisitor, PresetApplier, PresetSaver},
 };
 
+/// Create parameters based on given info and apply the preset
 pub(crate) fn create_params(info: &Info, preset: Option<&str>, source_ext: &str) -> Vec<Parameter> {
     let mut params: Vec<Parameter> = Vec::new();
     if info.has_non_empty_duration() {
@@ -76,6 +77,7 @@ pub(crate) fn save_preset(params: &mut [Parameter]) -> String {
     preset_saver.collect()
 }
 
+/// Recheck and disable conflicting parameters after each option change
 pub(crate) fn recheck_params(params: &mut [Parameter]) {
     let result_is_audio = if let Some(result_format) = get_output_format(params) {
         OutputFormat::is_audio(&result_format.value)
@@ -123,7 +125,8 @@ pub(crate) fn get_output_format(params: &[Parameter]) -> Option<&SelectOption> {
         .find_map(|param| select_option!(&param.data))
 }
 
-pub(crate) fn apply_visitor(visitor: &mut dyn FFmpegParameterVisitor, params: &mut [Parameter]) {
+pub(crate) fn apply_visitor(visitor: &mut dyn ParameterVisitor, params: &mut [Parameter]) {
+    // Apply visitor based on logical order, which is slight different from UI order
     let mut sorted_params: Vec<&mut Parameter> =
         params.iter_mut().filter(|param| param.enabled).collect();
     sorted_params.sort_by_key(|param| param.order);

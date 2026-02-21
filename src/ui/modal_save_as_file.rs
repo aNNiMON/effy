@@ -8,20 +8,21 @@ use ratatui::{
     style::{Color, Style, Stylize as _},
     symbols,
     text::Line,
-    widgets::{Block, Clear, Paragraph, Widget},
+    widgets::{Block, Clear, Paragraph, Widget as _},
 };
 use tui_input::Input;
 use tui_input::backend::crossterm::EventHandler as _;
 
 use crate::ui::{KeyboardHandler, ModalResult, UiModal, input_value_and_pos, is_portrait};
 
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 enum Overwrite {
     Reset,
     Prompted,
     Confirmed,
 }
 
+#[derive(Debug)]
 pub(crate) struct SaveAsFileModal {
     filename: Input,
     folder: Box<str>,
@@ -45,7 +46,7 @@ impl UiModal for SaveAsFileModal {
 
         let (display_value, x) = input_value_and_pos(&self.filename, input_area.width);
 
-        Clear.render(modal_area, frame.buffer_mut());
+        frame.render_widget(Clear, modal_area);
         Block::bordered()
             .title("Render as".light_blue())
             .border_set(symbols::border::THICK)
@@ -116,7 +117,7 @@ impl SaveAsFileModal {
                 Span::raw(": close"),
             ])
         };
-        Paragraph::new(line).render(area, frame.buffer_mut());
+        frame.render_widget(Paragraph::new(line), area);
     }
 
     fn is_file_exists(&self, filename: &str) -> bool {

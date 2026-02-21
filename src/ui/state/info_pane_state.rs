@@ -1,6 +1,6 @@
 use ratatui::text::Text;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct InfoPaneState<'a> {
     pub text: Text<'a>,
     pub current_line: u16,

@@ -8,6 +8,9 @@ use ratatui::{
 
 use crate::ui::state::OutputPaneState;
 
+// Scrollable String widget with ScrollBar
+
+#[derive(Debug)]
 pub struct OutputPane<'a> {
     pub block: Block<'a>,
 }

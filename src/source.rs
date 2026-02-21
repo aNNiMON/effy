@@ -2,13 +2,14 @@ use std::path::Path;
 
 use crate::info::Info;
 
+#[derive(Debug)]
 pub(crate) struct Source {
     // Raw input string, e.g. file path or URL
     pub(crate) input: String,
     pub(crate) source_type: SourceType,
 }
 
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 pub(crate) enum SourceType {
     File,
     Url,

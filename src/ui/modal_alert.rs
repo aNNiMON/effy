@@ -1,15 +1,12 @@
 use crossterm::event::KeyEvent;
 use ratatui::prelude::Frame;
 use ratatui::text::Line;
-use ratatui::widgets::{Block, BorderType, Borders, Padding};
-use ratatui::{
-    layout::Constraint,
-    style::Style,
-    widgets::{Clear, Paragraph, Widget as _},
-};
+use ratatui::widgets::{Block, BorderType, Borders, Clear, Padding, Paragraph, Widget as _};
+use ratatui::{layout::Constraint, style::Style};
 
 use crate::ui::{KeyboardHandler, ModalResult, UiModal};
 
+#[derive(Debug)]
 pub(crate) enum AlertKind {
     Info,
     #[allow(dead_code)]
@@ -27,6 +24,7 @@ impl AlertKind {
     }
 }
 
+#[derive(Debug)]
 pub(crate) struct AlertModal<'a> {
     kind: AlertKind,
     message: &'a str,
@@ -44,7 +42,7 @@ where
             Constraint::Length(self.height + 3),
         );
 
-        Clear.render(modal_area, frame.buffer_mut());
+        frame.render_widget(Clear, modal_area);
         Paragraph::new(self.message)
             .style(self.modal_style().bold())
             .block(

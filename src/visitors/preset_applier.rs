@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
-use crate::{params::*, visitors::FFmpegParameterVisitor};
+use crate::{params::*, visitors::ParameterVisitor};
+
+/// Apply preset
 
 #[derive(Default)]
 pub(crate) struct PresetApplier<'a> {
@@ -17,7 +19,7 @@ impl<'a> PresetApplier<'a> {
     }
 }
 
-impl FFmpegParameterVisitor for PresetApplier<'_> {
+impl ParameterVisitor for PresetApplier<'_> {
     fn visit_trim(&mut self, _data: &mut ParameterData) {}
 
     fn visit_disable_audio(&mut self, data: &mut ParameterData) {

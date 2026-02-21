@@ -38,6 +38,7 @@ impl Widget for &mut App<'_> {
             .direction(main_direction)
             .constraints([Constraint::Min(5), Constraint::Fill(3)])
             .areas(main);
+        // Params pane
         {
             let (style, list_sel_color) = if matches!(self.current_pane, Pane::Params) {
                 (highlighted_style, Color::White)
@@ -74,6 +75,7 @@ impl Widget for &mut App<'_> {
             )
         };
 
+        // Info/Output pane
         {
             let (border_style, tab_color) =
                 if matches!(self.current_pane, Pane::Info | Pane::Output) {
@@ -114,6 +116,7 @@ impl Widget for &mut App<'_> {
             }
         };
 
+        // Help bar
         {
             let keystyle = Style::default().green();
             let mut parts = vec![

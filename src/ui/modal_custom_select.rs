@@ -1,14 +1,13 @@
 use std::sync::Arc;
 
 use crossterm::event::{Event, KeyCode, KeyEvent};
-use ratatui::text::Span;
-use ratatui::{layout::Layout, prelude::Frame};
+use ratatui::prelude::Frame;
 use ratatui::{
-    layout::{Constraint, Flex, Position, Rect},
+    layout::{Constraint, Flex, Layout, Position, Rect},
     style::{Color, Style, Stylize as _},
     symbols,
-    text::Line,
-    widgets::{Block, Clear, Paragraph, Widget},
+    text::{Line, Span},
+    widgets::{Block, Clear, Paragraph, Widget as _},
 };
 use tui_input::Input;
 use tui_input::backend::crossterm::EventHandler as _;
@@ -40,7 +39,7 @@ impl UiModal for CustomSelectModal {
 
         let (display_value, x) = input_value_and_pos(&self.input, input_area.width);
 
-        Clear.render(modal_area, frame.buffer_mut());
+        frame.render_widget(Clear, modal_area);
         Block::bordered()
             .title(self.name.as_ref().light_blue())
             .border_set(symbols::border::THICK)
@@ -119,6 +118,6 @@ impl CustomSelectModal {
                 Span::raw(": close"),
             ])
         };
-        Paragraph::new(line).render(area, frame.buffer_mut());
+        frame.render_widget(Paragraph::new(line), area);
     }
 }

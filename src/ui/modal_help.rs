@@ -3,18 +3,19 @@ use ratatui::layout::{Constraint, Flex, Layout};
 use ratatui::prelude::Frame;
 use ratatui::style::{Color, Style, Stylize};
 use ratatui::text::{Line, Span, Text};
-use ratatui::widgets::{Block, BorderType, Borders, Clear, Widget as _};
+use ratatui::widgets::{Block, BorderType, Borders, Clear};
 
 use crate::ui::state::InfoPaneState;
 use crate::ui::widget::{InfoPane, Tab, TabStyle, tabs_line};
 use crate::ui::{KeyboardHandler, ModalResult, UiModal, is_portrait};
 
-#[derive(PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 enum HelpTab {
     Keys,
     About,
 }
 
+#[derive(Debug)]
 pub(crate) struct HelpModal<'a> {
     help_state: InfoPaneState<'a>,
     about_state: InfoPaneState<'a>,
@@ -54,7 +55,7 @@ impl UiModal for HelpModal<'static> {
             .border_type(BorderType::Thick)
             .border_style(Color::Blue);
 
-        Clear.render(modal_area, frame.buffer_mut());
+        frame.render_widget(Clear, modal_area);
         frame.render_stateful_widget(
             InfoPane::new(block),
             modal_area,

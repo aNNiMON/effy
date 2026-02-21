@@ -9,7 +9,7 @@ use ratatui::{
     style::{Color, Style, Stylize as _},
     symbols,
     text::Line,
-    widgets::{Block, Clear, Paragraph, Widget},
+    widgets::{Block, Clear, Paragraph, Widget as _},
 };
 use regex::Regex;
 use tui_input::Input;
@@ -20,6 +20,7 @@ use crate::ui::{
     KeyboardHandler, ModalResult, UiModal, checkbox_line, input_value_and_pos, is_portrait,
 };
 
+#[derive(Debug)]
 pub(crate) struct TrimModal {
     active_input: usize,
     ss: Input,
@@ -69,7 +70,7 @@ impl UiModal for TrimModal {
             inactive_input_label
         };
 
-        Clear.render(modal_area, frame.buffer_mut());
+        frame.render_widget(Clear, modal_area);
         Block::bordered()
             .title("Trim".light_blue())
             .border_set(symbols::border::THICK)
@@ -214,7 +215,7 @@ impl TrimModal {
             }
             Line::from(parts)
         };
-        Paragraph::new(line).render(area, frame.buffer_mut());
+        frame.render_widget(Paragraph::new(line), area);
     }
 
     fn prevalidate_value(x: char, value: &str) -> bool {

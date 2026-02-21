@@ -1,4 +1,6 @@
-use crate::{params::*, visitors::FFmpegParameterVisitor};
+use crate::{params::*, visitors::ParameterVisitor};
+
+/// Build FFmpeg command from parameters
 
 #[derive(Default)]
 pub(crate) struct CommandBuilder {
@@ -51,7 +53,7 @@ impl CommandBuilder {
     }
 }
 
-impl FFmpegParameterVisitor for CommandBuilder {
+impl ParameterVisitor for CommandBuilder {
     fn visit_trim(&mut self, data: &mut ParameterData) {
         Trim::build_command(self, data);
     }

@@ -1,4 +1,6 @@
-use crate::{params::*, visitors::FFmpegParameterVisitor};
+use crate::{params::*, visitors::ParameterVisitor};
+
+/// Get preset string from enabled parameters
 
 #[derive(Default)]
 pub(crate) struct PresetSaver {
@@ -19,7 +21,7 @@ impl PresetSaver {
     }
 }
 
-impl FFmpegParameterVisitor for PresetSaver {
+impl ParameterVisitor for PresetSaver {
     fn visit_trim(&mut self, _data: &mut ParameterData) {}
 
     fn visit_disable_audio(&mut self, data: &mut ParameterData) {

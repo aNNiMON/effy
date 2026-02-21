@@ -25,6 +25,8 @@ pub(crate) enum BitrateType {
     K,
     M,
 }
+
+#[derive(Debug)]
 pub(crate) struct Bitrate(pub u32, pub BitrateType);
 
 impl Display for BitrateType {

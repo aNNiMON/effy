@@ -4,13 +4,15 @@ use ratatui::{
     text::{Line, Span},
 };
 
-#[derive(Clone, Copy)]
+// Helper function for drawing rounded tab titles
+
+#[derive(Debug, Clone, Copy)]
 pub struct Tab<'a> {
     pub label: &'a str,
     pub active: bool,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct TabStyle {
     pub active_style: Style,
     pub inactive_style: Style,

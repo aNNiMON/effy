@@ -6,6 +6,8 @@ use ratatui::style::{Color, Style};
 use ratatui::text::{Line, Span, Text};
 use serde::Deserialize;
 
+// Collect input info using ffprobe
+
 // https://github.com/FFmpeg/FFmpeg/blob/master/doc/ffprobe.xsd
 #[derive(Deserialize, Clone, Debug)]
 pub(crate) struct Info {

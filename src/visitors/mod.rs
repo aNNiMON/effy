@@ -1,4 +1,4 @@
-pub(crate) trait FFmpegParameterVisitor {
+pub(crate) trait ParameterVisitor {
     fn visit_trim(&mut self, data: &mut ParameterData);
     fn visit_disable_audio(&mut self, data: &mut ParameterData);
     fn visit_audio_bitrate(&mut self, data: &mut ParameterData);

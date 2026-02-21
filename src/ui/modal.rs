@@ -1,10 +1,15 @@
 use core::any::Any;
 
+#[derive(Debug)]
 pub(crate) enum ModalResult {
     None,
+    /// Close modal
     Close,
+    /// Filename from Render as modal
     Filename(String),
+    /// Trim modal
     Trim,
+    /// Modal for custom parameter values
     CustomSelect(String),
 }
 

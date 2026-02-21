@@ -27,6 +27,7 @@ pub(crate) struct App<'a> {
     // App state
     running: bool,
     event_sender: Sender<AppEvent>,
+    clipboard: Result<Clipboard, ()>,
     // UI
     pub current_pane: Pane,
     pub active_out_pane: Pane,
@@ -55,6 +56,7 @@ impl App<'_> {
         Self {
             running: false,
             event_sender: tx,
+            clipboard: Clipboard::new().map_err(|_| ()),
             // UI
             current_pane: Pane::Params,
             active_out_pane: Pane::Info,
@@ -183,7 +185,7 @@ impl App<'_> {
     }
 
     fn copy_preset(&mut self) {
-        let (kind, msg) = match Clipboard::new().map(|mut ctx| {
+        let (kind, msg) = match self.clipboard.as_mut().map(|ctx| {
             let preset = save_preset(&mut self.params);
             ctx.set_text(preset)
         }) {
@@ -194,10 +196,12 @@ impl App<'_> {
     }
 
     fn copy_command(&mut self) {
-        let (kind, msg) = match Clipboard::new().map(|mut ctx| {
-            let args = self.build_ffmpeg_command(false);
-            ctx.set_text(format!("ffmpeg {}", args.join(" ")))
-        }) {
+        let args = self.build_ffmpeg_command(false);
+        let (kind, msg) = match self
+            .clipboard
+            .as_mut()
+            .map(|ctx| ctx.set_text(format!("ffmpeg {}", args.join(" "))))
+        {
             Ok(_) => (AlertKind::Info, "Command has been copied to clipboard"),
             Err(_) => (AlertKind::Error, "Failed to copy the command to clipboard"),
         };

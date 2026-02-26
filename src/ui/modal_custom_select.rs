@@ -4,7 +4,7 @@ use crossterm::event::{Event, KeyCode, KeyEvent};
 use ratatui::prelude::Frame;
 use ratatui::{
     layout::{Constraint, Flex, Layout, Position, Rect},
-    style::{Color, Style, Stylize as _},
+    style::Stylize as _,
     symbols,
     text::{Line, Span},
     widgets::{Block, Clear, Paragraph, Widget as _},
@@ -13,7 +13,7 @@ use tui_input::Input;
 use tui_input::backend::crossterm::EventHandler as _;
 
 use crate::model::{CustomSelectData, InputConstraints, InputType, ValidationCallback};
-use crate::ui::{KeyboardHandler, ModalResult, UiModal, input_value_and_pos, is_portrait};
+use crate::ui::{KeyboardHandler, ModalResult, Theme, UiModal, input_value_and_pos, is_portrait};
 
 pub(crate) struct CustomSelectModal {
     name: Arc<str>,
@@ -24,7 +24,7 @@ pub(crate) struct CustomSelectModal {
 }
 
 impl UiModal for CustomSelectModal {
-    fn render(&self, frame: &mut Frame) {
+    fn render(&self, frame: &mut Frame, theme: &Theme) {
         let area = frame.area();
         let portrait = is_portrait(area);
         let [modal_area] = Layout::vertical([Constraint::Length(6)])
@@ -41,15 +41,15 @@ impl UiModal for CustomSelectModal {
 
         frame.render_widget(Clear, modal_area);
         Block::bordered()
-            .title(self.name.as_ref().light_blue())
+            .title(self.name.as_ref().fg(theme.modal_title_color()))
             .border_set(symbols::border::THICK)
-            .border_style(Color::Blue)
+            .border_style(theme.border_modal_style())
             .render(modal_area, frame.buffer_mut());
         Paragraph::new(display_value)
-            .style(Color::White)
-            .block(Block::bordered().light_blue())
+            .style(theme.text_input_color())
+            .block(theme.block_input())
             .render(input_area, frame.buffer_mut());
-        self.render_status(hints_area, frame);
+        self.render_status(hints_area, frame, theme);
 
         frame.set_cursor_position(Position {
             x: input_area.x + x,
@@ -106,16 +106,17 @@ impl From<CustomSelectData> for CustomSelectModal {
 }
 
 impl CustomSelectModal {
-    fn render_status(&self, area: Rect, frame: &mut Frame) {
+    fn render_status(&self, area: Rect, frame: &mut Frame, theme: &Theme) {
         let line = if let Some(error) = &self.error {
-            Line::from(error.as_str().red().bold()).centered()
+            Line::from(error.as_str().fg(theme.error_color()).bold()).centered()
         } else {
-            let keystyle = Style::default().green();
+            let key_style = theme.key_style();
+            let text_style = theme.text_color();
             Line::from(vec![
-                Span::styled("Enter", keystyle),
-                Span::raw(": confirm  "),
-                Span::styled("Esc", keystyle),
-                Span::raw(": close"),
+                Span::styled("Enter", key_style),
+                Span::styled(": confirm  ", text_style),
+                Span::styled("Esc", key_style),
+                Span::styled(": close", text_style),
             ])
         };
         frame.render_widget(Paragraph::new(line), area);

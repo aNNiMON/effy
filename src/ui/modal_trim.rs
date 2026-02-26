@@ -6,7 +6,7 @@ use ratatui::text::Span;
 use ratatui::{layout::Layout, prelude::Frame};
 use ratatui::{
     layout::{Constraint, Flex, Position, Rect},
-    style::{Color, Style, Stylize as _},
+    style::{Style, Stylize as _},
     symbols,
     text::Line,
     widgets::{Block, Clear, Paragraph, Widget as _},
@@ -17,7 +17,7 @@ use tui_input::backend::crossterm::EventHandler as _;
 
 use crate::model::TrimData;
 use crate::ui::{
-    KeyboardHandler, ModalResult, UiModal, checkbox_line, input_value_and_pos, is_portrait,
+    KeyboardHandler, ModalResult, Theme, UiModal, checkbox_line, input_value_and_pos, is_portrait,
 };
 
 #[derive(Debug)]
@@ -31,7 +31,7 @@ pub(crate) struct TrimModal {
 }
 
 impl UiModal for TrimModal {
-    fn render(&self, frame: &mut Frame) {
+    fn render(&self, frame: &mut Frame, theme: &Theme) {
         let area = frame.area();
         let portrait = is_portrait(area);
         let [modal_area] = Layout::vertical([Constraint::Length(8)])
@@ -54,11 +54,11 @@ impl UiModal for TrimModal {
         let (ss_value, ss_x) = input_value_and_pos(&self.ss, ss_area.width);
         let (to_value, to_x) = input_value_and_pos(&self.to, to_area.width);
 
-        let active_border_style = Style::new().light_blue();
-        let inactive_border_style = Style::new().dark_gray();
+        let active_border_style = theme.border_input_color();
+        let inactive_border_style = theme.border_input_inactive_color();
 
-        let active_input_label = Style::new().light_blue();
-        let inactive_input_label = Style::new().blue();
+        let active_input_label = Style::new().fg(active_border_style);
+        let inactive_input_label = Style::new().fg(inactive_border_style);
         let start_label_style = if self.active_input == 0 {
             active_input_label
         } else {
@@ -72,9 +72,9 @@ impl UiModal for TrimModal {
 
         frame.render_widget(Clear, modal_area);
         Block::bordered()
-            .title("Trim".light_blue())
+            .title("Trim".fg(theme.modal_title_color()))
             .border_set(symbols::border::THICK)
-            .border_style(Color::Blue)
+            .border_style(theme.border_modal_style())
             .render(modal_area, frame.buffer_mut());
 
         let mut borders = [inactive_border_style; 4];
@@ -85,9 +85,9 @@ impl UiModal for TrimModal {
                 Block::bordered()
                     .border_style(borders[0])
                     .style(if self.active_input == 0 {
-                        Color::White
+                        theme.text_input_color()
                     } else {
-                        Color::Gray
+                        theme.text_muted_color()
                     })
                     .title(Span::styled("Start", start_label_style)),
             )
@@ -98,9 +98,9 @@ impl UiModal for TrimModal {
                 Block::bordered()
                     .border_style(borders[1])
                     .style(if self.active_input == 1 {
-                        Color::White
+                        theme.text_input_color()
                     } else {
-                        Color::Gray
+                        theme.text_muted_color()
                     })
                     .title(Span::styled(to_title, to_label_style)),
             )
@@ -114,15 +114,20 @@ impl UiModal for TrimModal {
             frame.set_cursor_position(Position { x, y });
         }
         // Checkboxes
-        let precise_line = checkbox_line(self.precise, "Precise", self.active_input == 2);
+        let precise_line = checkbox_line(self.precise, "Precise", self.active_input == 2, theme);
         Paragraph::new(precise_line)
             .alignment(HorizontalAlignment::Center)
             .render(precise_area, frame.buffer_mut());
-        let use_to_line = checkbox_line(self.use_to, "Use Duration/To", self.active_input == 3);
+        let use_to_line = checkbox_line(
+            self.use_to,
+            "Use Duration/To",
+            self.active_input == 3,
+            theme,
+        );
         Paragraph::new(use_to_line)
             .alignment(HorizontalAlignment::Center)
             .render(use_to_area, frame.buffer_mut());
-        self.render_status(hints_area, frame);
+        self.render_status(hints_area, frame, theme);
     }
 }
 
@@ -194,23 +199,24 @@ impl TrimModal {
     const REGEXP_SECONDS: &str = r"^([0-9]+)(\.[0-9]+)?$";
     const REGEXP_HHMMSS: &str = r"^([0-9]{1,2}:)?([0-5]?[0-9]:)([0-5]?[0-9])(\.[0-9]+)?$";
 
-    fn render_status(&self, area: Rect, frame: &mut Frame) {
+    fn render_status(&self, area: Rect, frame: &mut Frame, theme: &Theme) {
         let line = if let Some(error) = &self.error {
-            Line::from(error.as_str().red().bold()).centered()
+            Line::from(Span::styled(error, theme.error_style().bold())).centered()
         } else {
-            let keystyle = Style::default().green();
+            let key_style = theme.key_style();
+            let text_style = theme.text_color();
             let mut parts = vec![
-                Span::styled("Enter", keystyle),
-                Span::raw(": confirm  "),
-                Span::styled("Esc", keystyle),
-                Span::raw(": close  "),
-                Span::styled("Tab", keystyle),
-                Span::raw(": switch focus"),
+                Span::styled("Enter", key_style),
+                Span::styled(": confirm  ", text_style),
+                Span::styled("Esc", key_style),
+                Span::styled(": close  ", text_style),
+                Span::styled("Tab", key_style),
+                Span::styled(": switch focus", text_style),
             ];
             if self.active_input > 1 {
                 parts.append(&mut vec![
-                    Span::styled("  Space", keystyle),
-                    Span::raw(": toggle"),
+                    Span::styled("  Space", key_style),
+                    Span::styled(": toggle", text_style),
                 ]);
             }
             Line::from(parts)

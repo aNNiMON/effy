@@ -5,7 +5,7 @@ use ratatui::text::Span;
 use ratatui::{layout::Layout, prelude::Frame};
 use ratatui::{
     layout::{Constraint, Flex, Position, Rect},
-    style::{Color, Style, Stylize as _},
+    style::Stylize as _,
     symbols,
     text::Line,
     widgets::{Block, Clear, Paragraph, Widget as _},
@@ -13,7 +13,7 @@ use ratatui::{
 use tui_input::Input;
 use tui_input::backend::crossterm::EventHandler as _;
 
-use crate::ui::{KeyboardHandler, ModalResult, UiModal, input_value_and_pos, is_portrait};
+use crate::ui::{KeyboardHandler, ModalResult, Theme, UiModal, input_value_and_pos, is_portrait};
 
 #[derive(Debug, PartialEq)]
 enum Overwrite {
@@ -31,7 +31,7 @@ pub(crate) struct SaveAsFileModal {
 }
 
 impl UiModal for SaveAsFileModal {
-    fn render(&self, frame: &mut Frame) {
+    fn render(&self, frame: &mut Frame, theme: &Theme) {
         let area = frame.area();
         let portrait = is_portrait(area);
         let [modal_area] = Layout::vertical([Constraint::Length(6)])
@@ -48,15 +48,15 @@ impl UiModal for SaveAsFileModal {
 
         frame.render_widget(Clear, modal_area);
         Block::bordered()
-            .title("Render as".light_blue())
+            .title("Render as".fg(theme.modal_title_color()))
             .border_set(symbols::border::THICK)
-            .border_style(Color::Blue)
+            .border_style(theme.border_modal_style())
             .render(modal_area, frame.buffer_mut());
         Paragraph::new(display_value)
-            .style(Color::White)
-            .block(Block::bordered().light_blue())
+            .style(theme.text_input_color())
+            .block(theme.block_input())
             .render(input_area, frame.buffer_mut());
-        self.render_input_hints(hints_area, frame);
+        self.render_input_hints(hints_area, frame, theme);
 
         frame.set_cursor_position(Position {
             x: input_area.x + x,
@@ -99,22 +99,23 @@ impl SaveAsFileModal {
         }
     }
 
-    fn render_input_hints(&self, area: Rect, frame: &mut Frame) {
+    fn render_input_hints(&self, area: Rect, frame: &mut Frame, theme: &Theme) {
         let line = if self.overwrite == Overwrite::Prompted {
-            let error = Style::default().red().bold();
+            let error = theme.error_style().bold();
             Line::from(vec![
                 Span::styled("File already exists. Press ", error),
-                Span::styled("Enter", error.not_bold()),
+                Span::styled("Enter", theme.key_style()),
                 Span::styled(" again to overwrite", error),
             ])
             .centered()
         } else {
-            let keystyle = Style::default().green();
+            let key_style = theme.key_style();
+            let text_style = theme.text_color();
             Line::from(vec![
-                Span::styled("Enter", keystyle),
-                Span::raw(": confirm  "),
-                Span::styled("Esc", keystyle),
-                Span::raw(": close"),
+                Span::styled("Enter", key_style),
+                Span::styled(": confirm  ", text_style),
+                Span::styled("Esc", key_style),
+                Span::styled(": close", text_style),
             ])
         };
         frame.render_widget(Paragraph::new(line), area);

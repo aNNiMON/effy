@@ -1,6 +1,6 @@
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
-    style::{Color, Style, Stylize},
+    style::Stylize as _,
     symbols,
     text::{Line, Span},
     widgets::{Block, Borders, List, StatefulWidget, Widget},
@@ -21,8 +21,8 @@ impl Widget for &mut App<'_> {
         Self: Sized,
     {
         let portrait = is_portrait(area);
-        let default_style = Style::new().dark_gray();
-        let highlighted_style = default_style.white();
+        let default_style = self.theme.border_inactive_style();
+        let highlighted_style = self.theme.border_active_style();
 
         let [main, help] = Layout::default()
             .direction(Direction::Vertical)
@@ -40,35 +40,44 @@ impl Widget for &mut App<'_> {
             .areas(main);
         // Params pane
         {
-            let (style, list_sel_color) = if matches!(self.current_pane, Pane::Params) {
-                (highlighted_style, Color::White)
+            let style = if matches!(self.current_pane, Pane::Params) {
+                highlighted_style
             } else {
-                (default_style, Color::Gray)
+                default_style
             };
             let items = self.params.iter().map(|param| {
                 if param.enabled {
                     Line::from(vec![
-                        Span::styled(&param.name, highlighted_style),
+                        Span::raw(&param.name),
                         Span::raw(": "),
-                        Span::styled(param.describe_value(), Style::default().yellow()),
+                        Span::styled(param.describe_value(), self.theme.text_param_color()),
                     ])
                 } else {
-                    Line::styled(param.describe(), default_style)
+                    Line::styled(param.describe(), self.theme.text_param_disabled_color())
                 }
             });
             let mut block = Block::default()
                 .borders(Borders::ALL)
                 .border_set(symbols::border::ROUNDED)
                 .border_style(style)
-                .title_top(Line::from("Params").blue().left_aligned());
+                .title_top(
+                    Line::from("Params")
+                        .fg(self.theme.pane_title_color())
+                        .left_aligned(),
+                );
             if portrait {
-                block = block.title_top(Line::from("effy").bold().blue().centered());
+                block = block.title_top(
+                    Line::from("effy")
+                        .fg(self.theme.pane_title_color())
+                        .bold()
+                        .centered(),
+                );
             }
             StatefulWidget::render(
                 List::new(items)
                     .block(block)
-                    .style(Style::default().fg(Color::White))
-                    .highlight_style(Style::default().fg(Color::Black).bg(list_sel_color)),
+                    .style(highlighted_style)
+                    .highlight_style(self.theme.list_highlight_style()),
                 params,
                 buf,
                 &mut self.params_list_state,
@@ -79,9 +88,9 @@ impl Widget for &mut App<'_> {
         {
             let (border_style, tab_color) =
                 if matches!(self.current_pane, Pane::Info | Pane::Output) {
-                    (highlighted_style, Color::Blue)
+                    (highlighted_style, self.theme.tab_bg_active())
                 } else {
-                    (default_style, Color::DarkGray)
+                    (default_style, self.theme.tab_bg_inactive())
                 };
             let info_active = matches!(self.active_out_pane, Pane::Info);
             let tabs = [
@@ -95,10 +104,10 @@ impl Widget for &mut App<'_> {
                 },
             ];
             let tabs_style = TabStyle {
-                active_style: highlighted_style,
-                inactive_style: Style::default().gray(),
+                active_style: self.theme.text_color().into(),
+                inactive_style: self.theme.text_muted_color().into(),
                 active_bg: tab_color,
-                inactive_bg: Color::Black,
+                inactive_bg: self.theme.background_color(),
             };
             let mut block = Block::default()
                 .borders(Borders::ALL)
@@ -106,28 +115,34 @@ impl Widget for &mut App<'_> {
                 .border_style(border_style)
                 .title_top(tabs_line(&tabs, tabs_style).left_aligned());
             if !portrait {
-                block = block.title_top(Line::from("effy").bold().blue().centered());
+                block = block.title_top(
+                    Line::from("effy")
+                        .fg(self.theme.pane_title_color())
+                        .bold()
+                        .centered(),
+                );
             }
 
             if matches!(self.active_out_pane, Pane::Output) {
-                StatefulWidget::render(OutputPane::new(block), output, buf, &mut self.out_state);
+                OutputPane::new(block).render(output, buf, &mut self.out_state);
             } else {
-                StatefulWidget::render(InfoPane::new(block), output, buf, &mut self.info_state);
+                InfoPane::new(block).render(output, buf, &mut self.info_state);
             }
         };
 
         // Help bar
         {
-            let keystyle = Style::default().green();
+            let key_style = self.theme.key_style();
+            let raw_style = self.theme.text_color();
             let mut parts = vec![
-                Span::styled("Tab", keystyle),
-                Span::raw(": switch tab  "),
-                Span::styled("s/", keystyle),
-                Span::styled("C", keystyle.underlined()),
-                Span::styled("-s", keystyle),
-                Span::raw(": render  "),
-                Span::styled("↑/↓/k/j", keystyle),
-                Span::raw(": navigate  "),
+                Span::styled("Tab", key_style),
+                Span::styled(": switch tab  ", raw_style),
+                Span::styled("s/", key_style),
+                Span::styled("C", key_style.underlined()),
+                Span::styled("-s", key_style),
+                Span::styled(": render  ", raw_style),
+                Span::styled("↑/↓/k/j", key_style),
+                Span::styled(": navigate  ", raw_style),
             ];
 
             if matches!(self.current_pane, Pane::Params)
@@ -135,25 +150,28 @@ impl Widget for &mut App<'_> {
                 && let Some(param) = self.params.get(selected)
             {
                 parts.append(&mut vec![
-                    Span::styled("←/→/h/l", keystyle),
-                    Span::raw(": toggle parameter  "),
+                    Span::styled("←/→/h/l", key_style),
+                    Span::styled(": toggle parameter  ", raw_style),
                 ]);
                 if param.data.is_editable() {
                     parts.append(&mut vec![
-                        Span::styled("Enter", keystyle),
-                        Span::raw(": edit  "),
+                        Span::styled("Enter", key_style),
+                        Span::styled(": edit  ", raw_style),
                     ]);
                 }
             }
             parts.append(&mut vec![
-                Span::styled("q/Esc", keystyle),
-                Span::raw(if self.save_ongoing {
-                    ": stop render  "
-                } else {
-                    ": quit  "
-                }),
-                Span::styled("F1/?", keystyle),
-                Span::raw(": help"),
+                Span::styled("q/Esc", key_style),
+                Span::styled(
+                    if self.save_ongoing {
+                        ": stop render  "
+                    } else {
+                        ": quit  "
+                    },
+                    raw_style,
+                ),
+                Span::styled("F1/?", key_style),
+                Span::styled(": help", raw_style),
             ]);
 
             Line::from(parts).render(help, buf);

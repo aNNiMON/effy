@@ -4,7 +4,7 @@ use ratatui::text::Line;
 use ratatui::widgets::{Block, BorderType, Borders, Clear, Padding, Paragraph, Widget as _};
 use ratatui::{layout::Constraint, style::Style};
 
-use crate::ui::{KeyboardHandler, ModalResult, UiModal};
+use crate::ui::{KeyboardHandler, ModalResult, Theme, UiModal};
 
 #[derive(Debug)]
 pub(crate) enum AlertKind {
@@ -36,7 +36,7 @@ impl<'a> UiModal for AlertModal<'a>
 where
     'a: 'static,
 {
-    fn render(&self, frame: &mut Frame) {
+    fn render(&self, frame: &mut Frame, theme: &Theme) {
         let modal_area = frame.area().centered(
             Constraint::Length(self.width + 10),
             Constraint::Length(self.height + 3),
@@ -44,13 +44,13 @@ where
 
         frame.render_widget(Clear, modal_area);
         Paragraph::new(self.message)
-            .style(self.modal_style().bold())
+            .style(self.modal_style(theme).bold())
             .block(
                 Block::default()
                     .title_top(Line::from(self.kind.name()).centered())
                     .borders(Borders::TOP)
                     .border_type(BorderType::Double)
-                    .border_style(self.border_top_style())
+                    .border_style(self.border_top_style(theme))
                     .padding(Padding::vertical(1)),
             )
             .centered()
@@ -78,18 +78,19 @@ impl<'a> AlertModal<'a> {
         }
     }
 
-    fn modal_style(&self) -> Style {
+    fn modal_style(&self, theme: &Theme) -> Style {
         match self.kind {
-            AlertKind::Info | AlertKind::Warning => Style::default().white().on_black(),
-            AlertKind::Error => Style::default().white().on_red(),
+            AlertKind::Info => Style::new().fg(theme.info_text_color()),
+            AlertKind::Warning => Style::new().fg(theme.warning_text_color()),
+            AlertKind::Error => theme.error_bg_style(),
         }
     }
 
-    fn border_top_style(&self) -> Style {
+    fn border_top_style(&self, theme: &Theme) -> Style {
         match self.kind {
-            AlertKind::Info => Style::default().blue(),
-            AlertKind::Warning => Style::default().yellow(),
-            AlertKind::Error => Style::default().white().dim(),
+            AlertKind::Info => theme.info_style(),
+            AlertKind::Warning => theme.warning_style(),
+            AlertKind::Error => theme.error_bg_style(),
         }
     }
 }

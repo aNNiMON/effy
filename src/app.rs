@@ -18,8 +18,8 @@ use crate::params::{
 use crate::source::Source;
 use crate::ui::state::{InfoPaneState, OutputPaneState};
 use crate::ui::{
-    AlertKind, AlertModal, CustomSelectModal, HelpModal, ModalResult, SaveAsFileModal, TrimModal,
-    UiModal,
+    AlertKind, AlertModal, CustomSelectModal, HelpModal, ModalResult, SaveAsFileModal, Theme,
+    TrimModal, UiModal,
 };
 use crate::visitors::CommandBuilder;
 
@@ -32,6 +32,7 @@ pub(crate) struct App<'a> {
     pub current_pane: Pane,
     pub active_out_pane: Pane,
     modal: Option<Box<dyn UiModal>>,
+    pub theme: Theme,
     // Params
     pub params: Vec<Parameter>,
     pub params_list_state: ListState,
@@ -52,6 +53,8 @@ impl App<'_> {
         let mut list_state = ListState::default();
         list_state.select(Some(0));
         let folder = source.input_folder();
+        let theme = Theme::new();
+        let info_state = InfoPaneState::new(info.format(&theme));
         let (filename, fileext) = source.input_name_and_ext(info);
         Self {
             running: false,
@@ -61,12 +64,13 @@ impl App<'_> {
             current_pane: Pane::Params,
             active_out_pane: Pane::Info,
             modal: None,
+            theme,
             // Params
             params: create_params(info, preset, fileext.as_str()),
             params_list_state: list_state,
             // Info
             source,
-            info_state: InfoPaneState::new(info.format()),
+            info_state,
             // Output
             out_state: OutputPaneState::new(String::new()),
             output_folder: folder,
@@ -87,7 +91,7 @@ impl App<'_> {
             terminal.draw(|frame| {
                 frame.render_widget(&mut self, frame.area());
                 if let Some(modal) = &self.modal {
-                    modal.render(frame);
+                    modal.render(frame, &self.theme);
                 }
             })?;
             match rx.recv() {
@@ -291,7 +295,7 @@ impl App<'_> {
     }
 
     fn help(&mut self) {
-        self.modal = Some(Box::new(HelpModal::new()));
+        self.modal = Some(Box::new(HelpModal::new(&self.theme)));
     }
 
     fn save(&mut self) {

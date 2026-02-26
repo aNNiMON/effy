@@ -1,5 +1,7 @@
 use core::any::Any;
 
+use crate::ui::Theme;
+
 #[derive(Debug)]
 pub(crate) enum ModalResult {
     None,
@@ -14,7 +16,7 @@ pub(crate) enum ModalResult {
 }
 
 pub(crate) trait UiModal: Any + KeyboardHandler {
-    fn render(&self, frame: &mut ratatui::prelude::Frame);
+    fn render(&self, frame: &mut ratatui::prelude::Frame, theme: &Theme);
 }
 
 pub(crate) trait KeyboardHandler {

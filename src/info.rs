@@ -2,9 +2,10 @@ use std::collections::HashMap;
 use std::io::{Error, Read};
 use std::process::{Command, Stdio};
 
-use ratatui::style::{Color, Style};
 use ratatui::text::{Line, Span, Text};
 use serde::Deserialize;
+
+use crate::ui::Theme;
 
 // Collect input info using ffprobe
 
@@ -108,13 +109,13 @@ impl Info {
         }
     }
 
-    pub fn format<'a>(&self) -> Text<'a> {
+    pub fn format<'a>(&self, theme: &Theme) -> Text<'a> {
         let mut lines = Vec::new();
         let mut add = |k: &str, v: &str, i: u32| {
-            let color = [Color::LightYellow, Color::LightCyan, Color::LightMagenta][i as usize % 3];
+            let color = theme.color_triplet()[i as usize % 3];
             lines.push(Line::from(vec![
-                Span::styled(format!("{k: <24}"), Style::default().fg(color)),
-                Span::styled(v.to_owned(), Style::default().fg(Color::Yellow)),
+                Span::styled(format!("{k: <24}"), color),
+                Span::styled(v.to_owned(), theme.text_param_color()),
             ]));
         };
 

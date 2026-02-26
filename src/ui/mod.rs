@@ -1,8 +1,4 @@
-use ratatui::{
-    layout::Rect,
-    style::{Color, Stylize},
-    text::Line,
-};
+use ratatui::{layout::Rect, style::Stylize as _, text::Line};
 use tui_input::Input;
 
 mod app_ui;
@@ -13,6 +9,7 @@ mod modal_help;
 mod modal_save_as_file;
 mod modal_trim;
 pub mod state;
+mod theme;
 pub mod widget;
 
 pub(crate) use modal::*;
@@ -21,6 +18,7 @@ pub(crate) use modal_custom_select::*;
 pub(crate) use modal_help::*;
 pub(crate) use modal_save_as_file::*;
 pub(crate) use modal_trim::*;
+pub(crate) use theme::*;
 
 /// Detect if the terminal window is in portrait mode assuming proportions 2.2:1
 fn is_portrait(area: Rect) -> bool {
@@ -42,17 +40,17 @@ fn input_value_and_pos(input: &Input, width: u16) -> (String, u16) {
 }
 
 /// Prepare a checkbox Line
-fn checkbox_line(checked: bool, label: &str, active: bool) -> Line<'_> {
+fn checkbox_line<'a>(checked: bool, label: &str, active: bool, theme: &'a Theme) -> Line<'a> {
     let mut line = Line::from(vec![
         if checked {
-            "[\u{25a0}]".light_blue()
+            "[\u{25a0}]".fg(theme.checkbox_checked_color())
         } else {
-            "[ ]".gray()
+            "[ ]".fg(theme.checkbox_color())
         },
-        format!(" {label}").gray(),
+        format!(" {label}").fg(theme.checkbox_label_color()),
     ]);
     if active {
-        line = line.bg(Color::DarkGray);
+        line = line.patch_style(theme.checkbox_focused_style());
     }
     line
 }

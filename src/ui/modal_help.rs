@@ -1,13 +1,13 @@
 use crossterm::event::{KeyCode, KeyEvent};
 use ratatui::layout::{Constraint, Flex, Layout};
 use ratatui::prelude::Frame;
-use ratatui::style::{Color, Style, Stylize};
+use ratatui::style::Stylize as _;
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, BorderType, Borders, Clear};
 
 use crate::ui::state::InfoPaneState;
 use crate::ui::widget::{InfoPane, Tab, TabStyle, tabs_line};
-use crate::ui::{KeyboardHandler, ModalResult, UiModal, is_portrait};
+use crate::ui::{KeyboardHandler, ModalResult, Theme, UiModal, is_portrait};
 
 #[derive(Debug, PartialEq, Eq)]
 enum HelpTab {
@@ -23,7 +23,7 @@ pub(crate) struct HelpModal<'a> {
 }
 
 impl UiModal for HelpModal<'static> {
-    fn render(&self, frame: &mut Frame) {
+    fn render(&self, frame: &mut Frame, theme: &Theme) {
         let area = frame.area();
         let portrait = is_portrait(area);
         let [modal_area] = Layout::vertical([Constraint::Length(21)])
@@ -43,17 +43,17 @@ impl UiModal for HelpModal<'static> {
             },
         ];
         let tabs_style = TabStyle {
-            active_style: Style::default().white().bold(),
-            inactive_style: Style::default().gray(),
-            active_bg: Color::Blue,
-            inactive_bg: Color::Black,
+            active_style: theme.text_color().into(),
+            inactive_style: theme.text_muted_color().into(),
+            active_bg: theme.tab_bg_active(),
+            inactive_bg: theme.background_color(),
         };
 
         let block = Block::default()
             .title_top(tabs_line(&tabs, tabs_style).left_aligned())
             .borders(Borders::all())
             .border_type(BorderType::Thick)
-            .border_style(Color::Blue);
+            .border_style(theme.border_modal_style());
 
         frame.render_widget(Clear, modal_area);
         frame.render_stateful_widget(
@@ -86,91 +86,117 @@ impl KeyboardHandler for HelpModal<'_> {
     }
 }
 
-impl<'a> HelpModal<'a> {
-    pub(crate) fn new() -> HelpModal<'a> {
+impl<'a> HelpModal<'static> {
+    pub(crate) fn new(theme: &'a Theme) -> HelpModal<'static> {
         Self {
-            help_state: InfoPaneState::new(Self::help_lines()),
-            about_state: InfoPaneState::new(Self::about_lines()),
+            help_state: InfoPaneState::new(HelpBuilder::new(theme).build()),
+            about_state: InfoPaneState::new(AboutBuilder::new(theme).build()),
             help_tab: HelpTab::Keys,
         }
     }
+}
 
-    fn help_lines() -> Text<'a> {
+struct HelpBuilder<'a> {
+    theme: &'a Theme,
+}
+
+impl<'a> HelpBuilder<'a> {
+    fn new(theme: &'a Theme) -> Self {
+        Self { theme }
+    }
+
+    fn build(&self) -> Text<'static> {
         let mut lines = Vec::new();
-        lines.push(Line::from("         Key Action").blue().bold());
-        lines.extend(Self::help_navigation_lines());
-        lines.extend(Self::help_render_lines());
-        lines.extend(Self::help_modals_lines());
-        lines.extend(Self::help_clipboard_lines());
+        lines.push(Line::from("         Key Action".fg(self.theme.pane_title_color())).bold());
+        lines.extend(self.navigation_lines());
+        lines.extend(self.render_lines());
+        lines.extend(self.modals_lines());
+        lines.extend(self.clipboard_lines());
         Text::from(lines)
     }
 
-    fn help_navigation_lines() -> Vec<Line<'a>> {
+    fn navigation_lines(&self) -> Vec<Line<'static>> {
         let mut lines = Vec::new();
-        lines.push(Line::from(" Navigation:").blue().bold());
-        lines.extend(Self::lines(
+        lines.push(
+            Line::from(" Navigation:")
+                .fg(self.theme.pane_title_color())
+                .bold(),
+        );
+        lines.extend(self.lines(
             &["↑", "k"],
             "Scroll up in the Info, Parameter or Output pane",
         ));
-        lines.extend(Self::lines(
+        lines.extend(self.lines(
             &["↓", "j"],
             "Scroll down in the Info, Parameter or Output pane",
         ));
-        lines.extend(Self::lines(&["Tab"], "Focus next pane/tab"));
-        lines.extend(Self::lines(&["Shift+Tab"], "Focus previous pane/tab"));
-        lines.extend(Self::lines(&["i"], "Focus Info pane"));
-        lines.extend(Self::lines(
+        lines.extend(self.lines(&["Tab"], "Focus next pane/tab"));
+        lines.extend(self.lines(&["Shift+Tab"], "Focus previous pane/tab"));
+        lines.extend(self.lines(&["i"], "Focus Info pane"));
+        lines.extend(self.lines(
             &["←", "h"],
             "Switch the previous quick option in the Parameter pane",
         ));
-        lines.extend(Self::lines(
+        lines.extend(self.lines(
             &["→", "l"],
             "Select the next quick option in the Parameter pane",
         ));
-        lines.extend(Self::lines(&["Enter"], "Open parameter options"));
-        lines.extend(Self::lines(&["Esc", "q", "Ctrl+c"], "Quit the application"));
-        lines.extend(Self::lines(&["o"], "Focus Output pane"));
-        lines.extend(Self::lines(&["?", "F1"], "Toggle help"));
+        lines.extend(self.lines(&["Enter"], "Open parameter options"));
+        lines.extend(self.lines(&["Esc", "q", "Ctrl+c"], "Quit the application"));
+        lines.extend(self.lines(&["o"], "Focus Output pane"));
+        lines.extend(self.lines(&["?", "F1"], "Toggle help"));
         lines
     }
 
-    fn help_render_lines() -> Vec<Line<'a>> {
+    fn render_lines(&self) -> Vec<Line<'static>> {
         let mut lines = Vec::new();
         lines.push(Line::default());
-        lines.push(Line::from(" Render:").blue().bold());
-        lines.extend(Self::lines(&["s"], "Open the 'Render As' modal"));
-        lines.extend(Self::lines(&["Ctrl+s"], "Quick render"));
-        lines.extend(Self::lines(
+        lines.push(
+            Line::from(" Render:")
+                .fg(self.theme.pane_title_color())
+                .bold(),
+        );
+        lines.extend(self.lines(&["s"], "Open the 'Render As' modal"));
+        lines.extend(self.lines(&["Ctrl+s"], "Quick render"));
+        lines.extend(self.lines(
             &["Esc", "q", "Ctrl+c"],
             "Stop rendering if it's in progress",
         ));
         lines
     }
 
-    fn help_modals_lines() -> Vec<Line<'a>> {
+    fn modals_lines(&self) -> Vec<Line<'static>> {
         let mut lines = Vec::new();
         lines.push(Line::default());
-        lines.push(Line::from(" Modals:").blue().bold());
-        lines.extend(Self::lines(&["Tab"], "Focus next field"));
-        lines.extend(Self::lines(&["Shift+Tab"], "Focus previous field"));
-        lines.extend(Self::lines(&["Space"], "Toggle a checkbox"));
-        lines.extend(Self::lines(&["Esc"], "Close an active modal"));
+        lines.push(
+            Line::from(" Modals:")
+                .fg(self.theme.pane_title_color())
+                .bold(),
+        );
+        lines.extend(self.lines(&["Tab"], "Focus next field"));
+        lines.extend(self.lines(&["Shift+Tab"], "Focus previous field"));
+        lines.extend(self.lines(&["Space"], "Toggle a checkbox"));
+        lines.extend(self.lines(&["Esc"], "Close an active modal"));
         lines
     }
 
-    fn help_clipboard_lines() -> Vec<Line<'a>> {
+    fn clipboard_lines(&self) -> Vec<Line<'static>> {
         let mut lines = Vec::new();
         lines.push(Line::default());
-        lines.push(Line::from(" Clipboard:").blue().bold());
-        lines.extend(Self::lines(&["p"], "Copy a preset to clipboard"));
-        lines.extend(Self::lines(&["y"], "Copy a FFmpeg command to clipboard"));
+        lines.push(
+            Line::from(" Clipboard:")
+                .fg(self.theme.pane_title_color())
+                .bold(),
+        );
+        lines.extend(self.lines(&["p"], "Copy a preset to clipboard"));
+        lines.extend(self.lines(&["y"], "Copy a FFmpeg command to clipboard"));
         lines
     }
 
-    fn lines(keys: &'a [&str], v: &'a str) -> Vec<Line<'a>> {
-        let key_style = Style::default().green();
-        let text_style = Style::default().gray();
-        let repeated_style = Style::default().dark_gray();
+    fn lines(&self, keys: &'static [&str], v: &'static str) -> Vec<Line<'static>> {
+        let key_style = self.theme.key_style();
+        let text_style = self.theme.text_color();
+        let repeated_style = self.theme.text_muted_color();
 
         keys.iter()
             .enumerate()
@@ -185,9 +211,27 @@ impl<'a> HelpModal<'a> {
             })
             .collect()
     }
+}
 
-    fn logo() -> Vec<Line<'a>> {
-        let style = Style::default().green();
+struct AboutBuilder<'a> {
+    theme: &'a Theme,
+}
+
+impl<'a> AboutBuilder<'a> {
+    fn new(theme: &'a Theme) -> Self {
+        Self { theme }
+    }
+
+    fn build(&self) -> Text<'static> {
+        let mut lines = Vec::new();
+        lines.extend(self.logo());
+        lines.extend(self.links());
+        lines.extend(self.ratatui_logo());
+        Text::from(lines)
+    }
+
+    fn logo(&self) -> Vec<Line<'static>> {
+        let color = self.theme.logo_color();
         let mut lines: Vec<Line> = vec![];
         let logo = [
             "",
@@ -202,34 +246,30 @@ impl<'a> HelpModal<'a> {
             "                            /██  | ██",
         ];
         for line in logo {
-            lines.push(Line::from(Span::styled(line, style)).centered());
+            lines.push(Line::from(line).fg(color).centered());
         }
         lines.push(
-            Line::from(Span::styled(
-                format!(
-                    "               v{}      |  ██████/",
-                    env!("CARGO_PKG_VERSION")
-                ),
-                style,
+            Line::from(format!(
+                "               v{}      |  ██████/",
+                env!("CARGO_PKG_VERSION")
             ))
+            .fg(color)
             .centered(),
         );
         lines.push(
-            Line::from(Span::styled(
-                r"                            \______/ ",
-                style,
-            ))
-            .centered(),
+            Line::from(r"                            \______/ ")
+                .fg(color)
+                .centered(),
         );
         lines
     }
 
-    fn ratatui_logo() -> Vec<Line<'a>> {
+    fn ratatui_logo(&self) -> Vec<Line<'static>> {
         let mut lines: Vec<Line> = vec![Line::default()];
         let logo = [
-            "Built with Rust. Powered by".yellow(),
-            "█▀▀▄ ▄▀▀▄▝▜▛▘▄▀▀▄▝▜▛▘█  █ █".white(),
-            "█▀▀▄ █▀▀█ ▐▌ █▀▀█ ▐▌ ▀▄▄▀ █".white(),
+            "Built with Rust. Powered by".fg(self.theme.about_caption_color()),
+            "█▀▀▄ ▄▀▀▄▝▜▛▘▄▀▀▄▝▜▛▘█  █ █".fg(self.theme.ratatui_logo_color()),
+            "█▀▀▄ █▀▀█ ▐▌ █▀▀█ ▐▌ ▀▄▄▀ █".fg(self.theme.ratatui_logo_color()),
         ];
         for line in logo {
             lines.push(Line::from(line).centered());
@@ -237,22 +277,11 @@ impl<'a> HelpModal<'a> {
         lines
     }
 
-    fn links() -> Vec<Line<'a>> {
-        let link = Style::default()
-            .light_blue()
-            .underlined()
-            .underline_color(Color::LightBlue);
+    fn links(&self) -> Vec<Line<'static>> {
+        let link = self.theme.link_style();
         vec![
             Line::default(),
             Line::from(Span::styled("https://github.com/aNNiMON/effy", link)).centered(),
         ]
-    }
-
-    fn about_lines() -> Text<'a> {
-        let mut lines = Vec::new();
-        lines.extend(Self::logo());
-        lines.extend(Self::links());
-        lines.extend(Self::ratatui_logo());
-        Text::from(lines)
     }
 }

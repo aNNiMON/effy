@@ -8,11 +8,12 @@ use ratatui::{
     style::Stylize as _,
     symbols,
     text::Line,
-    widgets::{Block, Clear, Paragraph, Widget as _},
+    widgets::{Block, Paragraph, Widget as _},
 };
 use tui_input::Input;
 use tui_input::backend::crossterm::EventHandler as _;
 
+use crate::ui::widget::BgClear;
 use crate::ui::{KeyboardHandler, ModalResult, Theme, UiModal, input_value_and_pos, is_portrait};
 
 #[derive(Debug, PartialEq)]
@@ -46,7 +47,7 @@ impl UiModal for SaveAsFileModal {
 
         let (display_value, x) = input_value_and_pos(&self.filename, input_area.width);
 
-        frame.render_widget(Clear, modal_area);
+        frame.render_widget(BgClear::new(theme.background_color()), modal_area);
         Block::bordered()
             .title("Render as".fg(theme.modal_title_color()))
             .border_set(symbols::border::THICK)

@@ -9,13 +9,14 @@ use ratatui::{
     style::{Style, Stylize as _},
     symbols,
     text::Line,
-    widgets::{Block, Clear, Paragraph, Widget as _},
+    widgets::{Block, Paragraph, Widget as _},
 };
 use regex::Regex;
 use tui_input::Input;
 use tui_input::backend::crossterm::EventHandler as _;
 
 use crate::model::TrimData;
+use crate::ui::widget::BgClear;
 use crate::ui::{
     KeyboardHandler, ModalResult, Theme, UiModal, checkbox_line, input_value_and_pos, is_portrait,
 };
@@ -70,7 +71,7 @@ impl UiModal for TrimModal {
             inactive_input_label
         };
 
-        frame.render_widget(Clear, modal_area);
+        frame.render_widget(BgClear::new(theme.background_color()), modal_area);
         Block::bordered()
             .title("Trim".fg(theme.modal_title_color()))
             .border_set(symbols::border::THICK)

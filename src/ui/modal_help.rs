@@ -3,10 +3,10 @@ use ratatui::layout::{Constraint, Flex, Layout};
 use ratatui::prelude::Frame;
 use ratatui::style::Stylize as _;
 use ratatui::text::{Line, Span, Text};
-use ratatui::widgets::{Block, BorderType, Borders, Clear};
+use ratatui::widgets::{Block, BorderType, Borders};
 
 use crate::ui::state::InfoPaneState;
-use crate::ui::widget::{InfoPane, Tab, TabStyle, tabs_line};
+use crate::ui::widget::{BgClear, InfoPane, Tab, TabStyle, tabs_line};
 use crate::ui::{KeyboardHandler, ModalResult, Theme, UiModal, is_portrait};
 
 #[derive(Debug, PartialEq, Eq)]
@@ -49,7 +49,7 @@ impl UiModal for HelpModal<'static> {
             .border_type(BorderType::Thick)
             .border_style(theme.border_modal_style());
 
-        frame.render_widget(Clear, modal_area);
+        frame.render_widget(BgClear::new(theme.background_color()), modal_area);
         frame.render_stateful_widget(
             InfoPane::new(block),
             modal_area,

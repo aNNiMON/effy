@@ -11,7 +11,7 @@ use crate::{
     model::Pane,
     ui::{
         is_portrait,
-        widget::{InfoPane, OutputPane, Tab, TabStyle, tabs_line},
+        widget::{BgClear, InfoPane, OutputPane, Tab, TabStyle, tabs_line},
     },
 };
 
@@ -28,6 +28,7 @@ impl Widget for &mut App<'_> {
             .direction(Direction::Vertical)
             .constraints([Constraint::Fill(1), Constraint::Max(1)])
             .areas(area);
+        BgClear::new(self.theme.background_color()).render(area, buf);
 
         let main_direction = if portrait {
             Direction::Vertical

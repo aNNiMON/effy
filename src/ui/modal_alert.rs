@@ -1,9 +1,10 @@
 use crossterm::event::KeyEvent;
 use ratatui::prelude::Frame;
 use ratatui::text::Line;
-use ratatui::widgets::{Block, BorderType, Borders, Clear, Padding, Paragraph, Widget as _};
+use ratatui::widgets::{Block, BorderType, Borders, Padding, Paragraph, Widget as _};
 use ratatui::{layout::Constraint, style::Style};
 
+use crate::ui::widget::BgClear;
 use crate::ui::{KeyboardHandler, ModalResult, Theme, UiModal};
 
 #[derive(Debug)]
@@ -42,7 +43,7 @@ where
             Constraint::Length(self.height + 3),
         );
 
-        frame.render_widget(Clear, modal_area);
+        frame.render_widget(BgClear::new(theme.background_color()), modal_area);
         Paragraph::new(self.message)
             .style(self.modal_style(theme).bold())
             .block(

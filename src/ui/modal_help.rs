@@ -42,13 +42,7 @@ impl UiModal for HelpModal<'static> {
                 active: !keys_tab_active,
             },
         ];
-        let tabs_style = TabStyle {
-            active_style: theme.text_color().into(),
-            inactive_style: theme.text_muted_color().into(),
-            active_bg: theme.tab_bg_active(),
-            inactive_bg: theme.background_color(),
-        };
-
+        let tabs_style = TabStyle::from_theme(theme);
         let block = Block::default()
             .title_top(tabs_line(&tabs, tabs_style).left_aligned())
             .borders(Borders::all())

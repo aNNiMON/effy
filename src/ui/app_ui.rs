@@ -103,12 +103,8 @@ impl Widget for &mut App<'_> {
                     active: !info_active,
                 },
             ];
-            let tabs_style = TabStyle {
-                active_style: self.theme.text_color().into(),
-                inactive_style: self.theme.text_muted_color().into(),
-                active_bg: tab_color,
-                inactive_bg: self.theme.background_color(),
-            };
+            let mut tabs_style = TabStyle::from_theme(&self.theme);
+            tabs_style.active_bg = tab_color;
             let mut block = Block::default()
                 .borders(Borders::ALL)
                 .border_set(symbols::border::ROUNDED)

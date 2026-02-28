@@ -1,3 +1,5 @@
+use tracing::debug;
+
 use crate::{
     params::{Parameter, ParameterData, PresetParameter},
     visitors::CommandBuilder,
@@ -17,6 +19,7 @@ impl DisableAudio {
         if let ParameterData::Toggle { value } = data
             && *value
         {
+            debug!("build_command disable audio");
             cb.discard_audio = true;
             cb.args.push("-an".into());
         }

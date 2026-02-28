@@ -1,3 +1,5 @@
+use tracing::debug;
+
 use crate::{
     info::Info,
     params::{Parameter, ParameterData, PresetParameter, SelectOption},
@@ -52,6 +54,7 @@ impl OutputFormat {
         } = data
             && let Some(option) = options.get(*selected_index)
         {
+            debug!(value = option.value, "build_command");
             cb.ext.clone_from(&option.value);
         }
     }

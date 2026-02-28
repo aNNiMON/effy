@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use tracing::debug;
+
 use crate::{
     model::{InputConstraints, InputType},
     params::{
@@ -69,6 +71,7 @@ impl VideoScale {
 
     pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {
         if let Some(value) = select_non_default_custom_value!(data) {
+            debug!(value, "build_command");
             // Use nvenc cuda scale only if there is no other video filter
             #[cfg(target_os = "windows")]
             {

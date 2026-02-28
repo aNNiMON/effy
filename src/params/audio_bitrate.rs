@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use tracing::debug;
+
 use crate::{
     model::{InputConstraints, InputType},
     params::{
@@ -60,8 +62,11 @@ impl AudioBitrate {
         if !cb.discard_audio
             && let Some(value) = select_non_default_custom_value!(data)
         {
+            let bitrate = Self::format_value(value);
+            debug!(bitrate, "build_command");
             cb.pre_output_args.push("-b:a".into());
-            cb.pre_output_args.push(Self::format_value(value));
+            cb.pre_output_args.push(bitrate.clone());
+            if cb.ext == "mp3" {
         }
     }
 }

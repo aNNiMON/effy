@@ -12,6 +12,7 @@ use crate::{model::AppEvent, source::Source};
 
 mod app;
 mod info;
+mod logging;
 mod model;
 mod params;
 mod source;
@@ -19,6 +20,8 @@ mod ui;
 mod visitors;
 
 fn main() -> Result<(), Box<dyn Error>> {
+    let _guard = logging::init_tracing();
+
     let mut args: Vec<String> = std::env::args().skip(1).rev().collect();
     let mut preset = None;
     let mut input = None;

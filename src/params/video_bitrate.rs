@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use tracing::debug;
+
 use crate::{
     model::{Bitrate, BitrateType, InputConstraints, InputType},
     params::{
@@ -61,6 +63,7 @@ impl VideoBitrate {
 
     pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {
         if let Some(value) = select_non_default_custom_value!(data) {
+            debug!(value, "build_command");
             cb.pre_output_args.push("-b:v".into());
             cb.pre_output_args.push(value.into());
         }

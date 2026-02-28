@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use tracing::debug;
+
 use crate::{
     model::{InputConstraints, InputType},
     params::{
@@ -54,6 +56,7 @@ impl VideoFrameRate {
 
     pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {
         if let Some(value) = select_non_default_custom_value!(data) {
+            debug!(value, "build_command");
             cb.args.push("-r".into());
             cb.args.push(value.into());
         }

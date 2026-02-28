@@ -1,3 +1,5 @@
+use tracing::debug;
+
 use crate::{
     params::{
         Parameter, ParameterData, PresetParameter, SelectOption, macros::select_non_default_option,
@@ -38,6 +40,7 @@ impl HardwareAcceleration {
 
     pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {
         if let Some(option) = select_non_default_option!(data) {
+            debug!(value = option.value, "build_command");
             match option.value.as_str() {
                 #[cfg(any(target_os = "windows", target_os = "linux"))]
                 "nvenc" => {

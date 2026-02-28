@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use tracing::debug;
+
 use crate::{
     model::{InputConstraints, InputType},
     params::{
@@ -59,6 +61,7 @@ impl AudioVolume {
         if !cb.discard_audio
             && let Some(value) = select_non_default_custom_value!(data)
         {
+            debug!(value, "build_command");
             cb.audio_filters
                 .push(format!("volume={}", Self::format_value(value)));
         }

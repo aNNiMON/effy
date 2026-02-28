@@ -33,6 +33,7 @@ use crate::{
     params::macros::select_option,
     visitors::{ParameterVisitor, PresetApplier, PresetSaver},
 };
+use tracing::{Level, debug, enabled};
 
 /// Create parameters based on given info and apply the preset
 pub(crate) fn create_params(info: &Info, preset: Option<&str>, source_ext: &str) -> Vec<Parameter> {
@@ -130,6 +131,15 @@ pub(crate) fn apply_visitor(visitor: &mut dyn ParameterVisitor, params: &mut [Pa
     let mut sorted_params: Vec<&mut Parameter> =
         params.iter_mut().filter(|param| param.enabled).collect();
     sorted_params.sort_by_key(|param| param.order);
+    if enabled!(Level::DEBUG) {
+        let visitor_type = std::any::type_name_of_val(visitor);
+        let chain = sorted_params
+            .iter()
+            .map(|p| format!("{}({})", p.id, p.order))
+            .collect::<Vec<_>>()
+            .join(" -> ");
+        debug!(visitor = visitor_type, %chain, "params chain");
+    }
     for param in sorted_params {
         match param.id {
             Trim::ID => visitor.visit_trim(&mut param.data),

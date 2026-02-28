@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use tracing::debug;
+
 use crate::{
     model::{InputConstraints, InputType},
     params::{
@@ -50,6 +52,7 @@ impl SpeedFactor {
     pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {
         if let Some(value) = select_non_default_custom_value!(data) {
             cb.speed_factor = value.parse().ok();
+            debug!(speed_factor = cb.speed_factor, "build_command");
             if !cb.discard_audio {
                 cb.audio_filters.push(format!("atempo={}", &value));
             }

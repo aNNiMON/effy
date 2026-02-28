@@ -1,3 +1,5 @@
+use tracing::debug;
+
 use crate::{
     model::TrimData,
     params::{Parameter, ParameterData},
@@ -24,6 +26,7 @@ impl Trim {
 
     pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {
         if let ParameterData::Trim(trim_data) = data {
+            debug!(?trim_data, "build_command");
             let mut args = Vec::new();
 
             let time_multiplier = cb

@@ -25,7 +25,9 @@ impl Trim {
     }
 
     pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {
-        if let ParameterData::Trim(trim_data) = data {
+        if let ParameterData::Trim(trim_data) = data
+            && !trim_data.is_empty()
+        {
             debug!(?trim_data, "build_command");
             let mut args = Vec::new();
 
@@ -53,6 +55,7 @@ impl Trim {
                     args.push(to.clone());
                 }
             }
+            debug!(?args, "trim args");
             if trim_data.precise {
                 cb.args.append(&mut args);
             } else {

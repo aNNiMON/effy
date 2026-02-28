@@ -5,6 +5,7 @@ use std::{
     sync::Arc,
 };
 
+/// Main UI panes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Pane {
     Info,
@@ -12,6 +13,7 @@ pub(crate) enum Pane {
     Output,
 }
 
+/// Trim parameters
 #[derive(Debug, Clone, Default)]
 pub(crate) struct TrimData {
     pub(crate) ss: Option<String>,
@@ -20,12 +22,20 @@ pub(crate) struct TrimData {
     pub(crate) precise: bool,
 }
 
+impl TrimData {
+    pub(crate) fn is_empty(&self) -> bool {
+        self.ss.is_none() && self.to.is_none()
+    }
+}
+
+/// Bitrate type
 #[derive(Debug, PartialEq)]
 pub(crate) enum BitrateType {
     K,
     M,
 }
 
+/// Bitrate value for Video parameter only, Audio uses kilobytes
 #[derive(Debug)]
 pub(crate) struct Bitrate(pub u32, pub BitrateType);
 
@@ -69,6 +79,7 @@ impl FromStr for Bitrate {
 pub(crate) type ValidationCallback = Arc<dyn Fn(&str) -> Result<String, &str> + Send + Sync>;
 pub(crate) type ValueFormatter = Arc<dyn Fn(&str) -> String + Send + Sync>;
 
+/// Input widget types
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum InputType {
     Integer,
@@ -77,12 +88,14 @@ pub(crate) enum InputType {
     Bitrate,
 }
 
+/// Input constraints, max length in characters and input type
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct InputConstraints {
     pub(crate) length: usize,
     pub(crate) input_type: InputType,
 }
 
+/// User-specified data
 #[derive(Clone)]
 pub(crate) struct CustomSelectData {
     pub(crate) name: Arc<str>,
@@ -91,6 +104,7 @@ pub(crate) struct CustomSelectData {
     pub(crate) validator: ValidationCallback,
 }
 
+/// Application events
 pub(crate) enum AppEvent {
     Input(crossterm::event::KeyEvent),
     AddOutput(String),

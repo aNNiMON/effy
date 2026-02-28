@@ -101,6 +101,10 @@ impl ParameterVisitor for CommandBuilder {
     fn visit_output_format(&mut self, data: &mut ParameterData) {
         OutputFormat::build_command(self, data);
     }
+
+    fn visit_last(&mut self) {
+        Finalizer::build_command(self);
+    }
 }
 
 #[cfg(test)]

@@ -37,7 +37,7 @@ impl AudioBitrate {
                 formatter: Some(Arc::new(Self::format_value)),
             },
         )
-        .with_order(2010)
+        .with_order(4000)
     }
 
     fn validate(value: &str) -> Result<String, &str> {
@@ -65,8 +65,7 @@ impl AudioBitrate {
             let bitrate = Self::format_value(value);
             debug!(bitrate, "build_command");
             cb.pre_output_args.push("-b:a".into());
-            cb.pre_output_args.push(bitrate.clone());
-            if cb.ext == "mp3" {
+            cb.pre_output_args.push(bitrate);
         }
     }
 }

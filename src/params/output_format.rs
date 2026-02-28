@@ -18,7 +18,7 @@ impl OutputFormat {
             Self::NAME,
             Self::get_parameter_data(info, source_ext),
         )
-        .with_order(999999)
+        .with_order(120)
     }
 
     pub(crate) fn is_audio(ext: &str) -> bool {

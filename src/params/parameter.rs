@@ -71,7 +71,7 @@ impl Parameter {
             id,
             name: name.to_owned(),
             enabled: true,
-            order: 0,
+            order: 1000,
             data,
         }
     }

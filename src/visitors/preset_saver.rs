@@ -89,4 +89,6 @@ impl ParameterVisitor for PresetSaver {
             self.add(OutputFormat::ID, v);
         }
     }
+
+    fn visit_last(&mut self) {}
 }

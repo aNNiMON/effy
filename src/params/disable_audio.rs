@@ -12,7 +12,7 @@ impl DisableAudio {
     pub(crate) const NAME: &'static str = "Disable Audio";
 
     pub fn new_parameter() -> Parameter {
-        Parameter::new(Self::ID, Self::NAME, ParameterData::Toggle { value: false })
+        Parameter::new(Self::ID, Self::NAME, ParameterData::Toggle { value: false }).with_order(100)
     }
 
     pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {

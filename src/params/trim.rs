@@ -21,7 +21,7 @@ impl Trim {
                 ..Default::default()
             }),
         )
-        .with_order(100)
+        .with_order(1600)
     }
 
     pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {

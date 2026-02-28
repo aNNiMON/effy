@@ -87,4 +87,6 @@ impl ParameterVisitor for PresetApplier<'_> {
             OutputFormat::apply_preset(data, preset_value);
         }
     }
+
+    fn visit_last(&mut self) {}
 }

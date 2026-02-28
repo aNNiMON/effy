@@ -1,3 +1,12 @@
+/// Parameters are sorted by logical order, which is different from UI order
+///
+/// Order:
+///   100 noaudio
+///   120 output
+///  1000 default params (in order of addition)
+///  1600 trim
+///  2000 hwaccel
+///  4000 abitrate, vbitrate
 mod macros;
 mod parameter;
 
@@ -6,6 +15,7 @@ mod audio_crystalizer;
 mod audio_pitch;
 mod audio_volume;
 mod disable_audio;
+mod finalizer;
 mod hardware_acceleration;
 mod output_format;
 mod speed_factor;
@@ -19,6 +29,7 @@ pub(crate) use audio_crystalizer::*;
 pub(crate) use audio_pitch::*;
 pub(crate) use audio_volume::*;
 pub(crate) use disable_audio::*;
+pub(crate) use finalizer::*;
 pub(crate) use hardware_acceleration::*;
 pub(crate) use output_format::*;
 pub(crate) use parameter::{Parameter, ParameterData, PresetParameter, SelectOption};
@@ -157,4 +168,5 @@ pub(crate) fn apply_visitor(visitor: &mut dyn ParameterVisitor, params: &mut [Pa
             _ => {}
         }
     }
+    visitor.visit_last();
 }

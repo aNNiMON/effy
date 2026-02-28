@@ -355,7 +355,7 @@ mod tests {
                 filename: "test.mp4".to_owned(),
                 ..Default::default()
             },
-            streams: vec![],
+            ..Default::default()
         };
         let mut p = OutputFormat::new_parameter(&info, "mp4");
 
@@ -389,6 +389,25 @@ mod tests {
         };
         let result = cb.build_args();
         assert_eq!(result, vec!["-vf", "scale=-2:720"]);
+    }
+
+    #[test]
+    fn build_args_faststart_finalizer() {
+        let mut cb = CommandBuilder::default();
+        let info = Info {
+            format: InfoFormat {
+                filename: "test.mp4".to_owned(),
+                ..Default::default()
+            },
+            ..Default::default()
+        };
+        let mut p = OutputFormat::new_parameter(&info, "mp4");
+
+        cb.visit_output_format(&mut p.data);
+        cb.visit_last();
+
+        assert_eq!(cb.ext, "mp4");
+        assert_eq!(cb.pre_output_args, vec!["-movflags", "faststart"]);
     }
 
     // ------ Private ------

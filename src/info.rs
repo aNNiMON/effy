@@ -10,7 +10,7 @@ use crate::ui::Theme;
 // Collect input info using ffprobe
 
 // https://github.com/FFmpeg/FFmpeg/blob/master/doc/ffprobe.xsd
-#[derive(Deserialize, Clone, Debug)]
+#[derive(Deserialize, Default, Clone, Debug)]
 pub(crate) struct Info {
     pub format: InfoFormat,
     #[serde(default)]

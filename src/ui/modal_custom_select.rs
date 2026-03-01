@@ -38,7 +38,7 @@ impl UiModal for CustomSelectModal {
                 .vertical_margin(1)
                 .areas(modal_area);
 
-        let (display_value, x) = input_value_and_pos(&self.input, input_area.width);
+        let (display_value, x) = input_value_and_pos(&self.input, input_area.width - 1); // subtract margin.x / 2
 
         frame.render_widget(BgClear::new(theme.background_color()), modal_area);
         Block::bordered()

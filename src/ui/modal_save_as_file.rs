@@ -10,6 +10,8 @@ use ratatui::{
     text::Line,
     widgets::{Block, Paragraph, Widget as _},
 };
+use regex::Regex;
+use tracing::debug;
 use tui_input::Input;
 use tui_input::backend::crossterm::EventHandler as _;
 
@@ -17,18 +19,20 @@ use crate::ui::widget::BgClear;
 use crate::ui::{KeyboardHandler, ModalResult, Theme, UiModal, input_value_and_pos, is_portrait};
 
 #[derive(Debug, PartialEq)]
-enum Overwrite {
+enum ValidationResult {
     Reset,
-    Prompted,
-    Confirmed,
+    Ok,
+    Invalid(String),
+    Exists,
 }
 
 #[derive(Debug)]
 pub(crate) struct SaveAsFileModal {
     filename: Input,
+    original_filename: Box<str>,
     folder: Box<str>,
     ext: Box<str>,
-    overwrite: Overwrite,
+    validation: ValidationResult,
 }
 
 impl UiModal for SaveAsFileModal {
@@ -45,7 +49,7 @@ impl UiModal for SaveAsFileModal {
                 .vertical_margin(1)
                 .areas(modal_area);
 
-        let (display_value, x) = input_value_and_pos(&self.filename, input_area.width);
+        let (display_value, x) = input_value_and_pos(&self.filename, input_area.width - 2);
 
         frame.render_widget(BgClear::new(theme.background_color()), modal_area);
         Block::bordered()
@@ -71,19 +75,22 @@ impl KeyboardHandler for SaveAsFileModal {
         if key.code == KeyCode::Esc {
             ModalResult::Close
         } else if key.code == KeyCode::Enter {
-            if self.overwrite == Overwrite::Prompted {
-                self.overwrite = Overwrite::Confirmed;
-            }
             let filename = self.filename.value().trim();
-            let valid = !filename.is_empty() && !self.is_file_exists(filename);
-            if valid || self.overwrite == Overwrite::Confirmed {
-                ModalResult::Filename(filename.to_owned())
-            } else {
-                self.overwrite = Overwrite::Prompted;
-                ModalResult::None
+            // Enter pressed after the overwrite prompt
+            if self.validation == ValidationResult::Exists {
+                debug!(filename, "Save as. Overwrite");
+                return ModalResult::Filename(filename.to_owned());
+            }
+            self.validation = self.validate(filename);
+            match self.validation {
+                ValidationResult::Ok => {
+                    debug!(filename, "Save as");
+                    ModalResult::Filename(filename.to_owned())
+                }
+                _ => ModalResult::None,
             }
         } else {
-            self.overwrite = Overwrite::Reset;
+            self.validation = ValidationResult::Reset;
             self.filename.handle_event(&Event::Key(key));
             ModalResult::None
         }
@@ -91,40 +98,73 @@ impl KeyboardHandler for SaveAsFileModal {
 }
 
 impl SaveAsFileModal {
-    pub(crate) fn new(folder: &str, filename: &str, ext: &str) -> Self {
+    pub(crate) fn new(original_filename: &str, folder: &str, filename: &str, ext: &str) -> Self {
         Self {
             filename: Input::new(filename.to_owned()),
+            original_filename: original_filename.into(),
             folder: folder.into(),
             ext: ext.into(),
-            overwrite: Overwrite::Reset,
+            validation: ValidationResult::Reset,
         }
     }
 
     fn render_input_hints(&self, area: Rect, frame: &mut Frame, theme: &Theme) {
-        let line = if self.overwrite == Overwrite::Prompted {
-            let error = theme.error_style().bold();
-            Line::from(vec![
-                Span::styled("File already exists. Press ", error),
-                Span::styled("Enter", theme.key_style()),
-                Span::styled(" again to overwrite", error),
-            ])
-            .centered()
-        } else {
-            let key_style = theme.key_style();
-            let text_style = theme.text_color();
-            Line::from(vec![
-                Span::styled("Enter", key_style),
-                Span::styled(": confirm  ", text_style),
-                Span::styled("Esc", key_style),
-                Span::styled(": close", text_style),
-            ])
+        let line = match &self.validation {
+            ValidationResult::Exists => {
+                let error_style = theme.error_style().bold();
+                Line::from(vec![
+                    Span::styled("File already exists. Press ", error_style),
+                    Span::styled("Enter", theme.key_style()),
+                    Span::styled(" again to overwrite", error_style),
+                ])
+                .centered()
+            }
+            ValidationResult::Invalid(reason) => {
+                let error_style = theme.error_style().bold();
+                Line::from(vec![Span::styled(reason, error_style)]).centered()
+            }
+            _ => {
+                let key_style = theme.key_style();
+                let text_style = theme.text_color();
+                Line::from(vec![
+                    Span::styled("Enter", key_style),
+                    Span::styled(": confirm  ", text_style),
+                    Span::styled("Esc", key_style),
+                    Span::styled(": close", text_style),
+                ])
+            }
         };
         frame.render_widget(Paragraph::new(line), area);
     }
 
+    fn validate(&self, filename: &str) -> ValidationResult {
+        if filename.is_empty() {
+            ValidationResult::Invalid("Filename is empty".into())
+        } else if filename == self.original_filename.as_ref() {
+            ValidationResult::Invalid("Filename is the same as original".into())
+        } else if Self::contains_invalid_chars(filename) {
+            ValidationResult::Invalid("Filename contains invalid characters".into())
+        } else if filename.len() > 200 {
+            ValidationResult::Invalid("Filename is too long".into())
+        } else if self.is_file_exists(filename) {
+            ValidationResult::Exists
+        } else {
+            ValidationResult::Ok
+        }
+    }
+
+    fn contains_invalid_chars(filename: &str) -> bool {
+        filename.starts_with('-')
+            || filename.starts_with('~')
+            || std::str::from_utf8(filename.as_bytes()).is_err()
+            || Regex::new(r"[/\\|<>$:\x00-\x1F\x7F\x80-\x9F]+")
+                .unwrap()
+                .is_match(filename)
+    }
+
     fn is_file_exists(&self, filename: &str) -> bool {
-        let mut path = PathBuf::new().join(&*self.folder).join(filename);
-        path.set_extension(&*self.ext);
+        let mut path = PathBuf::new().join(self.folder.as_ref()).join(filename);
+        path.add_extension(self.ext.as_ref());
         path.exists()
     }
 }

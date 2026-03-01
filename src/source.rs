@@ -26,6 +26,10 @@ impl Source {
         Self { input, source_type }
     }
 
+    pub(crate) fn is_url(&self) -> bool {
+        self.source_type == SourceType::Url
+    }
+
     pub(crate) fn validate(&self) -> Result<(), String> {
         if self.source_type == SourceType::File && std::fs::metadata(&self.input).is_err() {
             return Err(format!("Input file '{}' does not exist", &self.input));

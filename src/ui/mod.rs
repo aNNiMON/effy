@@ -28,7 +28,7 @@ fn is_portrait(area: Rect) -> bool {
 
 /// Get the value and cursor position of an input widget
 fn input_value_and_pos(input: &Input, width: u16) -> (String, u16) {
-    let scroll = input.visual_scroll(width as usize).max(3) - 3;
+    let scroll = input.visual_scroll(width as usize);
     let value = input
         .value()
         .chars()

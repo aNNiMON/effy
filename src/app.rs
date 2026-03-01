@@ -8,6 +8,7 @@ use std::{mem, thread};
 use arboard::Clipboard;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::{DefaultTerminal, widgets::ListState};
+use tracing::debug;
 
 use crate::info::Info;
 use crate::model::{AppEvent, Pane};
@@ -37,6 +38,7 @@ pub(crate) struct App<'a> {
     pub params: Vec<Parameter>,
     pub params_list_state: ListState,
     // Input
+    pub original_filename: Box<str>,
     pub source: Source,
     pub info_state: InfoPaneState<'a>,
     // Output
@@ -56,6 +58,11 @@ impl App<'_> {
         let theme = Theme::new();
         let info_state = InfoPaneState::new(info.format(&theme));
         let (filename, fileext) = source.input_name_and_ext(info);
+        let original_filename = if source.is_url() {
+            "".into()
+        } else {
+            filename.clone().into()
+        };
         Self {
             running: false,
             event_sender: tx,
@@ -69,6 +76,7 @@ impl App<'_> {
             params: create_params(info, preset, fileext.as_str()),
             params_list_state: list_state,
             // Info
+            original_filename,
             source,
             info_state,
             // Output
@@ -168,6 +176,7 @@ impl App<'_> {
                 let output_ext = get_output_format(&self.params)
                     .map_or(&self.output_fileext, |option| &option.value);
                 self.modal = Some(Box::new(SaveAsFileModal::new(
+                    &self.original_filename,
                     &self.output_folder,
                     &self.output_filename,
                     output_ext,
@@ -307,6 +316,7 @@ impl App<'_> {
         self.active_out_pane = Pane::Output;
 
         let args = self.build_ffmpeg_command(true);
+        debug!(?args, "Starting FFmpeg");
         self.out_state.set_output("Starting FFmpeg...\n");
 
         let tx = self.event_sender.clone();
@@ -379,7 +389,7 @@ impl App<'_> {
         let mut path = PathBuf::new()
             .join(&*self.output_folder)
             .join(&*self.output_filename);
-        path.set_extension(&*command_builder.ext);
+        path.add_extension(&*command_builder.ext);
         let output_file = path.display().to_string();
 
         let mut args: Vec<String> = Vec::new();

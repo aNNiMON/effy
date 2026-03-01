@@ -16,7 +16,7 @@ exclude = ["mprocs.yaml"]
 arboard = { version = "3.6.1", default-features = false }
 crossterm = "0.29"
 ratatui = "0.30.0"
-regex = { version = "1.12.2", default-features = false, features = ["std"] }
+regex = { version = "1.12.3", default-features = false, features = ["std"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tracing = "0.1"

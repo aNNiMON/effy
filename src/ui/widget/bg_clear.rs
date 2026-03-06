@@ -9,13 +9,15 @@ use ratatui::{
 
 #[derive(Debug)]
 pub struct BgClear {
-    pub style: Style,
+    style: Style,
+    fill: bool,
 }
 
 impl BgClear {
     pub fn new(color: Color) -> BgClear {
         BgClear {
             style: Style::default().bg(color),
+            fill: color != Color::Reset,
         }
     }
 }
@@ -23,6 +25,8 @@ impl BgClear {
 impl Widget for BgClear {
     fn render(self, area: Rect, buf: &mut Buffer) {
         Clear.render(area, buf);
-        Block::default().style(self.style).render(area, buf);
+        if self.fill {
+            Block::default().style(self.style).render(area, buf);
+        }
     }
 }

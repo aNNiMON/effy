@@ -5,35 +5,35 @@ use ratatui::{
 
 #[derive(Debug)]
 pub(crate) struct Theme {
-    background_color: Color,
-    background_highlight_color: Color,
+    background: Color,
+    background_highlight: Color,
     /// Accent color (titles, modal borders, links)
-    accent_color: Color,
-    accent_light_color: Color,
+    accent: Color,
+    accent_light: Color,
     /// Borders
-    border_active_color: Color,
-    border_inactive_color: Color,
+    border_active: Color,
+    border_inactive: Color,
     /// Params list selected item colors
-    list_highlight_text_color: Color,
-    list_highlight_bg_color: Color,
+    list_highlight: Color,
+    list_highlight_text: Color,
     /// Common text color
-    text_color: Color,
+    text: Color,
     /// Input text color
-    text_input_color: Color,
+    text_input: Color,
     /// Text color for disabled actions
-    text_muted_color: Color,
+    text_muted: Color,
     /// Text color for parameter values
-    text_param_color: Color,
-    text_param_disabled_color: Color,
+    text_param: Color,
+    text_param_disabled: Color,
     /// Key bindings color
-    keys_color: Color,
+    keys: Color,
     /// Alert type and validation colors
-    info_color: Color,
-    info_text_color: Color,
-    warning_color: Color,
-    warning_text_color: Color,
-    error_color: Color,
-    error_text_color: Color,
+    info: Color,
+    info_text: Color,
+    warning: Color,
+    warning_text: Color,
+    error: Color,
+    error_text: Color,
     /// Triplet for info pane
     color1: Color,
     color2: Color,
@@ -43,26 +43,26 @@ pub(crate) struct Theme {
 impl Theme {
     pub fn new() -> Self {
         Self {
-            background_color: Color::Black,
-            background_highlight_color: Color::DarkGray,
-            accent_color: Color::Blue,
-            accent_light_color: Color::LightBlue,
-            border_active_color: Color::White,
-            border_inactive_color: Color::DarkGray,
-            list_highlight_text_color: Color::Black,
-            list_highlight_bg_color: Color::White,
-            text_color: Color::White,
-            text_input_color: Color::White,
-            text_muted_color: Color::Gray,
-            text_param_color: Color::Yellow,
-            text_param_disabled_color: Color::DarkGray,
-            keys_color: Color::Green,
-            info_color: Color::Blue,
-            info_text_color: Color::White,
-            warning_color: Color::Yellow,
-            warning_text_color: Color::White,
-            error_color: Color::Red,
-            error_text_color: Color::White,
+            background: Color::Reset,
+            background_highlight: Color::DarkGray,
+            accent: Color::Blue,
+            accent_light: Color::LightBlue,
+            border_active: Color::White,
+            border_inactive: Color::DarkGray,
+            list_highlight: Color::White,
+            list_highlight_text: Color::Black,
+            text: Color::White,
+            text_input: Color::White,
+            text_muted: Color::Gray,
+            text_param: Color::Yellow,
+            text_param_disabled: Color::DarkGray,
+            keys: Color::Green,
+            info: Color::Blue,
+            info_text: Color::White,
+            warning: Color::Yellow,
+            warning_text: Color::White,
+            error: Color::Red,
+            error_text: Color::White,
             color1: Color::LightYellow,
             color2: Color::LightCyan,
             color3: Color::LightMagenta,
@@ -73,97 +73,97 @@ impl Theme {
 
     #[inline]
     pub fn background_color(&self) -> Color {
-        self.background_color
+        self.background
     }
 
     #[inline]
     pub fn background_highlight_color(&self) -> Color {
-        self.background_highlight_color
+        self.background_highlight
     }
 
     #[inline]
     pub fn accent_color(&self) -> Color {
-        self.accent_color
+        self.accent
     }
 
     #[inline]
     pub fn accent_light_color(&self) -> Color {
-        self.accent_light_color
+        self.accent_light
     }
 
     #[inline]
     pub fn border_active_color(&self) -> Color {
-        self.border_active_color
+        self.border_active
     }
 
     #[inline]
     pub fn border_inactive_color(&self) -> Color {
-        self.border_inactive_color
+        self.border_inactive
     }
 
     #[inline]
     pub fn list_highlight_text_color(&self) -> Color {
-        self.list_highlight_text_color
+        self.list_highlight_text
     }
 
     #[inline]
-    pub fn list_highlight_bg_color(&self) -> Color {
-        self.list_highlight_bg_color
+    pub fn list_highlight_color(&self) -> Color {
+        self.list_highlight
     }
 
     #[inline]
     pub fn text_color(&self) -> Color {
-        self.text_color
+        self.text
     }
 
     #[inline]
     pub fn text_input_color(&self) -> Color {
-        self.text_input_color
+        self.text_input
     }
 
     #[inline]
     pub fn text_muted_color(&self) -> Color {
-        self.text_muted_color
+        self.text_muted
     }
 
     #[inline]
     pub fn text_param_color(&self) -> Color {
-        self.text_param_color
+        self.text_param
     }
 
     #[inline]
     pub fn text_param_disabled_color(&self) -> Color {
-        self.text_param_disabled_color
+        self.text_param_disabled
     }
 
     #[inline]
     pub fn keys_color(&self) -> Color {
-        self.keys_color
+        self.keys
     }
 
     #[inline]
     pub fn modal_title_color(&self) -> Color {
-        self.accent_light_color
+        self.accent_light
     }
 
     #[inline]
     pub fn info_text_color(&self) -> Color {
-        self.info_text_color
+        self.info_text
     }
 
     #[inline]
     pub fn warning_color(&self) -> Color {
-        self.warning_color
+        self.warning
     }
 
     #[inline]
     pub fn warning_text_color(&self) -> Color {
-        self.warning_text_color
+        self.warning_text
     }
 
     #[inline]
     pub fn error_color(&self) -> Color {
-        self.error_color
+        self.error
     }
 
     // ----- Other styles produced from getters -----
@@ -227,17 +227,7 @@ impl Theme {
     pub fn list_highlight_style(&self) -> Style {
         Style::default()
             .fg(self.list_highlight_text_color())
-            .bg(self.list_highlight_bg_color())
-    }
-
-    #[inline]
-    pub fn tab_bg_active(&self) -> Color {
-        self.accent_color()
-    }
-
-    #[inline]
-    pub fn tab_bg_inactive(&self) -> Color {
-        self.border_inactive_color()
+            .bg(self.list_highlight_color())
     }
 
     #[inline]
@@ -247,34 +237,34 @@ impl Theme {
 
     #[inline]
     pub fn info_style(&self) -> Style {
-        Style::new().fg(self.info_color)
+        Style::new().fg(self.info)
     }
 
     #[inline]
     pub fn warning_style(&self) -> Style {
-        Style::new().fg(self.warning_color)
+        Style::new().fg(self.warning)
     }
 
     #[inline]
     pub fn error_style(&self) -> Style {
-        Style::new().fg(self.error_color)
+        Style::new().fg(self.error)
     }
 
     #[inline]
     pub fn error_bg_style(&self) -> Style {
-        Style::new().fg(self.error_text_color).bg(self.error_color)
+        Style::new().fg(self.error_text).bg(self.error)
     }
 
     /// effy logo in Help modal
     #[inline]
     pub fn logo_color(&self) -> Color {
-        self.keys_color
+        self.keys
     }
 
     /// ratatui logo in Help modal
     #[inline]
     pub fn ratatui_logo_color(&self) -> Color {
-        self.list_highlight_bg_color()
+        self.list_highlight_color()
     }
 
     /// ratatui logo in Help modal
@@ -287,9 +277,9 @@ impl Theme {
     #[inline]
     pub fn link_style(&self) -> Style {
         Style::new()
-            .fg(self.accent_color)
+            .fg(self.accent)
             .underlined()
-            .underline_color(self.accent_light_color)
+            .underline_color(self.accent_light)
     }
 
     /// Info pane format/streams keys

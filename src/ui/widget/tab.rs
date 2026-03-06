@@ -1,5 +1,5 @@
 use ratatui::{
-    style::{Color, Style},
+    style::Style,
     text::{Line, Span},
 };
 
@@ -17,17 +17,19 @@ pub struct Tab<'a> {
 pub struct TabStyle {
     pub active_style: Style,
     pub inactive_style: Style,
-    pub active_bg: Color,
-    pub inactive_bg: Color,
 }
 
 impl TabStyle {
-    pub fn from_theme(theme: &Theme) -> Self {
+    pub fn from_theme(theme: &Theme, focused: bool) -> Self {
+        let active: Style = if focused {
+            theme.pane_title_color().into()
+        } else {
+            theme.text_muted_color().into()
+        };
+        let inactive: Style = theme.text_muted_color().into();
         Self {
-            active_style: theme.text_color().into(),
-            inactive_style: theme.text_muted_color().into(),
-            active_bg: theme.tab_bg_active(),
-            inactive_bg: theme.background_color(),
+            active_style: active.bold(),
+            inactive_style: inactive.not_bold(),
         }
     }
 }
@@ -36,16 +38,17 @@ pub fn tabs_line<'a>(tabs: &[Tab<'a>], style: TabStyle) -> Line<'a> {
     if tabs.is_empty() {
         return Line::default();
     }
-    let mut spans = Vec::with_capacity(tabs.len() * 3);
-    for tab in tabs {
-        let (label_style, bg) = if tab.active {
-            (style.active_style, style.active_bg)
+    let mut spans = Vec::with_capacity(tabs.len() * 2 - 1);
+    for (i, tab) in tabs.iter().enumerate() {
+        let label_style = if tab.active {
+            style.active_style
         } else {
-            (style.inactive_style, style.inactive_bg)
+            style.inactive_style
         };
-        spans.push(Span::styled("", bg));
-        spans.push(Span::styled(tab.label, label_style.bg(bg)));
-        spans.push(Span::styled("", bg));
+        if i != 0 {
+            spans.push(Span::raw(" • "));
+        }
+        spans.push(Span::styled(tab.label, label_style));
     }
     Line::from(spans)
 }

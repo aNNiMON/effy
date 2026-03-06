@@ -42,7 +42,7 @@ impl UiModal for HelpModal<'static> {
                 active: !keys_tab_active,
             },
         ];
-        let tabs_style = TabStyle::from_theme(theme);
+        let tabs_style = TabStyle::from_theme(theme, true);
         let block = Block::default()
             .title_top(tabs_line(&tabs, tabs_style).left_aligned())
             .borders(Borders::all())

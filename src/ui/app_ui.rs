@@ -87,12 +87,12 @@ impl Widget for &mut App<'_> {
 
         // Info/Output pane
         {
-            let (border_style, tab_color) =
-                if matches!(self.current_pane, Pane::Info | Pane::Output) {
-                    (highlighted_style, self.theme.tab_bg_active())
-                } else {
-                    (default_style, self.theme.tab_bg_inactive())
-                };
+            let pane_active = matches!(self.current_pane, Pane::Info | Pane::Output);
+            let border_style = if pane_active {
+                highlighted_style
+            } else {
+                default_style
+            };
             let info_active = matches!(self.active_out_pane, Pane::Info);
             let tabs = [
                 Tab {
@@ -104,8 +104,7 @@ impl Widget for &mut App<'_> {
                     active: !info_active,
                 },
             ];
-            let mut tabs_style = TabStyle::from_theme(&self.theme);
-            tabs_style.active_bg = tab_color;
+            let tabs_style = TabStyle::from_theme(&self.theme, pane_active);
             let mut block = Block::default()
                 .borders(Borders::ALL)
                 .border_set(symbols::border::ROUNDED)

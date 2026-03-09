@@ -4,16 +4,25 @@ icon: lucide/scroll-text
 
 # Changelog
 
-See also [GitHub Releases](https://github.com/aNNiMON/effy/releases)
+See also [:lucide-github: GitHub Releases](https://github.com/aNNiMON/effy/releases)
+
+## 0.8.0 - Help modal, Styling
+
+- Added Help/About modal, ++f1++ / ++question++
+- Optimize for network usage (`-movflags faststart`) by default for mp4/mov outputs
+- Styling improvements. Internal preparation for theming support
+- Improved detecting static images
+- Improved filename validations
+- ==[Linux]== Fixed clipboard copy warning
 
 ## 0.7.2
 
 - Combined Info and Output panes as tabs. Use ++i++ and ++o++ keys for quick switch
 - Copy ffmpeg command by pressing ++y++
 - Added file overwrite confirmation in 'Render as' modal
-- Fix output format is not considered in 'Render as' modal
+- Fixed output format is not considered in 'Render as' modal
 - ==[Linux]== Fixed VAAPI initialization. Added `scale_vaapi` filter support
-- Add macos builds to CI
+- Added macos builds to CI
 
 ## 0.7.1 - Presets
 

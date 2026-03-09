@@ -6,7 +6,7 @@ icon: lucide/file-terminal
 
 ## Pre-compiled binaries
 
-Download from [Releases](https://github.com/aNNiMON/effy/releases)
+Download from [:lucide-github: GitHub Releases](https://github.com/aNNiMON/effy/releases)
 
 ## Install using `cargo`
 

@@ -41,6 +41,8 @@ effy --preset "noaudio:1;vbitrate:90k;scale:400;output:mp4" input.mp4
 
 If the `--apply` argument is specified, the TUI won't be displayed and processing will start immediately.
 
+See [:lucide-github: demo](https://github.com/aNNiMON/effy/releases/tag/v0.7.1).
+
 ----
 
 ## TUI
@@ -48,6 +50,9 @@ If the `--apply` argument is specified, the TUI won't be displayed and processin
 ### Terminal window
 
 effy has 3 selectable panes: parameters, info and output. The Parameters pane is focused by default. Press ++tab++ or ++shift+tab++ to switch focus.
+
+![TUI](assets/effy.png#only-dark)
+![TUI](assets/effyw.png#only-light)
 
 #### Parameters pane
 

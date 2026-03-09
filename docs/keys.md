@@ -6,6 +6,7 @@ icon: lucide/keyboard
 
 Key | Action
 ----|------
+++f1++, ++question++ | Show help
 ++tab++ | Focus next pane
 ++shift+tab++ | Focus previous pane
 ++i++ | Focus Info pane

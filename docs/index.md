@@ -6,8 +6,8 @@ icon: lucide/film
 
 effy is a terminal FFmpeg helper that simplifies common tasks. It's small and friendly, that's why it's named eFFy — FFmpeg's diminutive form.
 
-![effy TUI](assets/effy.png#only-dark)
-![effy TUI](assets/effyw.png#only-light)
+![effy TUI](assets/main.gif#only-dark)
+![effy TUI](assets/mainw.gif#only-light)
 
 ## Features
 

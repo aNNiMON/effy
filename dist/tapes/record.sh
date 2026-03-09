@@ -45,3 +45,14 @@ run
 
 echo "Processing done. Results:"
 du -hs "$OUT"/*
+
+if command -v magick >/dev/null 2>&1
+then
+  echo "Optimizing..."
+  OPT=".assets/opt"
+  cp -r "$OUT" "$OPT"
+  magick mogrify -dither none -colors 32 "$OPT"/*
+  echo "Optimizing done. Results:"
+  du -hs "$OPT"/*
+fi
+

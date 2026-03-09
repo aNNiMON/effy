@@ -1,0 +1,117 @@
+Output $OUT/main${TYPE}.gif
+Require effy
+
+# Terminal style
+Set Shell zsh
+Set Width 1080
+Set Height 566
+Set FontSize 16
+Set Padding 8
+Set Theme "$THEME"
+
+# run effy in.mp4
+Sleep 500ms
+Type "effy .assets/in.mp4"
+Sleep 1s
+Enter
+
+# TUI
+Sleep 1.8s
+
+# Trim
+Enter
+Sleep 250ms
+Type "00:04"
+Sleep 400ms
+Tab
+Sleep 200ms
+Type "1"
+Sleep 500ms
+# Validation
+Enter
+Screenshot "$OUT/trimerror${TYPE}.png"
+Sleep 1s
+Type "2"
+Sleep 400ms
+Tab
+Sleep 400ms
+Tab
+Sleep 200ms
+Space@800ms 2
+Screenshot "$OUT/trim${TYPE}.png"
+Sleep 100ms
+Enter
+
+# Audio on/off
+Sleep 500ms
+Down
+Sleep 200ms
+Right
+Screenshot "$OUT/effy${TYPE}.png"
+Sleep 1s
+Right
+Sleep 500ms
+
+# Audio params
+Down
+Right
+Sleep 300ms
+Right
+Sleep 300ms
+Down 2
+Left 2
+Sleep 100ms
+Down 2
+Right
+Sleep 200ms
+Down
+Sleep 200ms
+Right
+Sleep 300ms
+Enter
+
+# Video params
+Sleep 500ms
+Backspace 3
+Sleep 400ms
+Type "800k"
+Sleep 600ms
+Enter
+Sleep 600ms
+Down 2
+Sleep 200ms
+Enter
+# Scale
+Sleep 500ms
+Backspace
+Type "600"
+Sleep 400ms
+Enter
+Sleep 600ms
+
+# Render as
+Type "s"
+Sleep 1s
+Enter
+Sleep 1.5s
+
+# Help
+Type "?"
+Sleep 700ms
+Down@10ms 17
+Sleep 700ms
+Tab
+Screenshot "$OUT/about${TYPE}.png"
+Sleep 1s
+Escape
+
+# Output mp3
+Down@80ms 2
+Sleep 1s
+Right
+Sleep 800ms
+
+# Quick render
+Ctrl+S
+Sleep 2s
+

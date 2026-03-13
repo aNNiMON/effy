@@ -12,6 +12,8 @@ impl OutputFormat {
     pub(crate) const ID: &'static str = "output";
     pub(crate) const NAME: &'static str = "Output";
 
+    const AUDIO_TYPES: [&'static str; 4] = ["mp3", "wav", "flac", "ogg"];
+
     pub fn new_parameter(info: &Info, source_ext: &str) -> Parameter {
         Parameter::new(
             Self::ID,
@@ -22,7 +24,7 @@ impl OutputFormat {
     }
 
     pub(crate) fn is_audio(ext: &str) -> bool {
-        ext == "mp3" || ext == "wav" || ext == "flac" || ext == "ogg"
+        Self::AUDIO_TYPES.contains(&ext)
     }
 
     fn get_parameter_data(info: &Info, ext: &str) -> ParameterData {
@@ -32,10 +34,7 @@ impl OutputFormat {
             options.push("mp4");
         }
         if info.has_audio() {
-            options.push("mp3");
-            options.push("wav");
-            options.push("flac");
-            options.push("ogg");
+            options.extend(Self::AUDIO_TYPES);
         }
         if !options.contains(&ext) {
             selected_index = options.len();
@@ -44,6 +43,33 @@ impl OutputFormat {
         ParameterData::Select {
             options: options.into_iter().map(SelectOption::from).collect(),
             selected_index,
+        }
+    }
+
+    pub(crate) fn toggle_audio_formats(param: &mut Parameter, new_state: bool) {
+        if let ParameterData::Select {
+            options,
+            selected_index,
+        } = &mut param.data
+        {
+            options
+                .iter_mut()
+                .filter(|o| Self::is_audio(&o.value))
+                .for_each(|option| {
+                    option.available = new_state;
+                });
+
+            // Shift to next available option if current is not available
+            // Or disable entire param if no available options left
+            if let Some(current) = options.get(*selected_index)
+                && !current.available
+            {
+                if let Some(new_index) = options.iter().position(|o| o.available) {
+                    *selected_index = new_index;
+                } else {
+                    param.enabled = false;
+                }
+            }
         }
     }
 

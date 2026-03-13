@@ -8,6 +8,7 @@ use crate::model::{
 pub(crate) struct SelectOption {
     pub(crate) name: String,
     pub(crate) value: String,
+    pub(crate) available: bool,
 }
 
 impl From<&str> for SelectOption {
@@ -15,6 +16,7 @@ impl From<&str> for SelectOption {
         SelectOption {
             name: value.to_owned(),
             value: value.to_owned(),
+            available: true,
         }
     }
 }
@@ -24,6 +26,7 @@ impl From<(&str, &str)> for SelectOption {
         SelectOption {
             name: name.to_owned(),
             value: value.to_owned(),
+            available: true,
         }
     }
 }
@@ -95,11 +98,19 @@ impl Parameter {
                 selected_index,
             } => {
                 if !options.is_empty() {
-                    *selected_index = if *selected_index == 0 {
-                        options.len() - 1
+                    let last = options.len() - 1;
+                    let mut next = if *selected_index == 0 {
+                        last
                     } else {
                         *selected_index - 1
                     };
+                    for _ in 0..=last {
+                        if options[next].available {
+                            break;
+                        }
+                        next = if next == 0 { last } else { next - 1 };
+                    }
+                    *selected_index = next;
                 }
             }
             ParameterData::CustomSelect {
@@ -134,11 +145,20 @@ impl Parameter {
                 selected_index,
             } => {
                 if !options.is_empty() {
-                    *selected_index = if *selected_index >= options.len() - 1 {
+                    // Select next available option
+                    let last = options.len() - 1;
+                    let mut next = if *selected_index >= last {
                         0
                     } else {
                         *selected_index + 1
                     };
+                    for _ in 0..=last {
+                        if options[next].available {
+                            break;
+                        }
+                        next = if next >= last { 0 } else { next + 1 };
+                    }
+                    *selected_index = next;
                 }
             }
             ParameterData::CustomSelect {
@@ -166,6 +186,7 @@ impl Parameter {
             ParameterData::Select {
                 options,
                 selected_index,
+                ..
             } => options
                 .get(*selected_index)
                 .map_or_else(String::new, |option| option.name.clone()),
@@ -258,7 +279,7 @@ pub trait PresetParameter {
                 selected_index,
             } => {
                 for (i, option) in options.iter().enumerate() {
-                    if option.value == new_value {
+                    if option.value == new_value && option.available {
                         *selected_index = i;
                         break;
                     }

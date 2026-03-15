@@ -40,6 +40,7 @@ pub(crate) struct App<'a> {
     // Input
     pub original_filename: Box<str>,
     pub source: Source,
+    pub info: &'a Info,
     pub info_state: InfoPaneState<'a>,
     // Output
     pub out_state: OutputPaneState,
@@ -50,8 +51,8 @@ pub(crate) struct App<'a> {
     render_stdin: Option<ChildStdin>,
 }
 
-impl App<'_> {
-    pub fn new(tx: Sender<AppEvent>, info: &Info, source: Source, preset: Option<&str>) -> Self {
+impl<'a> App<'a> {
+    pub fn new(tx: Sender<AppEvent>, info: &'a Info, source: Source, preset: Option<&str>) -> Self {
         let mut list_state = ListState::default();
         list_state.select(Some(0));
         let folder = source.input_folder();
@@ -78,6 +79,7 @@ impl App<'_> {
             // Info
             original_filename,
             source,
+            info,
             info_state,
             // Output
             out_state: OutputPaneState::new(String::new()),
@@ -383,7 +385,7 @@ impl App<'_> {
     }
 
     fn build_ffmpeg_command(&mut self, overwrite: bool) -> Vec<String> {
-        let mut command_builder = CommandBuilder::default();
+        let mut command_builder = CommandBuilder::new(self.info);
         apply_visitor(&mut command_builder, &mut self.params);
         let input = self.source.input.clone();
         let mut path = PathBuf::new()

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use tracing::debug;
+use tracing::{Level, debug, enabled};
 
 use crate::{
     model::{InputConstraints, InputType},
@@ -53,6 +53,15 @@ impl SpeedFactor {
         if let Some(value) = select_non_default_custom_value!(data) {
             cb.speed_factor = value.parse().ok();
             debug!(speed_factor = cb.speed_factor, "build_command");
+            if enabled!(Level::DEBUG)
+                && let (Some(in_duration), Some(speed)) = (cb.input_duration, cb.speed_factor)
+            {
+                debug!(
+                    in_duration = in_duration,
+                    out_duration = in_duration / speed,
+                    "build_command"
+                );
+            }
             if !cb.discard_audio {
                 cb.audio_filters.push(format!("atempo={}", &value));
             }

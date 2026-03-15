@@ -1,9 +1,12 @@
-use crate::{params::*, visitors::ParameterVisitor};
+use crate::{info::Info, params::*, visitors::ParameterVisitor};
 
 /// Build FFmpeg command from parameters
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub(crate) struct CommandBuilder {
+    // from input info
+    pub(crate) input_duration: Option<f64>,
+    // from params
     pub(crate) discard_audio: bool,
     pub(crate) hwaccel: HWAccel,
     pub(crate) speed_factor: Option<f64>,
@@ -16,7 +19,7 @@ pub(crate) struct CommandBuilder {
     pub(crate) ext: String,
 }
 
-#[derive(PartialEq, Default)]
+#[derive(Debug, Default, PartialEq)]
 pub(crate) enum HWAccel {
     #[default]
     None,
@@ -33,6 +36,13 @@ pub(crate) enum HWAccel {
 }
 
 impl CommandBuilder {
+    pub(crate) fn new(info: &Info) -> Self {
+        Self {
+            input_duration: info.get_duration(),
+            ..Default::default()
+        }
+    }
+
     pub(crate) fn build_pre_input_args(&self) -> &[String] {
         &self.pre_input_args
     }

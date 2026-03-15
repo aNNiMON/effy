@@ -142,7 +142,7 @@ pub(crate) fn get_output_format(params: &[Parameter]) -> Option<&SelectOption> {
 }
 
 pub(crate) fn apply_visitor(visitor: &mut dyn ParameterVisitor, params: &mut [Parameter]) {
-    // Apply visitor based on logical order, which is slight different from UI order
+    // Apply visitor based on logical order, which is slightly different from UI order
     let mut sorted_params: Vec<&mut Parameter> =
         params.iter_mut().filter(|param| param.enabled).collect();
     sorted_params.sort_by_key(|param| param.order);

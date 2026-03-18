@@ -109,7 +109,7 @@ impl<'a> App<'a> {
                 Ok(AppEvent::AddOutput(output)) => self.out_state.add_output(&output),
                 Ok(AppEvent::SaveCompleted(success)) => self.on_save_complete(success),
                 Ok(AppEvent::OpenTrimModal(data)) => {
-                    self.modal = Some(Box::new(TrimModal::from(data)));
+                    self.modal = Some(Box::new(TrimModal::new(data, self.info.get_duration())));
                 }
                 Ok(AppEvent::OpenCustomSelectModal(data)) => {
                     self.modal = Some(Box::new(CustomSelectModal::from(data)));

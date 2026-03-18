@@ -1,4 +1,4 @@
-use tracing::debug;
+use tracing::{debug, error, warn};
 
 use crate::{
     model::TrimData,
@@ -25,9 +25,29 @@ impl Trim {
     }
 
     pub fn build_command(cb: &mut CommandBuilder, data: &ParameterData) {
-        if let ParameterData::Trim(trim_data) = data
-            && !trim_data.is_empty()
+        if let ParameterData::Trim(trim_raw) = data
+            && !trim_raw.is_empty()
         {
+            let has_percents = trim_raw.contains_percents();
+            if has_percents && cb.input_duration.is_none() {
+                warn!("Trim contains percents and will be ignored when input duration is not set");
+                return;
+            }
+
+            let trim_data = if has_percents {
+                let duration = cb.input_duration.unwrap();
+                debug!(?trim_raw, ?duration, "build_command before normalization");
+                match trim_raw.normalize(duration) {
+                    Ok(td) => td,
+                    Err(err) => {
+                        error!("Failed to normalize trim: {}", err);
+                        return;
+                    }
+                }
+            } else {
+                trim_raw.clone()
+            };
+
             debug!(?trim_data, "build_command");
             let mut args = Vec::new();
 

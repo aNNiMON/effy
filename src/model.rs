@@ -26,6 +26,33 @@ impl TrimData {
     pub(crate) fn is_empty(&self) -> bool {
         self.ss.is_none() && self.to.is_none()
     }
+
+    pub(crate) fn contains_percents(&self) -> bool {
+        [self.ss.as_ref(), self.to.as_ref()]
+            .iter()
+            .any(|s| s.is_some_and(|s| s.ends_with("%")))
+    }
+
+    pub(crate) fn normalize(&self, duration: f64) -> Result<Self, &str> {
+        let mut data = self.clone();
+        if let Some(ss) = &self.ss
+            && ss.ends_with("%")
+        {
+            let percent = Self::to_percent(ss).ok_or("Invalid start time value")?;
+            data.ss = Some((duration * percent / 100.0).to_string());
+        }
+        if let Some(to) = &self.to
+            && to.ends_with("%")
+        {
+            let percent = Self::to_percent(to).ok_or("Invalid end time value")?;
+            data.to = Some((duration * percent / 100.0).to_string());
+        }
+        Ok(data)
+    }
+
+    fn to_percent(s: &str) -> Option<f64> {
+        s.strip_suffix('%').and_then(|s| s.parse::<f64>().ok())
+    }
 }
 
 /// Bitrate type

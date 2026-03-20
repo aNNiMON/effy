@@ -1,7 +1,10 @@
 use std::sync::{Arc, mpsc::Sender};
 
-use crate::model::{
-    AppEvent, CustomSelectData, InputConstraints, TrimData, ValidationCallback, ValueFormatter,
+use crate::{
+    model::{
+        AppEvent, CustomSelectData, InputConstraints, TrimData, ValidationCallback, ValueFormatter,
+    },
+    visitors::VisitorContext,
 };
 
 #[derive(Debug, Clone)]
@@ -262,9 +265,9 @@ impl ParameterData {
     }
 }
 
-pub trait PresetParameter {
-    fn apply_preset(data: &mut ParameterData, preset_value: &str);
-    fn save_preset(data: &ParameterData) -> Option<&str>;
+pub trait PresetParameter<'a> {
+    fn apply_preset(ctx: &VisitorContext, data: &mut ParameterData, preset_value: &str);
+    fn save_preset(ctx: &VisitorContext, data: &'a ParameterData) -> Option<String>;
 
     fn set_parameter_value(data: &mut ParameterData, new_value: &str) {
         match data {

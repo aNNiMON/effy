@@ -17,9 +17,11 @@ pub(crate) trait ParameterVisitor {
 mod command_builder;
 mod preset_applier;
 mod preset_saver;
+mod visitor_context;
 
 pub(crate) use command_builder::*;
 pub(crate) use preset_applier::*;
 pub(crate) use preset_saver::*;
+pub(crate) use visitor_context::*;
 
 use crate::params::ParameterData;

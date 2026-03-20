@@ -2,7 +2,7 @@ use tracing::debug;
 
 use crate::{
     params::{Parameter, ParameterData, PresetParameter},
-    visitors::CommandBuilder,
+    visitors::{CommandBuilder, VisitorContext},
 };
 
 pub(crate) struct DisableAudio;
@@ -26,16 +26,16 @@ impl DisableAudio {
     }
 }
 
-impl PresetParameter for DisableAudio {
-    fn apply_preset(data: &mut ParameterData, preset_value: &str) {
+impl<'a> PresetParameter<'a> for DisableAudio {
+    fn apply_preset(_ctx: &VisitorContext, data: &mut ParameterData, preset_value: &str) {
         Self::set_parameter_value(data, preset_value);
     }
 
-    fn save_preset(data: &ParameterData) -> Option<&str> {
+    fn save_preset(_ctx: &VisitorContext, data: &'a ParameterData) -> Option<String> {
         if let ParameterData::Toggle { value } = data
             && *value
         {
-            Some("1")
+            Some("1".to_owned())
         } else {
             None
         }

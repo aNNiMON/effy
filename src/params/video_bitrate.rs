@@ -8,7 +8,7 @@ use crate::{
         Parameter, ParameterData, PresetParameter, SelectOption,
         macros::select_non_default_custom_value,
     },
-    visitors::CommandBuilder,
+    visitors::{CommandBuilder, VisitorContext},
 };
 
 pub(crate) struct VideoBitrate;
@@ -70,14 +70,14 @@ impl VideoBitrate {
     }
 }
 
-impl PresetParameter for VideoBitrate {
-    fn apply_preset(data: &mut ParameterData, preset_value: &str) {
+impl<'a> PresetParameter<'a> for VideoBitrate {
+    fn apply_preset(_ctx: &VisitorContext, data: &mut ParameterData, preset_value: &str) {
         if Self::validate(preset_value).is_ok() {
             Self::set_parameter_value(data, preset_value);
         }
     }
 
-    fn save_preset(data: &ParameterData) -> Option<&str> {
-        select_non_default_custom_value!(data)
+    fn save_preset(_ctx: &VisitorContext, data: &'a ParameterData) -> Option<String> {
+        select_non_default_custom_value!(data).cloned()
     }
 }

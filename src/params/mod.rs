@@ -42,7 +42,7 @@ pub(crate) use video_scale::*;
 use crate::{
     info::Info,
     params::macros::select_option,
-    visitors::{ParameterVisitor, PresetApplier, PresetSaver},
+    visitors::{ParameterVisitor, PresetApplier, PresetSaver, VisitorContext},
 };
 use tracing::{Level, debug, enabled};
 
@@ -72,19 +72,20 @@ pub(crate) fn create_params(info: &Info, preset: Option<&str>, source_ext: &str)
     }
     params.push(OutputFormat::new_parameter(info, source_ext));
     if let Some(preset_value) = preset {
-        apply_preset(&mut params, preset_value);
+        let ctx = VisitorContext::new(info);
+        apply_preset(ctx, &mut params, preset_value);
     }
     recheck_params(&mut params);
     params
 }
 
-pub(crate) fn apply_preset(params: &mut [Parameter], preset: &str) {
-    let mut preset_applier = PresetApplier::new(preset);
+pub(crate) fn apply_preset(ctx: VisitorContext, params: &mut [Parameter], preset: &str) {
+    let mut preset_applier = PresetApplier::new(ctx, preset);
     apply_visitor(&mut preset_applier, params);
 }
 
-pub(crate) fn save_preset(params: &mut [Parameter]) -> String {
-    let mut preset_saver = PresetSaver::new();
+pub(crate) fn save_preset(ctx: VisitorContext, params: &mut [Parameter]) -> String {
+    let mut preset_saver = PresetSaver::new(ctx);
     apply_visitor(&mut preset_saver, params);
     preset_saver.collect()
 }

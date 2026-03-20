@@ -22,7 +22,7 @@ use crate::ui::{
     AlertKind, AlertModal, CustomSelectModal, HelpModal, ModalResult, SaveAsFileModal, Theme,
     TrimModal, UiModal,
 };
-use crate::visitors::CommandBuilder;
+use crate::visitors::{CommandBuilder, VisitorContext};
 
 pub(crate) struct App<'a> {
     // App state
@@ -201,7 +201,8 @@ impl<'a> App<'a> {
 
     fn copy_preset(&mut self) {
         let (kind, msg) = match self.clipboard.as_mut().map(|ctx| {
-            let preset = save_preset(&mut self.params);
+            let visitor_ctx = VisitorContext::new(self.info);
+            let preset = save_preset(visitor_ctx, &mut self.params);
             ctx.set_text(preset)
         }) {
             Ok(_) => (AlertKind::Info, "Preset has been copied to clipboard"),
@@ -385,7 +386,8 @@ impl<'a> App<'a> {
     }
 
     fn build_ffmpeg_command(&mut self, overwrite: bool) -> Vec<String> {
-        let mut command_builder = CommandBuilder::new(self.info);
+        let ctx = VisitorContext::new(self.info);
+        let mut command_builder = CommandBuilder::new(ctx);
         apply_visitor(&mut command_builder, &mut self.params);
         let input = self.source.input.clone();
         let mut path = PathBuf::new()

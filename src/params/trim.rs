@@ -29,13 +29,13 @@ impl Trim {
             && !trim_raw.is_empty()
         {
             let has_percents = trim_raw.contains_percents();
-            if has_percents && cb.input_duration.is_none() {
+            if has_percents && cb.ctx.input_duration.is_none() {
                 warn!("Trim contains percents and will be ignored when input duration is not set");
                 return;
             }
 
             let trim_data = if has_percents {
-                let duration = cb.input_duration.unwrap();
+                let duration = cb.ctx.input_duration.unwrap();
                 debug!(?trim_raw, ?duration, "build_command before normalization");
                 match trim_raw.normalize(duration) {
                     Ok(td) => td,

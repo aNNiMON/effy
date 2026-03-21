@@ -24,7 +24,11 @@ impl<'a> PresetApplier<'a> {
 }
 
 impl ParameterVisitor for PresetApplier<'_> {
-    fn visit_trim(&mut self, _data: &mut ParameterData) {}
+    fn visit_trim(&mut self, data: &mut ParameterData) {
+        if let Some(preset_value) = self.preset_map.get(Trim::ID) {
+            Trim::apply_preset(&self.ctx, data, preset_value);
+        }
+    }
 
     fn visit_disable_audio(&mut self, data: &mut ParameterData) {
         if let Some(preset_value) = self.preset_map.get(DisableAudio::ID) {

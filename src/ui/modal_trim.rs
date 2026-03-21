@@ -11,8 +11,6 @@ use ratatui::{
     text::Line,
     widgets::{Block, Paragraph, Widget as _},
 };
-use regex::Regex;
-use tracing::debug;
 use tui_input::Input;
 use tui_input::backend::crossterm::EventHandler as _;
 
@@ -31,12 +29,6 @@ pub(crate) struct TrimModal {
     use_to: bool, // -t or -to
     duration: Option<f64>,
     error: Option<String>,
-}
-
-#[derive(Debug)]
-enum TimeValue {
-    Seconds(f64),
-    Percent(f64),
 }
 
 impl UiModal for TrimModal {
@@ -168,7 +160,9 @@ impl KeyboardHandler for TrimModal {
                 _ => {}
             },
             KeyCode::Enter => {
-                if let Some(msg) = self.validate() {
+                if let Some(msg) =
+                    TrimData::validate(self.ss.value(), self.to.value(), self.use_to, self.duration)
+                {
                     self.error = Some(msg.to_owned());
                     return ModalResult::None;
                 }
@@ -192,10 +186,6 @@ impl TrimModal {
             error: None,
         }
     }
-
-    fn has_duration(&self) -> bool {
-        self.duration.is_some()
-    }
 }
 
 impl From<&TrimModal> for TrimData {
@@ -210,10 +200,6 @@ impl From<&TrimModal> for TrimData {
 }
 
 impl TrimModal {
-    const REGEXP_SECONDS: &str = r"^([0-9]+)(\.[0-9]+)?$";
-    const REGEXP_HHMMSS: &str = r"^([0-9]{1,2}:)?([0-5]?[0-9]:)([0-5]?[0-9])(\.[0-9]+)?$";
-    const REGEXP_PERCENTS: &str = r"^((100(\.0+)?)|([0-9]{1,2}(\.[0-9]+)?))%$";
-
     fn render_status(&self, area: Rect, frame: &mut Frame, theme: &Theme) {
         let line = if let Some(error) = &self.error {
             Line::from(Span::styled(error, theme.error_style().bold())).centered()
@@ -248,96 +234,5 @@ impl TrimModal {
             && !(x == '%' && value.contains(':')) // no percent after colon
             && !((x == '%' || x == ':') && value.is_empty()) // percent/colon can't be first
             && !value.ends_with("%") // no more input after percent
-    }
-
-    fn validate(&self) -> Option<&str> {
-        let (ss, to) = (self.ss.value(), self.to.value());
-        if !ss.is_empty() && !Self::valid_value(ss) {
-            return Some("Incorrect start time format");
-        }
-        if !to.is_empty() && !Self::valid_value(to) {
-            return Some("Incorrect duration/to format");
-        }
-        if self.use_to && !ss.is_empty() && !to.is_empty() {
-            let ss_time = Self::to_time_value(ss, self.duration);
-            let to_time = Self::to_time_value(to, self.duration);
-            debug!(ss=?ss_time, to=?to_time);
-            if !ss_time.comparable_with(&to_time, self.has_duration()) {
-                return Some("% cannot be used if duration is not set");
-            }
-            if ss_time.gte(&to_time) {
-                return Some("End time must be greater than start time");
-            }
-        }
-        if !to.is_empty() && !Self::to_time_value(to, self.duration).greater_than_zero() {
-            return Some("Duration/to must be greater than zero");
-        }
-        None
-    }
-
-    fn valid_value(value: &str) -> bool {
-        let regexs = [
-            Self::REGEXP_SECONDS,
-            Self::REGEXP_HHMMSS,
-            Self::REGEXP_PERCENTS,
-        ];
-        regexs.iter().any(|rstr| {
-            let re = Regex::new(rstr).expect("Valid regex");
-            re.is_match(value)
-        })
-    }
-
-    fn to_time_value(value: &str, duration: Option<f64>) -> TimeValue {
-        if value.ends_with("%") {
-            Self::parse_percent(value, duration)
-        } else {
-            let parts: Vec<&str> = value.split(':').collect();
-            let mut total_seconds = 0.0_f64;
-            for (i, part) in parts.iter().rev().enumerate() {
-                if let Ok(num) = part.parse::<f64>() {
-                    total_seconds += num * 60_f64.powi(i as i32);
-                }
-            }
-            TimeValue::Seconds(total_seconds)
-        }
-    }
-
-    fn parse_percent(value: &str, duration: Option<f64>) -> TimeValue {
-        let percent = value
-            .strip_suffix("%")
-            .map(|s| s.parse::<f64>().unwrap_or_default())
-            .unwrap_or_default();
-        if let Some(duration) = duration {
-            TimeValue::Seconds(duration * percent / 100.0)
-        } else {
-            TimeValue::Percent(percent)
-        }
-    }
-}
-
-impl TimeValue {
-    fn comparable_with(&self, other: &Self, has_duration: bool) -> bool {
-        match (self, other) {
-            (TimeValue::Seconds(_), TimeValue::Seconds(_)) => true,
-            (TimeValue::Percent(_), TimeValue::Percent(_)) => has_duration,
-            (TimeValue::Seconds(_), TimeValue::Percent(_)) => has_duration,
-            (TimeValue::Percent(_), TimeValue::Seconds(_)) => has_duration,
-        }
-    }
-
-    fn gte(&self, other: &Self) -> bool {
-        match (self, other) {
-            (TimeValue::Seconds(a), TimeValue::Seconds(b)) => a >= b,
-            (TimeValue::Percent(a), TimeValue::Percent(b)) => a >= b,
-            (TimeValue::Seconds(a), TimeValue::Percent(b)) => a >= b,
-            (TimeValue::Percent(a), TimeValue::Seconds(b)) => a >= b,
-        }
-    }
-
-    fn greater_than_zero(&self) -> bool {
-        match self {
-            TimeValue::Seconds(v) => *v > 0.0,
-            TimeValue::Percent(v) => *v > 0.0,
-        }
     }
 }

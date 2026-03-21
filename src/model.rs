@@ -5,6 +5,9 @@ use std::{
     sync::Arc,
 };
 
+use regex::Regex;
+use tracing::debug;
+
 /// Main UI panes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum Pane {
@@ -23,6 +26,10 @@ pub(crate) struct TrimData {
 }
 
 impl TrimData {
+    const REGEXP_SECONDS: &str = r"^([0-9]+)(\.[0-9]+)?$";
+    const REGEXP_HHMMSS: &str = r"^([0-9]{1,2}:)?([0-5]?[0-9]:)([0-5]?[0-9])(\.[0-9]+)?$";
+    const REGEXP_PERCENTS: &str = r"^((100(\.0+)?)|([0-9]{1,2}(\.[0-9]+)?))%$";
+
     pub(crate) fn is_empty(&self) -> bool {
         self.ss.is_none() && self.to.is_none()
     }
@@ -52,6 +59,120 @@ impl TrimData {
 
     fn to_percent(s: &str) -> Option<f64> {
         s.strip_suffix('%').and_then(|s| s.parse::<f64>().ok())
+    }
+
+    pub(crate) fn validate(
+        ss: &str,
+        to: &str,
+        use_to: bool,
+        duration: Option<f64>,
+    ) -> Option<&'static str> {
+        if !ss.is_empty() && !Self::valid_value(ss) {
+            return Some("Incorrect start time format");
+        }
+        if !to.is_empty() && !Self::valid_value(to) {
+            return Some("Incorrect duration/to format");
+        }
+        if use_to && !ss.is_empty() && !to.is_empty() {
+            let ss_time = Self::to_time_value(ss, duration);
+            let to_time = Self::to_time_value(to, duration);
+            debug!(ss=?ss_time, to=?to_time);
+            if !ss_time.comparable_with(&to_time, duration.is_some()) {
+                return Some("% cannot be used if duration is not set");
+            }
+            if ss_time.gte(&to_time) {
+                return Some("End time must be greater than start time");
+            }
+        }
+        if !to.is_empty() && !Self::to_time_value(to, duration).greater_than_zero() {
+            return Some("Duration/to must be greater than zero");
+        }
+        None
+    }
+
+    pub(crate) fn valid_value(value: &str) -> bool {
+        let regexs = [
+            Self::REGEXP_SECONDS,
+            Self::REGEXP_HHMMSS,
+            Self::REGEXP_PERCENTS,
+        ];
+        regexs.iter().any(|rstr| {
+            let re = Regex::new(rstr).expect("Valid regex");
+            re.is_match(value)
+        })
+    }
+
+    fn to_time_value(value: &str, duration: Option<f64>) -> TimeValue {
+        if value.ends_with("%") {
+            Self::parse_percent(value, duration)
+        } else {
+            let parts: Vec<&str> = value.split(':').collect();
+            let mut total_seconds = 0.0_f64;
+            for (i, part) in parts.iter().rev().enumerate() {
+                if let Ok(num) = part.parse::<f64>() {
+                    total_seconds += num * 60_f64.powi(i as i32);
+                }
+            }
+            TimeValue::Seconds(total_seconds)
+        }
+    }
+
+    fn parse_percent(value: &str, duration: Option<f64>) -> TimeValue {
+        let percent = value
+            .strip_suffix("%")
+            .map(|s| s.parse::<f64>().unwrap_or_default())
+            .unwrap_or_default();
+        if let Some(duration) = duration {
+            TimeValue::Seconds(duration * percent / 100.0)
+        } else {
+            TimeValue::Percent(percent)
+        }
+    }
+}
+
+impl Display for TrimData {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}{}..{} {}",
+            if self.precise { "!" } else { "~" },
+            self.ss.as_deref().unwrap_or("start"),
+            self.to.as_deref().unwrap_or("end"),
+            if self.use_to { "(to)" } else { "(duration)" },
+        )
+    }
+}
+
+#[derive(Debug)]
+enum TimeValue {
+    Seconds(f64),
+    Percent(f64),
+}
+
+impl TimeValue {
+    fn comparable_with(&self, other: &Self, has_duration: bool) -> bool {
+        match (self, other) {
+            (TimeValue::Seconds(_), TimeValue::Seconds(_)) => true,
+            (TimeValue::Percent(_), TimeValue::Percent(_)) => has_duration,
+            (TimeValue::Seconds(_), TimeValue::Percent(_)) => has_duration,
+            (TimeValue::Percent(_), TimeValue::Seconds(_)) => has_duration,
+        }
+    }
+
+    fn gte(&self, other: &Self) -> bool {
+        match (self, other) {
+            (TimeValue::Seconds(a), TimeValue::Seconds(b)) => a >= b,
+            (TimeValue::Percent(a), TimeValue::Percent(b)) => a >= b,
+            (TimeValue::Seconds(a), TimeValue::Percent(b)) => a >= b,
+            (TimeValue::Percent(a), TimeValue::Seconds(b)) => a >= b,
+        }
+    }
+
+    fn greater_than_zero(&self) -> bool {
+        match self {
+            TimeValue::Seconds(v) => *v > 0.0,
+            TimeValue::Percent(v) => *v > 0.0,
+        }
     }
 }
 

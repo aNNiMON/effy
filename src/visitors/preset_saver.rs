@@ -29,7 +29,11 @@ impl PresetSaver {
 }
 
 impl ParameterVisitor for PresetSaver {
-    fn visit_trim(&mut self, _data: &mut ParameterData) {}
+    fn visit_trim(&mut self, data: &mut ParameterData) {
+        if let Some(v) = Trim::save_preset(&self.ctx, data) {
+            self.add(Trim::ID, &v);
+        }
+    }
 
     fn visit_disable_audio(&mut self, data: &mut ParameterData) {
         if let Some(v) = DisableAudio::save_preset(&self.ctx, data) {

@@ -202,15 +202,7 @@ impl Parameter {
                     value.clone()
                 }
             }
-            ParameterData::Trim(data) => {
-                format!(
-                    "{}{}..{} {}",
-                    if data.precise { "!" } else { "~" },
-                    data.ss.as_deref().unwrap_or("start"),
-                    data.to.as_deref().unwrap_or("end"),
-                    if data.use_to { "(to)" } else { "(duration)" },
-                )
-            }
+            ParameterData::Trim(data) => data.to_string(),
         }
     }
 

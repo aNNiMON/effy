@@ -1,9 +1,9 @@
-use tracing::{debug, error, warn};
+use tracing::{debug, warn};
 
 use crate::{
     model::TrimData,
-    params::{Parameter, ParameterData},
-    visitors::CommandBuilder,
+    params::{Parameter, ParameterData, PresetParameter},
+    visitors::{CommandBuilder, VisitorContext},
 };
 
 pub(crate) struct Trim;
@@ -40,7 +40,7 @@ impl Trim {
                 match trim_raw.normalize(duration) {
                     Ok(td) => td,
                     Err(err) => {
-                        error!("Failed to normalize trim: {}", err);
+                        warn!("Failed to normalize trim: {}", err);
                         return;
                     }
                 }
@@ -103,5 +103,66 @@ impl Trim {
             _ => 0.0,
         };
         format!("{:.3}", seconds / multiplier)
+    }
+}
+
+impl<'a> PresetParameter<'a> for Trim {
+    fn apply_preset(ctx: &VisitorContext, data: &mut ParameterData, preset_value: &str) {
+        if let ParameterData::Trim(trim_raw) = data {
+            // !start..end+
+            let mut result = TrimData::default();
+            let s = preset_value.trim();
+            // Precise
+            let s = if let Some(updated) = s.strip_prefix("!") {
+                result.precise = true;
+                updated
+            } else {
+                s
+            };
+            // Use duration (+) or to
+            let s = if let Some(updated) = s.strip_suffix("+") {
+                result.use_to = false;
+                updated
+            } else {
+                result.use_to = true;
+                s
+            };
+            // start..end
+            let parts: Vec<&str> = s.split("..").collect();
+            if parts.len() != 2 {
+                return;
+            }
+            let ss = parts[0];
+            if TrimData::valid_value(ss) {
+                result.ss = Some(ss.to_owned());
+            }
+            let to = parts[1];
+            if TrimData::valid_value(to) {
+                result.to = Some(to.to_owned());
+            }
+            if let Some(msg) = TrimData::validate(ss, to, result.use_to, ctx.input_duration) {
+                warn!("Trim preset is not valid and will be skipped: {}", msg);
+            } else {
+                *trim_raw = result;
+            }
+        }
+    }
+
+    fn save_preset(_ctx: &VisitorContext, data: &'a ParameterData) -> Option<String> {
+        if let ParameterData::Trim(trim_raw) = data {
+            if trim_raw.is_empty() {
+                None
+            } else {
+                Some(format!(
+                    "{}{}..{}{}",
+                    if trim_raw.precise { "!" } else { "" },
+                    trim_raw.ss.as_deref().unwrap_or(""),
+                    trim_raw.to.as_deref().unwrap_or(""),
+                    if !trim_raw.use_to { "+" } else { "" }
+                ))
+            }
+        } else {
+            None
+        }
     }
 }

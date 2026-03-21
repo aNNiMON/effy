@@ -166,3 +166,175 @@ impl<'a> PresetParameter<'a> for Trim {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::model::TrimData;
+    use crate::params::ParameterData;
+    use crate::visitors::VisitorContext;
+
+    fn apply_preset(preset: &str) -> TrimData {
+        let ctx = VisitorContext {
+            input_duration: Some(100.0),
+        };
+        let mut data = ParameterData::Trim(TrimData::default());
+        Trim::apply_preset(&ctx, &mut data, preset);
+        match data {
+            ParameterData::Trim(t) => t,
+            _ => panic!("Expected Trim data"),
+        }
+    }
+
+    fn save_preset(trim_data: TrimData) -> Option<String> {
+        let ctx = VisitorContext {
+            input_duration: Some(100.0),
+        };
+        let data = ParameterData::Trim(trim_data);
+        Trim::save_preset(&ctx, &data)
+    }
+
+    #[test]
+    fn test_apply_precise_preset() {
+        let t = apply_preset("!10..20");
+        assert_eq!(t.ss.as_deref(), Some("10"));
+        assert_eq!(t.to.as_deref(), Some("20"));
+        assert!(t.use_to);
+        assert!(t.precise);
+    }
+
+    #[test]
+    fn test_apply_duration_preset() {
+        let t = apply_preset("10..20+");
+        assert_eq!(t.ss.as_deref(), Some("10"));
+        assert_eq!(t.to.as_deref(), Some("20"));
+        assert!(!t.use_to);
+        assert!(!t.precise);
+    }
+
+    #[test]
+    fn test_apply_invalid_preset() {
+        let t = apply_preset("start..end");
+        assert_eq!(t.ss, None);
+        assert_eq!(t.to, None);
+        assert!(!t.use_to);
+        assert!(!t.precise);
+    }
+
+    #[test]
+    fn test_apply_missing_split_preset() {
+        let t = apply_preset("10+");
+        assert_eq!(t.ss, None);
+        assert_eq!(t.to, None);
+        assert!(!t.use_to);
+    }
+
+    #[test]
+    fn test_apply_empty_start_preset() {
+        let t = apply_preset("!..20");
+        assert_eq!(t.ss, None);
+        assert_eq!(t.to.as_deref(), Some("20"));
+        assert!(t.use_to);
+        assert!(t.precise);
+    }
+
+    #[test]
+    fn test_apply_empty_end_preset() {
+        let t = apply_preset("00:10..");
+        assert_eq!(t.ss.as_deref(), Some("00:10"));
+        assert_eq!(t.to, None);
+        assert!(t.use_to);
+    }
+
+    #[test]
+    fn test_apply_percent_preset() {
+        let t = apply_preset("10%..20%");
+        assert_eq!(t.ss.as_deref(), Some("10%"));
+        assert_eq!(t.to.as_deref(), Some("20%"));
+    }
+
+    #[test]
+    fn test_apply_hhmmss_preset() {
+        let t = apply_preset("00:01:23.456..00:02:00");
+        assert_eq!(t.ss.as_deref(), Some("00:01:23.456"));
+        assert_eq!(t.to.as_deref(), Some("00:02:00"));
+    }
+
+    #[test]
+    fn test_apply_start_longer_in_percents_preset() {
+        let t = apply_preset("!90%..10");
+        assert_eq!(t.ss.as_deref(), None);
+        assert_eq!(t.to.as_deref(), None);
+        assert!(!t.use_to);
+        assert!(!t.precise);
+    }
+
+    #[test]
+    fn test_apply_zero_duration_preset() {
+        let t = apply_preset("10..0+");
+        assert_eq!(t.ss.as_deref(), None);
+        assert_eq!(t.to.as_deref(), None);
+        assert!(!t.use_to);
+    }
+
+    #[test]
+    fn test_save_empty_preset() {
+        let p = save_preset(TrimData::default());
+        assert_eq!(p, None);
+    }
+
+    #[test]
+    fn test_save_precise_duration_preset() {
+        let p = save_preset(TrimData {
+            ss: Some("10".to_string()),
+            to: Some("20".to_string()),
+            precise: true,
+            use_to: false,
+        });
+        assert_eq!(p, Some("!10..20+".to_string()));
+    }
+
+    #[test]
+    fn test_save_duration_only_preset() {
+        let p = save_preset(TrimData {
+            ss: None,
+            to: Some("30".to_string()),
+            precise: false,
+            use_to: false,
+        });
+        assert_eq!(p, Some("..30+".to_string()));
+    }
+
+    #[test]
+    fn test_save_start_only_preset() {
+        let p = save_preset(TrimData {
+            ss: Some("00:20:45".to_string()),
+            to: None,
+            precise: true,
+            use_to: true,
+        });
+        assert_eq!(p, Some("!00:20:45..".to_string()));
+    }
+
+    #[test]
+    fn test_save_percent_preset() {
+        let p = save_preset(TrimData {
+            ss: Some("10%".to_string()),
+            to: Some("20%".to_string()),
+            precise: false,
+            use_to: true,
+        });
+        assert_eq!(p, Some("10%..20%".to_string()));
+    }
+
+    #[test]
+    fn test_save_percent_mixed_preset() {
+        let p = save_preset(TrimData {
+            ss: Some("50.25".to_string()),
+            to: Some("80%".to_string()),
+            precise: true,
+            use_to: true,
+        });
+        assert_eq!(p, Some("!50.25..80%".to_string()));
+    }
+}

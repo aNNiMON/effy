@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::{
     params::*,
-    visitors::{ParameterVisitor, VisitorContext},
+    visitors::{PRESET_SEPARATOR, PRESET_VALUE_SEPARATOR, ParameterVisitor, VisitorContext},
 };
 
 /// Apply preset
@@ -16,8 +16,8 @@ pub(crate) struct PresetApplier<'a> {
 impl<'a> PresetApplier<'a> {
     pub(crate) fn new(ctx: VisitorContext, preset: &'a str) -> Self {
         let preset_map = preset
-            .split(';')
-            .filter_map(|p| p.split_once(':'))
+            .split(PRESET_SEPARATOR)
+            .filter_map(|p| p.split_once(PRESET_VALUE_SEPARATOR))
             .collect::<HashMap<&str, &str>>();
         Self { ctx, preset_map }
     }

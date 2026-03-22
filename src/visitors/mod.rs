@@ -1,3 +1,5 @@
+use crate::params::ParameterData;
+
 pub(crate) trait ParameterVisitor {
     fn visit_trim(&mut self, data: &mut ParameterData);
     fn visit_disable_audio(&mut self, data: &mut ParameterData);
@@ -19,9 +21,10 @@ mod preset_applier;
 mod preset_saver;
 mod visitor_context;
 
+pub const PRESET_SEPARATOR: &str = ";";
+pub const PRESET_VALUE_SEPARATOR: &str = "=";
+
 pub(crate) use command_builder::*;
 pub(crate) use preset_applier::*;
 pub(crate) use preset_saver::*;
 pub(crate) use visitor_context::*;
-
-use crate::params::ParameterData;

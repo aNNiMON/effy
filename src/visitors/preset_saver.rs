@@ -1,6 +1,6 @@
 use crate::{
     params::*,
-    visitors::{ParameterVisitor, VisitorContext},
+    visitors::{PRESET_SEPARATOR, PRESET_VALUE_SEPARATOR, ParameterVisitor, VisitorContext},
 };
 
 /// Get preset string from enabled parameters
@@ -20,11 +20,12 @@ impl PresetSaver {
     }
 
     pub fn collect(&self) -> String {
-        self.preset.join(";")
+        self.preset.join(PRESET_SEPARATOR)
     }
 
     fn add(&mut self, id: &str, value: &str) {
-        self.preset.push(format!("{id}:{value}"));
+        self.preset
+            .push(format!("{id}{PRESET_VALUE_SEPARATOR}{value}"));
     }
 }
 

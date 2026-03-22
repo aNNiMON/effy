@@ -8,7 +8,7 @@ use crate::{
         Parameter, ParameterData, PresetParameter, SelectOption,
         macros::select_non_default_custom_value,
     },
-    visitors::CommandBuilder,
+    visitors::{CommandBuilder, VisitorContext},
 };
 
 pub(crate) struct SpeedFactor;
@@ -54,7 +54,7 @@ impl SpeedFactor {
             cb.speed_factor = value.parse().ok();
             debug!(speed_factor = cb.speed_factor, "build_command");
             if enabled!(Level::DEBUG)
-                && let (Some(in_duration), Some(speed)) = (cb.input_duration, cb.speed_factor)
+                && let (Some(in_duration), Some(speed)) = (cb.ctx.input_duration, cb.speed_factor)
             {
                 debug!(
                     in_duration = in_duration,
@@ -70,14 +70,14 @@ impl SpeedFactor {
     }
 }
 
-impl PresetParameter for SpeedFactor {
-    fn apply_preset(data: &mut ParameterData, preset_value: &str) {
+impl<'a> PresetParameter<'a> for SpeedFactor {
+    fn apply_preset(_ctx: &VisitorContext, data: &mut ParameterData, preset_value: &str) {
         if Self::validate(preset_value).is_ok() {
             Self::set_parameter_value(data, preset_value);
         }
     }
 
-    fn save_preset(data: &ParameterData) -> Option<&str> {
-        select_non_default_custom_value!(data)
+    fn save_preset(_ctx: &VisitorContext, data: &'a ParameterData) -> Option<String> {
+        select_non_default_custom_value!(data).cloned()
     }
 }

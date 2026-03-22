@@ -3,7 +3,7 @@ use tracing::debug;
 use crate::{
     info::Info,
     params::{Parameter, ParameterData, PresetParameter, SelectOption},
-    visitors::CommandBuilder,
+    visitors::{CommandBuilder, VisitorContext},
 };
 
 pub(crate) struct OutputFormat;
@@ -86,19 +86,19 @@ impl OutputFormat {
     }
 }
 
-impl PresetParameter for OutputFormat {
-    fn apply_preset(data: &mut ParameterData, preset_value: &str) {
+impl<'a> PresetParameter<'a> for OutputFormat {
+    fn apply_preset(_ctx: &VisitorContext, data: &mut ParameterData, preset_value: &str) {
         Self::set_parameter_value(data, preset_value);
     }
 
-    fn save_preset(data: &ParameterData) -> Option<&str> {
+    fn save_preset(_ctx: &VisitorContext, data: &'a ParameterData) -> Option<String> {
         if let ParameterData::Select {
             options,
             selected_index,
         } = data
             && let Some(option) = options.get(*selected_index)
         {
-            Some(&option.value)
+            Some(option.value.clone())
         } else {
             None
         }

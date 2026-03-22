@@ -11,7 +11,6 @@ use ratatui::{
     text::Line,
     widgets::{Block, Paragraph, Widget as _},
 };
-use regex::Regex;
 use tui_input::Input;
 use tui_input::backend::crossterm::EventHandler as _;
 
@@ -28,6 +27,7 @@ pub(crate) struct TrimModal {
     to: Input,
     precise: bool,
     use_to: bool, // -t or -to
+    duration: Option<f64>,
     error: Option<String>,
 }
 
@@ -140,10 +140,10 @@ impl KeyboardHandler for TrimModal {
             KeyCode::BackTab => self.active_input = (self.active_input + 3) % 4,
             KeyCode::Tab => self.active_input = (self.active_input + 1) % 4,
             KeyCode::Char(x) => match (self.active_input, x) {
-                (0, '0'..='9' | '.' | ':') if Self::prevalidate_value(x, self.ss.value()) => {
+                (0, '0'..='9' | '.' | ':' | '%') if Self::prevalidate_value(x, self.ss.value()) => {
                     self.ss.handle_event(&Event::Key(key));
                 }
-                (1, '0'..='9' | '.' | ':') if Self::prevalidate_value(x, self.to.value()) => {
+                (1, '0'..='9' | '.' | ':' | '%') if Self::prevalidate_value(x, self.to.value()) => {
                     self.to.handle_event(&Event::Key(key));
                 }
                 (2, ' ') => self.precise = !self.precise,
@@ -160,7 +160,9 @@ impl KeyboardHandler for TrimModal {
                 _ => {}
             },
             KeyCode::Enter => {
-                if let Some(msg) = self.validate() {
+                if let Some(msg) =
+                    TrimData::validate(self.ss.value(), self.to.value(), self.use_to, self.duration)
+                {
                     self.error = Some(msg.to_owned());
                     return ModalResult::None;
                 }
@@ -172,14 +174,15 @@ impl KeyboardHandler for TrimModal {
     }
 }
 
-impl From<TrimData> for TrimModal {
-    fn from(data: TrimData) -> Self {
+impl TrimModal {
+    pub fn new(data: TrimData, duration: Option<f64>) -> Self {
         Self {
             active_input: 0,
             ss: Input::new(data.ss.unwrap_or_default()),
             to: Input::new(data.to.unwrap_or_default()),
             precise: data.precise,
             use_to: data.use_to,
+            duration,
             error: None,
         }
     }
@@ -197,9 +200,6 @@ impl From<&TrimModal> for TrimData {
 }
 
 impl TrimModal {
-    const REGEXP_SECONDS: &str = r"^([0-9]+)(\.[0-9]+)?$";
-    const REGEXP_HHMMSS: &str = r"^([0-9]{1,2}:)?([0-5]?[0-9]:)([0-5]?[0-9])(\.[0-9]+)?$";
-
     fn render_status(&self, area: Rect, frame: &mut Frame, theme: &Theme) {
         let line = if let Some(error) = &self.error {
             Line::from(Span::styled(error, theme.error_style().bold())).centered()
@@ -226,49 +226,13 @@ impl TrimModal {
     }
 
     fn prevalidate_value(x: char, value: &str) -> bool {
-        // Format 00:00:00.000 or seconds
+        // Format 00:00:00.000 or seconds or percentage 0..100%
         value.len() < 12
-            && !(x == '.' && value.contains('.'))
-            && !(x == ':' && value.matches(':').count() >= 2)
-    }
-
-    fn validate(&self) -> Option<&str> {
-        let (ss, to) = (self.ss.value(), self.to.value());
-        if !ss.is_empty() && !Self::valid_value(ss) {
-            return Some("Incorrect start time format");
-        }
-        if !to.is_empty() && !Self::valid_value(to) {
-            return Some("Incorrect duration/to format");
-        }
-        if self.use_to && !ss.is_empty() && !to.is_empty() {
-            let ss_sec = Self::to_seconds(ss);
-            let to_sec = Self::to_seconds(to);
-            if ss_sec >= to_sec {
-                return Some("End time must be greater than start time");
-            }
-        }
-        if !to.is_empty() && Self::to_seconds(to) <= 0.0 {
-            return Some("Duration/to must be greater than zero");
-        }
-        None
-    }
-
-    fn valid_value(value: &str) -> bool {
-        let regexs = [Self::REGEXP_SECONDS, Self::REGEXP_HHMMSS];
-        regexs.iter().any(|rstr| {
-            let re = Regex::new(rstr).expect("Valid regex");
-            re.is_match(value)
-        })
-    }
-
-    fn to_seconds(value: &str) -> f64 {
-        let parts: Vec<&str> = value.split(':').collect();
-        let mut total_seconds = 0.0_f64;
-        for (i, part) in parts.iter().rev().enumerate() {
-            if let Ok(num) = part.parse::<f64>() {
-                total_seconds += num * 60_f64.powi(i as i32);
-            }
-        }
-        total_seconds
+            && !((x == '.' || x == '%') && value.contains(x)) // only one percent/dot
+            && !(x == ':' && value.contains('.')) // no colons after dot
+            && !(x == ':' && value.matches(':').count() >= 2) // no more than 2 colons
+            && !(x == '%' && value.contains(':')) // no percent after colon
+            && !((x == '%' || x == ':') && value.is_empty()) // percent/colon can't be first
+            && !value.ends_with("%") // no more input after percent
     }
 }

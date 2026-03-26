@@ -26,9 +26,9 @@ pub(crate) struct TrimData {
 }
 
 impl TrimData {
-    const REGEXP_SECONDS: &str = r"^([0-9]+)(\.[0-9]+)?$";
-    const REGEXP_HHMMSS: &str = r"^([0-9]{1,2}:)?([0-5]?[0-9]:)([0-5]?[0-9])(\.[0-9]+)?$";
-    const REGEXP_PERCENTS: &str = r"^((100(\.0+)?)|([0-9]{1,2}(\.[0-9]+)?))%$";
+    const REGEXP_SECONDS: &str = r"^-?([0-9]+)(\.[0-9]+)?$";
+    const REGEXP_HHMMSS: &str = r"^-?([0-9]{1,2}:)?([0-5]?[0-9]:)([0-5]?[0-9])(\.[0-9]+)?$";
+    const REGEXP_PERCENTS: &str = r"^-?((100(\.0+)?)|([0-9]{1,2}(\.[0-9]+)?))%$";
 
     pub(crate) fn is_empty(&self) -> bool {
         self.ss.is_none() && self.to.is_none()
@@ -67,25 +67,55 @@ impl TrimData {
         use_to: bool,
         duration: Option<f64>,
     ) -> Option<&'static str> {
+        // Regex format check
         if !ss.is_empty() && !Self::valid_value(ss) {
             return Some("Incorrect start time format");
         }
         if !to.is_empty() && !Self::valid_value(to) {
             return Some("Incorrect duration/to format");
         }
-        if use_to && !ss.is_empty() && !to.is_empty() {
-            let ss_time = Self::to_time_value(ss, duration);
-            let to_time = Self::to_time_value(to, duration);
-            debug!(ss=?ss_time, to=?to_time);
-            if !ss_time.comparable_with(&to_time, duration.is_some()) {
-                return Some("% cannot be used if duration is not set");
+
+        debug!(ss=?ss, to=?to, duration=?duration, "Trim validate");
+
+        // Validate start time for all cases
+        // Normalize negative values relative to duration
+        let ss_normalized = if ss.is_empty() {
+            None
+        } else {
+            match (Self::to_time_value(ss, duration), duration) {
+                (TimeValue::Percent(_), None) => {
+                    return Some("Start time cannot be calculated without the duration");
+                }
+                (TimeValue::Seconds(s), Some(d)) if s < 0.0 => Some(TimeValue::Seconds(d + s)),
+                (v, _) => Some(v),
             }
-            if ss_time.gte(&to_time) {
-                return Some("End time must be greater than start time");
+        };
+
+        // Validate end time the same way
+        if use_to && !to.is_empty() {
+            let to_normalized = match (Self::to_time_value(to, duration), duration) {
+                (TimeValue::Percent(_), None) => {
+                    return Some("End time cannot be calculated without the duration");
+                }
+                (TimeValue::Seconds(s), Some(d)) if s < 0.0 => TimeValue::Seconds(d + s),
+                (v, _) => v,
+            };
+            debug!(ss=?ss_normalized, to=?to_normalized, "Trim validate normalized");
+            if let Some(start) = ss_normalized {
+                if !start.comparable_with(&to_normalized, duration.is_some()) {
+                    return Some("% cannot be used if duration is not set");
+                }
+                if start.gte(&to_normalized) {
+                    return Some("End time must be greater than start time");
+                }
             }
         }
-        if !to.is_empty() && !Self::to_time_value(to, duration).greater_than_zero() {
-            return Some("Duration/to must be greater than zero");
+        // Validate duration
+        if !use_to && !to.is_empty() {
+            let dur_time = Self::to_time_value(to, duration);
+            if !dur_time.is_positive() {
+                return Some("Duration must be positive");
+            }
         }
         None
     }
@@ -168,7 +198,7 @@ impl TimeValue {
         }
     }
 
-    fn greater_than_zero(&self) -> bool {
+    fn is_positive(&self) -> bool {
         match self {
             TimeValue::Seconds(v) => *v > 0.0,
             TimeValue::Percent(v) => *v > 0.0,

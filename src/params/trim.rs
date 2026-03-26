@@ -56,23 +56,50 @@ impl Trim {
                 .filter(|spd| trim_data.precise && (*spd - 1.0).abs() > 0.00001);
 
             if let Some(ss) = &trim_data.ss {
-                args.push("-ss".into());
-                if let Some(tmult) = time_multiplier {
-                    args.push(Self::adjust_time(ss, tmult));
+                let ss_normalized = if let Some(ss_abs) = ss.strip_prefix("-") {
+                    if let Some(dur) = cb.ctx.input_duration {
+                        args.push("-ss".into());
+                        format!("{:.5}", dur - Self::to_seconds(ss_abs))
+                    } else if !trim_data.precise {
+                        // -sseof works pretty bad if paired with -to
+                        // and also doesn't work in precise mode.
+                        // Since duration is unknown, there are no other options left.
+                        args.push("-sseof".into());
+                        ss.to_owned()
+                    } else {
+                        warn!("Duration is unknown, -ss/-sseof {} cannot be used", ss);
+                        return;
+                    }
                 } else {
-                    args.push(ss.clone());
+                    args.push("-ss".into());
+                    ss.to_owned()
+                };
+
+                if let Some(tmult) = time_multiplier {
+                    args.push(Self::adjust_time(&ss_normalized, tmult));
+                } else {
+                    args.push(ss_normalized);
                 }
             }
             if let Some(to) = &trim_data.to {
-                if trim_data.use_to {
+                let to_normalized = if trim_data.use_to
+                    && let Some(to_abs) = to.strip_prefix("-")
+                    && let Some(dur) = cb.ctx.input_duration
+                {
                     args.push("-to".into());
+                    format!("{:.5}", dur - Self::to_seconds(to_abs))
+                } else if trim_data.use_to {
+                    args.push("-to".into());
+                    to.to_owned()
                 } else {
                     args.push("-t".into());
-                }
+                    to.to_owned()
+                };
+
                 if let Some(tmult) = time_multiplier {
-                    args.push(Self::adjust_time(to, tmult));
+                    args.push(Self::adjust_time(&to_normalized, tmult));
                 } else {
-                    args.push(to.clone());
+                    args.push(to_normalized);
                 }
             }
             debug!(?args, "trim args");
@@ -84,10 +111,10 @@ impl Trim {
         }
     }
 
-    fn adjust_time(time_str: &str, multiplier: f64) -> String {
+    fn to_seconds(time_str: &str) -> f64 {
         // Parse HH:MM:SS.mmm / MM:SS.mmm / SS.mmm
         let parts: Vec<&str> = time_str.split(':').collect();
-        let seconds = match parts.len() {
+        match parts.len() {
             1 => parts[0].parse::<f64>().unwrap_or_default(),
             2 => {
                 let minutes = parts[0].parse::<f64>().unwrap_or_default();
@@ -101,8 +128,11 @@ impl Trim {
                 hours * 3600.0 + minutes * 60.0 + secs
             }
             _ => 0.0,
-        };
-        format!("{:.3}", seconds / multiplier)
+        }
+    }
+
+    fn adjust_time(time_str: &str, multiplier: f64) -> String {
+        format!("{:.5}", Self::to_seconds(time_str) / multiplier)
     }
 }
 
@@ -204,6 +234,24 @@ mod tests {
     }
 
     #[test]
+    fn test_apply_precise_negative_preset() {
+        let t = apply_preset("!-20..90");
+        assert_eq!(t.ss.as_deref(), Some("-20"));
+        assert_eq!(t.to.as_deref(), Some("90"));
+        assert!(t.use_to);
+        assert!(t.precise);
+    }
+
+    #[test]
+    fn test_apply_both_negative_preset() {
+        let t = apply_preset("!-20..-10");
+        assert_eq!(t.ss.as_deref(), Some("-20"));
+        assert_eq!(t.to.as_deref(), Some("-10"));
+        assert!(t.use_to);
+        assert!(t.precise);
+    }
+
+    #[test]
     fn test_apply_duration_preset() {
         let t = apply_preset("10..20+");
         assert_eq!(t.ss.as_deref(), Some("10"));
@@ -214,10 +262,30 @@ mod tests {
 
     #[test]
     fn test_apply_invalid_preset() {
-        let t = apply_preset("start..end");
-        assert_eq!(t.ss, None);
-        assert_eq!(t.to, None);
-        assert!(!t.use_to);
+        let presets = [
+            "start..end",
+            "!90%..10", // normalized start >= end
+            // sseof
+            "!-10..20",  // start 90 >= end 20
+            "-30%..20%", // normalized start >= normalized end
+            "-10..0+",   // duration 0
+            "-10..-20+", // negative duration
+        ];
+        for preset in presets {
+            let t = apply_preset(preset);
+            assert_eq!(t.ss, None, "preset {}", preset);
+            assert_eq!(t.to, None, "preset {}", preset);
+            assert!(!t.use_to, "preset {}", preset);
+            assert!(!t.precise, "preset {}", preset);
+        }
+    }
+
+    #[test]
+    fn test_apply_negative_percent_preset() {
+        let t = apply_preset("-30%..-20%");
+        assert_eq!(t.ss.as_deref(), Some("-30%"));
+        assert_eq!(t.to.as_deref(), Some("-20%"));
+        assert!(t.use_to);
         assert!(!t.precise);
     }
 
@@ -258,23 +326,6 @@ mod tests {
         let t = apply_preset("00:01:23.456..00:02:00");
         assert_eq!(t.ss.as_deref(), Some("00:01:23.456"));
         assert_eq!(t.to.as_deref(), Some("00:02:00"));
-    }
-
-    #[test]
-    fn test_apply_start_longer_in_percents_preset() {
-        let t = apply_preset("!90%..10");
-        assert_eq!(t.ss.as_deref(), None);
-        assert_eq!(t.to.as_deref(), None);
-        assert!(!t.use_to);
-        assert!(!t.precise);
-    }
-
-    #[test]
-    fn test_apply_zero_duration_preset() {
-        let t = apply_preset("10..0+");
-        assert_eq!(t.ss.as_deref(), None);
-        assert_eq!(t.to.as_deref(), None);
-        assert!(!t.use_to);
     }
 
     #[test]
@@ -325,6 +376,17 @@ mod tests {
             use_to: true,
         });
         assert_eq!(p, Some("10%..20%".to_string()));
+    }
+
+    #[test]
+    fn test_save_percent_negative_preset() {
+        let p = save_preset(TrimData {
+            ss: Some("10%".to_string()),
+            to: Some("-20%".to_string()),
+            precise: false,
+            use_to: true,
+        });
+        assert_eq!(p, Some("10%..-20%".to_string()));
     }
 
     #[test]

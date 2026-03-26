@@ -140,10 +140,14 @@ impl KeyboardHandler for TrimModal {
             KeyCode::BackTab => self.active_input = (self.active_input + 3) % 4,
             KeyCode::Tab => self.active_input = (self.active_input + 1) % 4,
             KeyCode::Char(x) => match (self.active_input, x) {
-                (0, '0'..='9' | '.' | ':' | '%') if Self::prevalidate_value(x, self.ss.value()) => {
+                (0, '0'..='9' | '.' | ':' | '%' | '-')
+                    if Self::prevalidate_value(x, self.ss.value()) =>
+                {
                     self.ss.handle_event(&Event::Key(key));
                 }
-                (1, '0'..='9' | '.' | ':' | '%') if Self::prevalidate_value(x, self.to.value()) => {
+                (1, '0'..='9' | '.' | ':' | '%' | '-')
+                    if Self::prevalidate_value(x, self.to.value()) =>
+                {
                     self.to.handle_event(&Event::Key(key));
                 }
                 (2, ' ') => self.precise = !self.precise,
@@ -227,12 +231,13 @@ impl TrimModal {
 
     fn prevalidate_value(x: char, value: &str) -> bool {
         // Format 00:00:00.000 or seconds or percentage 0..100%
-        value.len() < 12
+        value.len() < (12 + if value.contains("-") { 1 } else { 0 }) // max length hh:mm:ss.fff and optional minus
             && !((x == '.' || x == '%') && value.contains(x)) // only one percent/dot
             && !(x == ':' && value.contains('.')) // no colons after dot
             && !(x == ':' && value.matches(':').count() >= 2) // no more than 2 colons
             && !(x == '%' && value.contains(':')) // no percent after colon
             && !((x == '%' || x == ':') && value.is_empty()) // percent/colon can't be first
+            && (x != '-' || value.is_empty()) // minus can only be first
             && !value.ends_with("%") // no more input after percent
     }
 }

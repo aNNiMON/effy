@@ -93,7 +93,12 @@ impl UiModal for TrimModal {
                     .title(Span::styled("Start", start_label_style)),
             )
             .render(ss_area, frame.buffer_mut());
-        let to_title = if self.use_to { "To" } else { "Duration" };
+        let title = if self.use_to { "To" } else { "Duration" };
+        let to_title = if let Some(dur) = self.duration {
+            format!("{} (max {:.2})", title, dur)
+        } else {
+            title.to_owned()
+        };
         Paragraph::new(to_value)
             .block(
                 Block::bordered()

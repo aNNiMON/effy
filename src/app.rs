@@ -56,7 +56,7 @@ pub(crate) struct App<'a> {
 impl<'a> App<'a> {
     pub fn new(tx: Sender<AppEvent>, info: &'a Info, source: Source, preset: Option<&str>) -> Self {
         let mut list_state = ListState::default();
-        list_state.select(Some(0));
+        list_state.select_first();
         let folder = source.input_folder();
         let theme = Theme::new();
         let info_state = InfoPaneState::new(info.format(&theme));
@@ -165,6 +165,8 @@ impl<'a> App<'a> {
                 }
                 ModalResult::CopyCommand => self.copy_command(),
                 ModalResult::CopyPreset => self.copy_preset(),
+                ModalResult::CopyInfo => self.copy_info(),
+                ModalResult::CopyOutput => self.copy_output(),
                 ModalResult::None => {}
             }
             return;
@@ -219,6 +221,30 @@ impl<'a> App<'a> {
         {
             Ok(_) => (AlertKind::Info, "Command has been copied to clipboard"),
             Err(_) => (AlertKind::Error, "Failed to copy the command to clipboard"),
+        };
+        self.modal = Some(Box::new(AlertModal::new(kind, msg)));
+    }
+
+    fn copy_info(&mut self) {
+        let (kind, msg) = match self
+            .clipboard
+            .as_mut()
+            .map(|ctx| ctx.set_text(self.info_state.text.to_string()))
+        {
+            Ok(_) => (AlertKind::Info, "Info has been copied to clipboard"),
+            Err(_) => (AlertKind::Error, "Failed to copy the info to clipboard"),
+        };
+        self.modal = Some(Box::new(AlertModal::new(kind, msg)));
+    }
+
+    fn copy_output(&mut self) {
+        let (kind, msg) = match self
+            .clipboard
+            .as_mut()
+            .map(|ctx| ctx.set_text(self.out_state.output.clone()))
+        {
+            Ok(_) => (AlertKind::Info, "Output has been copied to clipboard"),
+            Err(_) => (AlertKind::Error, "Failed to copy the output to clipboard"),
         };
         self.modal = Some(Box::new(AlertModal::new(kind, msg)));
     }

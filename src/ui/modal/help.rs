@@ -186,6 +186,8 @@ impl<'a> HelpBuilder<'a> {
         lines.extend(self.lines(&["y"], "Open 'Copy to clipboard' modal"));
         lines.extend(self.lines(&["yy"], "Copy a FFmpeg command to clipboard"));
         lines.extend(self.lines(&["yp"], "Copy a preset to clipboard"));
+        lines.extend(self.lines(&["yi"], "Copy info to clipboard"));
+        lines.extend(self.lines(&["yo"], "Copy output to clipboard"));
         lines
     }
 

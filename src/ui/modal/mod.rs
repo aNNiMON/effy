@@ -17,6 +17,10 @@ pub(crate) enum ModalResult {
     CopyCommand,
     /// Copy preset (y p)
     CopyPreset,
+    /// Copy info (y i)
+    CopyInfo,
+    /// Copy output (y o)
+    CopyOutput,
 }
 
 pub(crate) trait UiModal: Any + KeyboardHandler {

@@ -94,7 +94,7 @@ impl UiModal for TrimModal {
             .render(ss_area, frame.buffer_mut());
         let title = if self.use_to { "To" } else { "Duration" };
         let to_title = if let Some(dur) = self.duration {
-            format!("{} (max {:.2})", title, dur)
+            format!("{title} (max {dur:.2})")
         } else {
             title.to_owned()
         };

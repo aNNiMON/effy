@@ -94,8 +94,18 @@ impl<'a> CopyModal<'a> {
                     Span::raw("Copy preset "),
                     Span::styled("p", key_style),
                 ]),
+                Line::from(vec![Span::raw("Copy info "), Span::styled("i", key_style)]),
+                Line::from(vec![
+                    Span::raw("Copy output "),
+                    Span::styled("o", key_style),
+                ]),
             ],
-            values: &[ModalResult::CopyCommand, ModalResult::CopyPreset],
+            values: &[
+                ModalResult::CopyCommand,
+                ModalResult::CopyPreset,
+                ModalResult::CopyInfo,
+                ModalResult::CopyOutput,
+            ],
             list_state,
         }
     }

@@ -38,7 +38,7 @@ impl<'a> UiModal for AlertModal<'a>
 where
     'a: 'static,
 {
-    fn render(&self, frame: &mut Frame, theme: &Theme) {
+    fn render(&mut self, frame: &mut Frame, theme: &Theme) {
         let modal_area = frame.area().centered(
             Constraint::Length(self.width + 10),
             Constraint::Length(self.height + 3),

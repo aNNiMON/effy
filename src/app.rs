@@ -19,8 +19,8 @@ use crate::params::{
 use crate::source::Source;
 use crate::ui::Theme;
 use crate::ui::modal::{
-    AlertKind, AlertModal, CustomSelectModal, HelpModal, ModalResult, SaveAsFileModal, TrimModal,
-    UiModal,
+    AlertKind, AlertModal, CopyModal, CustomSelectModal, HelpModal, ModalResult, SaveAsFileModal,
+    TrimModal, UiModal,
 };
 use crate::ui::state::{InfoPaneState, OutputPaneState};
 
@@ -102,7 +102,7 @@ impl<'a> App<'a> {
         while self.running {
             terminal.draw(|frame| {
                 frame.render_widget(&mut self, frame.area());
-                if let Some(modal) = &self.modal {
+                if let Some(modal) = &mut self.modal {
                     modal.render(frame, &self.theme);
                 }
             })?;
@@ -163,6 +163,8 @@ impl<'a> App<'a> {
                     }
                     self.modal = None;
                 }
+                ModalResult::CopyCommand => self.copy_command(),
+                ModalResult::CopyPreset => self.copy_preset(),
                 ModalResult::None => {}
             }
             return;
@@ -176,16 +178,9 @@ impl<'a> App<'a> {
             (_, _, KeyCode::Char('o')) => self.select_output_pane(),
             (_, _, KeyCode::F(1) | KeyCode::Char('?')) => self.help(),
             (_, KeyModifiers::CONTROL, KeyCode::Char('s')) => self.save(),
-            (_, _, KeyCode::Char('s')) => {
-                let output_ext = get_output_format(&self.params)
-                    .map_or(&self.output_fileext, |option| &option.value);
-                self.modal = Some(Box::new(SaveAsFileModal::new(
-                    &self.original_filename,
-                    &self.output_folder,
-                    &self.output_filename,
-                    output_ext,
-                )));
-            }
+            (_, _, KeyCode::Char('s')) => self.save_as(),
+            (_, _, KeyCode::Char('y')) => self.open_copy_modal(),
+            // Pane specific
             (Pane::Info, _, KeyCode::Down | KeyCode::Char('j')) => self.info_state.scroll_down(),
             (Pane::Info, _, KeyCode::Up | KeyCode::Char('k')) => self.info_state.scroll_up(),
             (Pane::Output, _, KeyCode::Down | KeyCode::Char('j')) => self.out_state.scroll_down(),
@@ -195,10 +190,12 @@ impl<'a> App<'a> {
             (Pane::Params, _, KeyCode::Left | KeyCode::Char('h')) => self.prev_option(),
             (Pane::Params, _, KeyCode::Right | KeyCode::Char('l')) => self.next_option(),
             (Pane::Params, _, KeyCode::Enter) => self.open_param_modal(),
-            (Pane::Params, _, KeyCode::Char('p')) => self.copy_preset(),
-            (Pane::Params, _, KeyCode::Char('y')) => self.copy_command(),
             _ => {}
         }
+    }
+
+    fn open_copy_modal(&mut self) {
+        self.modal = Some(Box::new(CopyModal::new(&self.theme)));
     }
 
     fn copy_preset(&mut self) {
@@ -363,6 +360,17 @@ impl<'a> App<'a> {
             let result = matches!(child.wait(), Ok(status) if status.success());
             let _ = tx.send(AppEvent::SaveCompleted(result));
         });
+    }
+
+    fn save_as(&mut self) {
+        let output_ext =
+            get_output_format(&self.params).map_or(&self.output_fileext, |option| &option.value);
+        self.modal = Some(Box::new(SaveAsFileModal::new(
+            &self.original_filename,
+            &self.output_folder,
+            &self.output_filename,
+            output_ext,
+        )));
     }
 
     fn on_save_complete(&mut self, success: bool) {

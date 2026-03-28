@@ -1,4 +1,6 @@
-use ratatui::{layout::Rect, style::Stylize as _, text::Line};
+use ratatui::layout::Rect;
+use ratatui::style::Stylize as _;
+use ratatui::text::Line;
 use tui_input::Input;
 
 mod app_ui;

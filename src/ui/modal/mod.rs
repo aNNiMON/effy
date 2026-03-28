@@ -2,7 +2,7 @@ use std::any::Any;
 
 use crate::ui::Theme;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) enum ModalResult {
     None,
     /// Close modal
@@ -13,10 +13,14 @@ pub(crate) enum ModalResult {
     Trim,
     /// Modal for custom parameter values
     CustomSelect(String),
+    /// Copy command (y y)
+    CopyCommand,
+    /// Copy preset (y p)
+    CopyPreset,
 }
 
 pub(crate) trait UiModal: Any + KeyboardHandler {
-    fn render(&self, frame: &mut ratatui::prelude::Frame, theme: &Theme);
+    fn render(&mut self, frame: &mut ratatui::prelude::Frame, theme: &Theme);
 }
 
 pub(crate) trait KeyboardHandler {
@@ -30,12 +34,14 @@ impl dyn UiModal {
 }
 
 mod alert;
+mod copy;
 mod custom_select;
 mod help;
 mod save_as_file;
 mod trim;
 
 pub(crate) use alert::{AlertKind, AlertModal};
+pub(crate) use copy::CopyModal;
 pub(crate) use custom_select::CustomSelectModal;
 pub(crate) use help::HelpModal;
 pub(crate) use save_as_file::SaveAsFileModal;

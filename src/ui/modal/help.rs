@@ -24,7 +24,7 @@ pub(crate) struct HelpModal<'a> {
 }
 
 impl UiModal for HelpModal<'static> {
-    fn render(&self, frame: &mut Frame, theme: &Theme) {
+    fn render(&mut self, frame: &mut Frame, theme: &Theme) {
         let area = frame.area();
         let portrait = is_portrait(area);
         let [modal_area] = Layout::vertical([Constraint::Length(21)])
@@ -54,10 +54,10 @@ impl UiModal for HelpModal<'static> {
         frame.render_stateful_widget(
             InfoPane::new(block),
             modal_area,
-            &mut if keys_tab_active {
-                self.help_state.clone()
+            if keys_tab_active {
+                &mut self.help_state
             } else {
-                self.about_state.clone()
+                &mut self.about_state
             },
         );
     }
@@ -151,7 +151,7 @@ impl<'a> HelpBuilder<'a> {
                 .fg(self.theme.pane_title_color())
                 .bold(),
         );
-        lines.extend(self.lines(&["s"], "Open the 'Render As' modal"));
+        lines.extend(self.lines(&["s"], "Open 'Render As' modal"));
         lines.extend(self.lines(&["Ctrl+s"], "Quick render"));
         lines.extend(self.lines(
             &["Esc", "q", "Ctrl+c"],
@@ -183,8 +183,9 @@ impl<'a> HelpBuilder<'a> {
                 .fg(self.theme.pane_title_color())
                 .bold(),
         );
-        lines.extend(self.lines(&["p"], "Copy a preset to clipboard"));
-        lines.extend(self.lines(&["y"], "Copy a FFmpeg command to clipboard"));
+        lines.extend(self.lines(&["y"], "Open 'Copy to clipboard' modal"));
+        lines.extend(self.lines(&["yy"], "Copy a FFmpeg command to clipboard"));
+        lines.extend(self.lines(&["yp"], "Copy a preset to clipboard"));
         lines
     }
 

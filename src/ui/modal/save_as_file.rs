@@ -37,7 +37,7 @@ pub(crate) struct SaveAsFileModal {
 }
 
 impl UiModal for SaveAsFileModal {
-    fn render(&self, frame: &mut Frame, theme: &Theme) {
+    fn render(&mut self, frame: &mut Frame, theme: &Theme) {
         let area = frame.area();
         let portrait = is_portrait(area);
         let [modal_area] = Layout::vertical([Constraint::Length(6)])

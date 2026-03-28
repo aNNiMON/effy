@@ -17,11 +17,13 @@ use crate::params::{
     recheck_params, save_preset,
 };
 use crate::source::Source;
-use crate::ui::state::{InfoPaneState, OutputPaneState};
-use crate::ui::{
-    AlertKind, AlertModal, CustomSelectModal, HelpModal, ModalResult, SaveAsFileModal, Theme,
-    TrimModal, UiModal,
+use crate::ui::Theme;
+use crate::ui::modal::{
+    AlertKind, AlertModal, CustomSelectModal, HelpModal, ModalResult, SaveAsFileModal, TrimModal,
+    UiModal,
 };
+use crate::ui::state::{InfoPaneState, OutputPaneState};
+
 use crate::visitors::{CommandBuilder, VisitorContext};
 
 pub(crate) struct App<'a> {

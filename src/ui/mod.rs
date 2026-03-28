@@ -2,22 +2,11 @@ use ratatui::{layout::Rect, style::Stylize as _, text::Line};
 use tui_input::Input;
 
 mod app_ui;
-mod modal;
-mod modal_alert;
-mod modal_custom_select;
-mod modal_help;
-mod modal_save_as_file;
-mod modal_trim;
+pub mod modal;
 pub mod state;
 mod theme;
 pub mod widget;
 
-pub(crate) use modal::*;
-pub(crate) use modal_alert::*;
-pub(crate) use modal_custom_select::*;
-pub(crate) use modal_help::*;
-pub(crate) use modal_save_as_file::*;
-pub(crate) use modal_trim::*;
 pub(crate) use theme::*;
 
 /// Detect if the terminal window is in portrait mode assuming proportions 2.2:1

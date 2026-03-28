@@ -5,9 +5,10 @@ use ratatui::style::Stylize as _;
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, BorderType, Borders};
 
+use crate::ui::modal::{KeyboardHandler, ModalResult, UiModal};
 use crate::ui::state::InfoPaneState;
 use crate::ui::widget::{BgClear, InfoPane, Tab, TabStyle, tabs_line};
-use crate::ui::{KeyboardHandler, ModalResult, Theme, UiModal, is_portrait};
+use crate::ui::{Theme, is_portrait};
 
 #[derive(Debug, PartialEq, Eq)]
 enum HelpTab {

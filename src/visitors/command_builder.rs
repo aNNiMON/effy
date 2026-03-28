@@ -49,16 +49,18 @@ impl CommandBuilder {
         &self.pre_input_args
     }
 
-    pub(crate) fn build_args(&self) -> Vec<String> {
+    pub(crate) fn build_args(&self, quote: bool) -> Vec<String> {
         let mut args = Vec::new();
         args.extend(self.args.iter().cloned());
         if !self.discard_audio && !self.audio_filters.is_empty() {
             args.push("-af".to_owned());
-            args.push(self.audio_filters.join(","));
+            let af = self.audio_filters.join(",");
+            args.push(if quote { format!("\"{af}\"") } else { af });
         }
         if !self.video_filters.is_empty() {
             args.push("-vf".to_owned());
-            args.push(self.video_filters.join(","));
+            let vf = self.video_filters.join(",");
+            args.push(if quote { format!("\"{vf}\"") } else { vf });
         }
         args.extend(self.pre_output_args.iter().cloned());
         args
@@ -384,7 +386,7 @@ mod tests {
         cb.audio_filters.push("volume=5dB".to_owned());
         cb.video_filters.push("scale=-2:720".to_owned());
 
-        let result = cb.build_args();
+        let result = cb.build_args(false);
         assert_eq!(
             result,
             vec!["-b:v", "2M", "-af", "volume=5dB", "-vf", "scale=-2:720"]
@@ -399,7 +401,7 @@ mod tests {
             video_filters: vec!["scale=-2:720".to_owned()],
             ..Default::default()
         };
-        let result = cb.build_args();
+        let result = cb.build_args(false);
         assert_eq!(result, vec!["-vf", "scale=-2:720"]);
     }
 

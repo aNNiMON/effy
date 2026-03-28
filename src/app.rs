@@ -122,7 +122,7 @@ impl<'a> App<'a> {
     }
 
     pub fn run_cli(&mut self) {
-        let args = self.build_ffmpeg_command(false);
+        let args = self.build_ffmpeg_command(false, false);
         println!("Starting FFmpeg\nCommand: ffmpeg {}", args.join(" "));
         Command::new("ffmpeg")
             .args(args)
@@ -203,7 +203,7 @@ impl<'a> App<'a> {
         let (kind, msg) = match self.clipboard.as_mut().map(|ctx| {
             let visitor_ctx = VisitorContext::new(self.info);
             let preset = save_preset(visitor_ctx, &mut self.params);
-            ctx.set_text(preset)
+            ctx.set_text(format!("--preset \"{preset}\""))
         }) {
             Ok(_) => (AlertKind::Info, "Preset has been copied to clipboard"),
             Err(_) => (AlertKind::Error, "Failed to copy the preset to clipboard"),
@@ -212,7 +212,7 @@ impl<'a> App<'a> {
     }
 
     fn copy_command(&mut self) {
-        let args = self.build_ffmpeg_command(false);
+        let args = self.build_ffmpeg_command(false, true);
         let (kind, msg) = match self
             .clipboard
             .as_mut()
@@ -318,7 +318,7 @@ impl<'a> App<'a> {
         self.save_ongoing = true;
         self.active_out_pane = Pane::Output;
 
-        let args = self.build_ffmpeg_command(true);
+        let args = self.build_ffmpeg_command(true, false);
         debug!(?args, "Starting FFmpeg");
         self.out_state.set_output("Starting FFmpeg...\n");
 
@@ -385,7 +385,7 @@ impl<'a> App<'a> {
         }
     }
 
-    fn build_ffmpeg_command(&mut self, overwrite: bool) -> Vec<String> {
+    fn build_ffmpeg_command(&mut self, overwrite: bool, quote: bool) -> Vec<String> {
         let ctx = VisitorContext::new(self.info);
         let mut command_builder = CommandBuilder::new(ctx);
         apply_visitor(&mut command_builder, &mut self.params);
@@ -403,9 +403,13 @@ impl<'a> App<'a> {
         args.push("-hide_banner".into());
         args.extend(command_builder.build_pre_input_args().iter().cloned());
         args.push("-i".into());
-        args.push(input);
-        args.extend(command_builder.build_args());
-        args.push(output_file);
+        args.push(if quote { format!("\"{input}\"") } else { input });
+        args.extend(command_builder.build_args(quote));
+        args.push(if quote {
+            format!("\"{output_file}\"")
+        } else {
+            output_file
+        });
         args
     }
 }

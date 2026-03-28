@@ -9,7 +9,7 @@ A small and friendly terminal FFmpeg helper that simplifies common tasks.
 <div align="center">
 
   [![effy TUI](../docs/docs/assets/effy.png?raw=true)  
-  <sup>**Click to view GIF**</sup>](../docs/docs/assets/main.gif?raw=true)
+  <sup>**Click to view GIF**</sup>](https://raw.githubusercontent.com/aNNiMON/effy/refs/heads/docs/docs/assets/main.gif)
 
 </div>
 

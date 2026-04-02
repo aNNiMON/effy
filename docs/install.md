@@ -6,7 +6,7 @@ icon: lucide/file-terminal
 
 ## Pre-compiled binaries
 
-Download from [:lucide-github: GitHub Releases](https://github.com/aNNiMON/effy/releases)
+Download from [:simple-github: GitHub Releases](https://github.com/aNNiMON/effy/releases)
 
 ## Install using `cargo`
 
@@ -16,7 +16,7 @@ cargo install --locked effy
 
 ## Compile from source
 
-1. Install [Rustup](https://rustup.rs/)
+1. Install [:simple-rust: Rustup](https://rustup.rs/)
 2. Clone the repository:
    ```bash
    git clone https://github.com/aNNiMON/effy

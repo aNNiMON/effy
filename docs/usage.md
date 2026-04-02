@@ -26,6 +26,8 @@ effy "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckB
 
 In addition to the required **input** argument, which should always be specified last, effy has the following command-line arguments:
 
+- `--help` show CLI help.
+- `--version` show effy version.
 - `--preset <preset>` specifies a set of preconfigured parameter values.
 - `--apply` applicable only if **preset** is specified. It starts processing the **input** in CLI mode immediately without displaying the TUI.
 
@@ -36,12 +38,12 @@ Preset is a semicolon-separated list of parameters with their values that will b
 Example:
 
 ```bash
-effy --preset "noaudio:1;vbitrate:90k;scale:400;output:mp4" input.mp4
+effy --preset "noaudio=1;vbitrate=90k;scale=400;output=mp4" input.mp4
 ```
 
 If the `--apply` argument is specified, the TUI won't be displayed and processing will start immediately.
 
-See [:lucide-github: demo](https://github.com/aNNiMON/effy/releases/tag/v0.7.1).
+See [:simple-github: demo](https://github.com/aNNiMON/effy/releases/tag/v0.7.1).
 
 ----
 

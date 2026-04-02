@@ -4,7 +4,20 @@ icon: lucide/scroll-text
 
 # Changelog
 
-See also [:lucide-github: GitHub Releases](https://github.com/aNNiMON/effy/releases)
+See also [:simple-github: GitHub Releases](https://github.com/aNNiMON/effy/releases)
+
+## 0.9.0 - Trim improvement, Copy modal
+
+- Added percent values support to Trim parameter. Works only if the media duration is known
+- Negative `Start` and `To` values are considered relative to the duration
+- Show duration in trim modal if present
+- Trim parameter support in presets
+- :lucide-circle-alert:{ .ic-warn } Preset value separator changed from `:` to `=`
+- Added 'Copy to clipboard' modal ++y++
+- Added Copy info ++y++ ++i++
+- Added Copy output ++y++ ++o++
+- Copy command and copy preset now copied with quotation marks
+- Improved CLI arguments parsing
 
 ## 0.8.0 - Help modal, Styling
 
@@ -51,14 +64,14 @@ See also [:lucide-github: GitHub Releases](https://github.com/aNNiMON/effy/relea
 * Better extension defaults for URL inputs
 
 
-## v0.4.0 - Trim parameter
+## 0.4.0 - Trim parameter
 
 - Added a Trim parameter that allows to trim media by duration or start/end time
 - Added more common Video frame rate values
 - Shift+Tab for reverse focus switch
 
 
-## v0.3.0 - Hardware acceleration, URL input
+## 0.3.0 - Hardware acceleration, URL input
 
 - Added hardware acceleration parameter. Supports nvidia and intel qsv
 - URL input support:
@@ -68,7 +81,7 @@ See also [:lucide-github: GitHub Releases](https://github.com/aNNiMON/effy/relea
 - 'Render as' dialog redesign with hints
 
 
-## v0.2.0 - Core rework
+## 0.2.0 - Core rework
 
 * Core rework with different parameters model
 * Added 'Save as' modal dialog

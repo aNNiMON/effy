@@ -431,7 +431,7 @@ dependencies = [
 
 [[package]]
 name = "effy"
-version = "0.8.0"
+version = "0.9.0"
 dependencies = [
  "arboard",
  "clap",

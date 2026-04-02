@@ -74,6 +74,8 @@ impl<'a> KeyboardHandler for CopyModal<'a> {
             }
             KeyCode::Char('y') => ModalResult::CopyCommand,
             KeyCode::Char('p') => ModalResult::CopyPreset,
+            KeyCode::Char('i') => ModalResult::CopyInfo,
+            KeyCode::Char('o') => ModalResult::CopyOutput,
             _ => ModalResult::None,
         }
     }

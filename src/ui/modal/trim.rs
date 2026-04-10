@@ -1,14 +1,12 @@
 use std::vec;
 
 use crossterm::event::{Event, KeyCode, KeyEvent};
-use ratatui::layout::{HorizontalAlignment, Margin};
-use ratatui::text::Span;
-use ratatui::{layout::Layout, prelude::Frame};
 use ratatui::{
-    layout::{Constraint, Flex, Position, Rect},
+    Frame,
+    layout::{Constraint, Flex, HorizontalAlignment, Layout, Margin, Position, Rect},
     style::{Style, Stylize as _},
     symbols,
-    text::Line,
+    text::{Line, Span},
     widgets::{Block, Paragraph, Widget as _},
 };
 use tui_input::Input;
@@ -182,20 +180,6 @@ impl KeyboardHandler for TrimModal {
     }
 }
 
-impl TrimModal {
-    pub fn new(data: TrimData, duration: Option<f64>) -> Self {
-        Self {
-            active_input: 0,
-            ss: Input::new(data.ss.unwrap_or_default()),
-            to: Input::new(data.to.unwrap_or_default()),
-            precise: data.precise,
-            use_to: data.use_to,
-            duration,
-            error: None,
-        }
-    }
-}
-
 impl From<&TrimModal> for TrimData {
     fn from(model: &TrimModal) -> TrimData {
         TrimData {
@@ -208,6 +192,18 @@ impl From<&TrimModal> for TrimData {
 }
 
 impl TrimModal {
+    pub fn new(data: TrimData, duration: Option<f64>) -> Self {
+        Self {
+            active_input: 0,
+            ss: Input::new(data.ss.unwrap_or_default()),
+            to: Input::new(data.to.unwrap_or_default()),
+            precise: data.precise,
+            use_to: data.use_to,
+            duration,
+            error: None,
+        }
+    }
+
     fn render_status(&self, area: Rect, frame: &mut Frame, theme: &Theme) {
         let line = if let Some(error) = &self.error {
             Line::from(Span::styled(error, theme.error_style().bold())).centered()

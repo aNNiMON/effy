@@ -2,7 +2,8 @@ use std::sync::{Arc, mpsc::Sender};
 
 use crate::{
     model::{
-        AppEvent, CustomSelectData, InputConstraints, TrimData, ValidationCallback, ValueFormatter,
+        AppEvent, CropData, CustomSelectData, InputConstraints, TrimData, ValidationCallback,
+        ValueFormatter,
     },
     visitors::VisitorContext,
 };
@@ -61,6 +62,7 @@ pub(crate) enum ParameterData {
         value: bool,
     },
     Trim(TrimData),
+    Crop(CropData),
 }
 
 pub(crate) struct Parameter {
@@ -131,7 +133,7 @@ impl Parameter {
                     value.clone_from(&options[*selected_index].value);
                 }
             }
-            ParameterData::Trim(_) => self.open_modal(event_sender),
+            ParameterData::Trim(_) | ParameterData::Crop(_) => self.open_modal(event_sender),
         }
     }
 
@@ -179,7 +181,7 @@ impl Parameter {
                     value.clone_from(&options[*selected_index].value);
                 }
             }
-            ParameterData::Trim(_) => self.open_modal(event_sender),
+            ParameterData::Trim(_) | ParameterData::Crop(_) => self.open_modal(event_sender),
         }
     }
 
@@ -203,6 +205,7 @@ impl Parameter {
                 }
             }
             ParameterData::Trim(data) => data.to_string(),
+            ParameterData::Crop(data) => data.to_string(),
         }
     }
 
@@ -230,6 +233,9 @@ impl Parameter {
             }
             ParameterData::Trim(data) => {
                 let _ = event_sender.send(AppEvent::OpenTrimModal(data.clone()));
+            }
+            ParameterData::Crop(data) => {
+                let _ = event_sender.send(AppEvent::OpenCropModal(data.clone()));
             }
             _ => {}
         }

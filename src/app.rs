@@ -13,14 +13,14 @@ use tracing::debug;
 use crate::info::Info;
 use crate::model::{AppEvent, Pane};
 use crate::params::{
-    Parameter, ParameterData, Trim, apply_visitor, create_params, get_output_format,
+    Crop, Parameter, ParameterData, Trim, apply_visitor, create_params, get_output_format,
     recheck_params, save_preset,
 };
 use crate::source::Source;
 use crate::ui::Theme;
 use crate::ui::modal::{
-    AlertKind, AlertModal, CopyModal, CustomSelectModal, HelpModal, ModalResult, SaveAsFileModal,
-    TrimModal, UiModal,
+    AlertKind, AlertModal, CopyModal, CropModal, CustomSelectModal, HelpModal, ModalResult,
+    SaveAsFileModal, TrimModal, UiModal,
 };
 use crate::ui::state::{InfoPaneState, OutputPaneState};
 
@@ -113,6 +113,9 @@ impl<'a> App<'a> {
                 Ok(AppEvent::OpenTrimModal(data)) => {
                     self.modal = Some(Box::new(TrimModal::new(data, self.info.get_duration())));
                 }
+                Ok(AppEvent::OpenCropModal(data)) => {
+                    self.modal = Some(Box::new(CropModal::new(data)));
+                }
                 Ok(AppEvent::OpenCustomSelectModal(data)) => {
                     self.modal = Some(Box::new(CustomSelectModal::from(data)));
                 }
@@ -149,6 +152,15 @@ impl<'a> App<'a> {
                         && let Some(trim) = modal.downcast_ref::<TrimModal>()
                     {
                         *data = trim.into();
+                    }
+                    self.modal = None;
+                }
+                ModalResult::Crop => {
+                    if let Some(param) = self.params.iter_mut().find(|p| p.id == Crop::ID)
+                        && let ParameterData::Crop(data) = &mut param.data
+                        && let Some(crop) = modal.downcast_ref::<CropModal>()
+                    {
+                        *data = crop.into();
                     }
                     self.modal = None;
                 }

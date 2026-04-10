@@ -14,6 +14,7 @@ mod audio_bitrate;
 mod audio_crystalizer;
 mod audio_pitch;
 mod audio_volume;
+mod crop;
 mod disable_audio;
 mod finalizer;
 mod hardware_acceleration;
@@ -28,6 +29,7 @@ pub(crate) use audio_bitrate::*;
 pub(crate) use audio_crystalizer::*;
 pub(crate) use audio_pitch::*;
 pub(crate) use audio_volume::*;
+pub(crate) use crop::*;
 pub(crate) use disable_audio::*;
 pub(crate) use finalizer::*;
 pub(crate) use hardware_acceleration::*;
@@ -65,6 +67,7 @@ pub(crate) fn create_params(info: &Info, preset: Option<&str>, source_ext: &str)
         params.push(SpeedFactor::new_parameter());
     }
     if info.has_video() {
+        params.push(Crop::new_parameter());
         params.push(VideoBitrate::new_parameter());
         params.push(VideoFrameRate::new_parameter());
         params.push(VideoScale::new_parameter());

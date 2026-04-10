@@ -206,6 +206,56 @@ impl TimeValue {
     }
 }
 
+/// Crop parameters
+#[derive(Debug, Clone, Default)]
+pub(crate) struct CropData {
+    pub(crate) x: Option<String>,
+    pub(crate) y: Option<String>,
+    pub(crate) w: Option<String>,
+    pub(crate) h: Option<String>,
+}
+
+impl CropData {
+    pub(crate) fn is_empty(&self) -> bool {
+        self.x.is_none() && self.y.is_none() && self.w.is_none() && self.h.is_none()
+    }
+
+    pub(crate) fn validate(x: &str, y: &str, w: &str, h: &str) -> Option<&'static str> {
+        if !x.is_empty() && !Self::valid_value(x) {
+            return Some("Incorrect x format");
+        }
+        if !y.is_empty() && !Self::valid_value(y) {
+            return Some("Incorrect y format");
+        }
+        if !w.is_empty() && !Self::valid_value(w) {
+            return Some("Incorrect w format");
+        }
+        if !h.is_empty() && !Self::valid_value(h) {
+            return Some("Incorrect h format");
+        }
+
+        debug!(x=?x, y=?y, w=?w, h=?h, "Crop validate");
+        None
+    }
+
+    pub(crate) fn valid_value(value: &str) -> bool {
+        value.chars().all(|c| c.is_ascii_digit())
+    }
+}
+
+impl Display for CropData {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}:{},{}x{}",
+            self.x.as_deref().unwrap_or("0"),
+            self.y.as_deref().unwrap_or("0"),
+            self.w.as_deref().unwrap_or("0"),
+            self.h.as_deref().unwrap_or("0"),
+        )
+    }
+}
+
 /// Bitrate type
 #[derive(Debug, PartialEq)]
 pub(crate) enum BitrateType {
@@ -289,6 +339,7 @@ pub(crate) enum AppEvent {
     SaveCompleted(bool),
     Redraw,
     OpenTrimModal(TrimData),
+    OpenCropModal(CropData),
     OpenCustomSelectModal(CustomSelectData),
     RenderStarted(ChildStdin),
 }

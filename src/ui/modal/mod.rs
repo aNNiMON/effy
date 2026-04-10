@@ -11,6 +11,8 @@ pub(crate) enum ModalResult {
     Filename(String),
     /// Trim modal
     Trim,
+    /// Crop modal
+    Crop,
     /// Modal for custom parameter values
     CustomSelect(String),
     /// Copy command (y y)
@@ -39,6 +41,7 @@ impl dyn UiModal {
 
 mod alert;
 mod copy;
+mod crop;
 mod custom_select;
 mod help;
 mod save_as_file;
@@ -46,6 +49,7 @@ mod trim;
 
 pub(crate) use alert::{AlertKind, AlertModal};
 pub(crate) use copy::CopyModal;
+pub(crate) use crop::CropModal;
 pub(crate) use custom_select::CustomSelectModal;
 pub(crate) use help::HelpModal;
 pub(crate) use save_as_file::SaveAsFileModal;

@@ -28,9 +28,19 @@ impl Crop {
         {
             debug!(?crop_data, "build_command");
             let mut args = Vec::new();
-
+            match (&crop_data.x, &crop_data.y, &crop_data.w, &crop_data.h) {
+                // w:h:x:y
+                (Some(x), Some(y), Some(w), Some(h)) => {
+                    args.push(format!("crop={}:{}:{}:{}", w, h, x, y));
+                }
+                // w:h
+                (None, None, Some(w), Some(h)) => {
+                    args.push(format!("crop={}:{}", w, h));
+                }
+                _ => {}
+            }
             debug!(?args, "crop args");
-            cb.args.append(&mut args);
+            cb.video_filters.append(&mut args);
         }
     }
 }

@@ -67,6 +67,10 @@ impl Info {
         self.get_duration().is_some_and(|dur| dur > 0.0_f64) && self.has_more_than_one_frame()
     }
 
+    pub fn has_non_empty_dimension(&self) -> bool {
+        self.get_dimensions().is_some_and(|(w, h)| w > 0 && h > 0)
+    }
+
     fn has_more_than_one_frame(&self) -> bool {
         self.streams.iter().any(|s| {
             let fps = s
@@ -97,6 +101,17 @@ impl Info {
             .duration
             .as_deref()
             .and_then(|dur_str| dur_str.parse::<f64>().ok())
+    }
+
+    pub fn get_dimensions(&self) -> Option<(u32, u32)> {
+        if self.format.nb_streams == 0 {
+            None
+        } else {
+            self.streams
+                .iter()
+                .filter_map(|s| s.width.zip(s.height))
+                .next()
+        }
     }
 
     fn has_stream_type(&self, stream_type: &str) -> bool {

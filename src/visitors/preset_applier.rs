@@ -66,6 +66,12 @@ impl ParameterVisitor for PresetApplier<'_> {
         }
     }
 
+    fn visit_crop(&mut self, data: &mut ParameterData) {
+        if let Some(preset_value) = self.preset_map.get(Crop::ID) {
+            Crop::apply_preset(&self.ctx, data, preset_value);
+        }
+    }
+
     fn visit_video_bitrate(&mut self, data: &mut ParameterData) {
         if let Some(preset_value) = self.preset_map.get(VideoBitrate::ID) {
             VideoBitrate::apply_preset(&self.ctx, data, preset_value);

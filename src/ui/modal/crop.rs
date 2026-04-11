@@ -25,6 +25,7 @@ pub(crate) struct CropModal {
     y: Input,
     w: Input,
     h: Input,
+    dimensions: (u32, u32),
     error: Option<String>,
 }
 
@@ -61,11 +62,12 @@ impl UiModal for CropModal {
         border_styles[self.active_input] = active_border_style;
 
         // Inputs
+        let (dw, dh) = self.dimensions;
         for (i, (input, area, label)) in [
-            (&self.x, x_area, "X"),
-            (&self.y, y_area, "Y"),
-            (&self.w, w_area, "Width"),
-            (&self.h, h_area, "Height"),
+            (&self.x, x_area, "X".to_owned()),
+            (&self.y, y_area, "Y".to_owned()),
+            (&self.w, w_area, format!("Width (max {})", dw)),
+            (&self.h, h_area, format!("Height (max {})", dh)),
         ]
         .into_iter()
         .enumerate()
@@ -117,21 +119,12 @@ impl KeyboardHandler for CropModal {
                 }
                 _ => return ModalResult::None,
             },
-            KeyCode::Backspace | KeyCode::Delete => match self.active_input {
-                0 => {
-                    self.x.handle_event(&Event::Key(key));
-                }
-                1 => {
-                    self.y.handle_event(&Event::Key(key));
-                }
-                2 => {
-                    self.w.handle_event(&Event::Key(key));
-                }
-                3 => {
-                    self.h.handle_event(&Event::Key(key));
-                }
-                _ => {}
-            },
+            KeyCode::Backspace | KeyCode::Delete => {
+                [&mut self.x, &mut self.y, &mut self.w, &mut self.h]
+                    .get_mut(self.active_input)
+                    .expect("active_input is invalid")
+                    .handle_event(&Event::Key(key));
+            }
             KeyCode::Enter => {
                 if let Some(msg) = CropData::validate(
                     self.x.value(),
@@ -162,13 +155,15 @@ impl From<&CropModal> for CropData {
 }
 
 impl CropModal {
-    pub(crate) fn new(data: CropData) -> Self {
+    pub(crate) fn new(data: CropData, dimensions: (u32, u32)) -> Self {
+        let (dw, dh) = dimensions;
         Self {
             active_input: 0,
             x: Input::new(data.x.unwrap_or_default()),
             y: Input::new(data.y.unwrap_or_default()),
-            w: Input::new(data.w.unwrap_or_default()),
-            h: Input::new(data.h.unwrap_or_default()),
+            w: Input::new(data.w.unwrap_or(dw.to_string())),
+            h: Input::new(data.h.unwrap_or(dh.to_string())),
+            dimensions,
             error: None,
         }
     }

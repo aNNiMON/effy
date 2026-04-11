@@ -72,6 +72,12 @@ impl ParameterVisitor for PresetSaver {
         }
     }
 
+    fn visit_crop(&mut self, data: &mut ParameterData) {
+        if let Some(v) = Crop::save_preset(&self.ctx, data) {
+            self.add(Crop::ID, &v);
+        }
+    }
+
     fn visit_video_bitrate(&mut self, data: &mut ParameterData) {
         if let Some(v) = VideoBitrate::save_preset(&self.ctx, data) {
             self.add(VideoBitrate::ID, &v);

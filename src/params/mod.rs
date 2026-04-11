@@ -67,7 +67,9 @@ pub(crate) fn create_params(info: &Info, preset: Option<&str>, source_ext: &str)
         params.push(SpeedFactor::new_parameter());
     }
     if info.has_video() {
-        params.push(Crop::new_parameter());
+        if info.has_non_empty_dimension() {
+            params.push(Crop::new_parameter());
+        }
         params.push(VideoBitrate::new_parameter());
         params.push(VideoFrameRate::new_parameter());
         params.push(VideoScale::new_parameter());
@@ -117,6 +119,7 @@ pub(crate) fn recheck_params(params: &mut [Parameter]) {
         if matches!(
             param.id,
             DisableAudio::ID
+                | Crop::ID
                 | VideoScale::ID
                 | VideoBitrate::ID
                 | VideoFrameRate::ID
@@ -168,6 +171,7 @@ pub(crate) fn apply_visitor(visitor: &mut dyn ParameterVisitor, params: &mut [Pa
             AudioCrystalizer::ID => visitor.visit_audio_crystalizer(&mut param.data),
             AudioPitch::ID => visitor.visit_audio_pitch(&mut param.data),
             SpeedFactor::ID => visitor.visit_speed_factor(&mut param.data),
+            Crop::ID => visitor.visit_crop(&mut param.data),
             VideoBitrate::ID => visitor.visit_video_bitrate(&mut param.data),
             VideoFrameRate::ID => visitor.visit_video_frame_rate(&mut param.data),
             VideoScale::ID => visitor.visit_video_scale(&mut param.data),

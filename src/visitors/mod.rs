@@ -8,6 +8,7 @@ pub(crate) trait ParameterVisitor {
     fn visit_audio_volume(&mut self, data: &mut ParameterData);
     fn visit_audio_pitch(&mut self, data: &mut ParameterData);
     fn visit_speed_factor(&mut self, data: &mut ParameterData);
+    fn visit_crop(&mut self, data: &mut ParameterData);
     fn visit_video_bitrate(&mut self, data: &mut ParameterData);
     fn visit_video_frame_rate(&mut self, data: &mut ParameterData);
     fn visit_video_scale(&mut self, data: &mut ParameterData);

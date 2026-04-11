@@ -207,6 +207,7 @@ mod tests {
     fn apply_preset(preset: &str) -> TrimData {
         let ctx = VisitorContext {
             input_duration: Some(100.0),
+            ..Default::default()
         };
         let mut data = ParameterData::Trim(TrimData::default());
         Trim::apply_preset(&ctx, &mut data, preset);
@@ -219,6 +220,7 @@ mod tests {
     fn save_preset(trim_data: TrimData) -> Option<String> {
         let ctx = VisitorContext {
             input_duration: Some(100.0),
+            ..Default::default()
         };
         let data = ParameterData::Trim(trim_data);
         Trim::save_preset(&ctx, &data)

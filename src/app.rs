@@ -114,7 +114,10 @@ impl<'a> App<'a> {
                     self.modal = Some(Box::new(TrimModal::new(data, self.info.get_duration())));
                 }
                 Ok(AppEvent::OpenCropModal(data)) => {
-                    self.modal = Some(Box::new(CropModal::new(data)));
+                    self.modal = Some(Box::new(CropModal::new(
+                        data,
+                        self.info.get_dimensions().unwrap_or_default(),
+                    )));
                 }
                 Ok(AppEvent::OpenCustomSelectModal(data)) => {
                     self.modal = Some(Box::new(CustomSelectModal::from(data)));

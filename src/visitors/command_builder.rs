@@ -96,6 +96,10 @@ impl ParameterVisitor for CommandBuilder {
         SpeedFactor::build_command(self, data);
     }
 
+    fn visit_crop(&mut self, data: &mut ParameterData) {
+        Crop::build_command(self, data);
+    }
+
     fn visit_video_bitrate(&mut self, data: &mut ParameterData) {
         VideoBitrate::build_command(self, data);
     }

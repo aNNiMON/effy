@@ -6,14 +6,14 @@ use crate::info::Info;
 pub(crate) struct VisitorContext {
     // from input info
     pub(crate) input_duration: Option<f64>,
-    pub(crate) _input_dimensions: Option<(u32, u32)>,
+    pub(crate) input_dimensions: Option<(u32, u32)>,
 }
 
 impl VisitorContext {
     pub(crate) fn new(info: &Info) -> Self {
         Self {
             input_duration: info.get_duration(),
-            _input_dimensions: info.get_dimensions(),
+            input_dimensions: info.get_dimensions(),
         }
     }
 }

@@ -27,26 +27,17 @@ impl Crop {
             && !crop_data.is_empty()
         {
             debug!(?crop_data, "build_command");
-            let mut args = Vec::new();
-            match (&crop_data.x, &crop_data.y, &crop_data.w, &crop_data.h) {
-                // w:h:x:y
-                (Some(x), Some(y), Some(w), Some(h)) => {
-                    args.push(format!("crop={}:{}:{}:{}", w, h, x, y));
-                }
-                // w:h
-                (None, None, Some(w), Some(h)) => {
-                    args.push(format!("crop={}:{}", w, h));
-                }
-                _ => {}
-            }
+
+            let (x, y, w, h) = crop_data.parse();
+            let args = vec![format!("crop={}:{}:{}:{}", w, h, x, y)];
             debug!(?args, "crop args");
-            cb.video_filters.append(&mut args);
+            cb.video_filters.extend(args);
         }
     }
 }
 
 impl<'a> PresetParameter<'a> for Crop {
-    fn apply_preset(_ctx: &VisitorContext, data: &mut ParameterData, preset_value: &str) {
+    fn apply_preset(_ctx: &VisitorContext, data: &mut ParameterData, _preset_value: &str) {
         if let ParameterData::Crop(_crop_data) = data {
             todo!()
         }
@@ -58,7 +49,7 @@ impl<'a> PresetParameter<'a> for Crop {
                 None
             } else {
                 Some(format!(
-                    "{}:{},{}x{}",
+                    "x{}y{}w{}h{}",
                     crop_data.x.as_deref().unwrap_or(""),
                     crop_data.y.as_deref().unwrap_or(""),
                     crop_data.w.as_deref().unwrap_or(""),

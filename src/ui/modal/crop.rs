@@ -126,13 +126,14 @@ impl KeyboardHandler for CropModal {
                     .handle_event(&Event::Key(key));
             }
             KeyCode::Enter => {
-                if let Some(msg) = CropData::validate(
+                if let Err(msg) = CropData::validate(
                     self.x.value(),
                     self.y.value(),
                     self.w.value(),
                     self.h.value(),
+                    self.dimensions,
                 ) {
-                    self.error = Some(msg.to_owned());
+                    self.error = Some(msg);
                     return ModalResult::None;
                 }
                 return ModalResult::Crop;

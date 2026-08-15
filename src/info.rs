@@ -64,7 +64,8 @@ impl Info {
     }
 
     pub fn has_non_empty_duration(&self) -> bool {
-        self.get_duration().is_some_and(|dur| dur > 0.0_f64) && self.has_more_than_one_frame()
+        self.get_duration().is_some_and(|dur| dur > 0.0_f64)
+            && (self.has_audio() || self.has_more_than_one_frame())
     }
 
     pub fn has_non_empty_dimension(&self) -> bool {

@@ -409,8 +409,8 @@ impl Display for CropData {
             "{}:{},{}x{}",
             self.x.as_deref().unwrap_or("0"),
             self.y.as_deref().unwrap_or("0"),
-            self.w.as_deref().unwrap_or("0"),
-            self.h.as_deref().unwrap_or("0"),
+            self.w.as_deref().unwrap_or("W"),
+            self.h.as_deref().unwrap_or("H"),
         )
     }
 }

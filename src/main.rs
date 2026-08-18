@@ -27,15 +27,15 @@ mod visitors;
     about = "A small and friendly terminal FFmpeg helper that simplifies common tasks"
 )]
 struct Cli {
-    /// Specify parameter values
+    /// Specify parameter values.
     #[arg(short, long)]
     preset: Option<String>,
 
-    /// Apply preset immediately without UI
+    /// Apply preset immediately without UI.
     #[arg(long, requires = "preset")]
     apply: bool,
 
-    /// Media file or URL
+    /// Media file or URL.
     input: String,
 }
 

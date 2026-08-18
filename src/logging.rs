@@ -1,7 +1,7 @@
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{EnvFilter, prelude::*};
 
-/// Initialize logging, currently logging to current directory
+/// Initialize logging, currently logging to current directory.
 pub(crate) fn init_tracing() -> Option<WorkerGuard> {
     match std::env::var_os("RUST_LOG") {
         None => return None,

@@ -32,7 +32,7 @@ impl Source {
 
     pub(crate) fn validate(&self) -> Result<(), String> {
         if self.source_type == SourceType::File && std::fs::metadata(&self.input).is_err() {
-            return Err(format!("Input file '{}' does not exist", &self.input));
+            return Err(format!("Input file '{}' does not exist", self.input));
         }
         Ok(())
     }

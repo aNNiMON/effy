@@ -210,7 +210,7 @@ impl Parameter {
     }
 
     pub(crate) fn describe(&self) -> String {
-        format!("{}: {}", &self.name, self.describe_value())
+        format!("{}: {}", self.name, self.describe_value())
     }
 
     pub(crate) fn open_modal(&self, event_sender: &Sender<AppEvent>) {

@@ -54,7 +54,7 @@ impl AudioBitrate {
         if value == Self::DEFAULT {
             "auto".to_owned()
         } else {
-            format!("{}k", &value)
+            format!("{}k", value)
         }
     }
 

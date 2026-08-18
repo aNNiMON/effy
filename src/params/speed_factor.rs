@@ -63,9 +63,9 @@ impl SpeedFactor {
                 );
             }
             if !cb.discard_audio {
-                cb.audio_filters.push(format!("atempo={}", &value));
+                cb.audio_filters.push(format!("atempo={}", value));
             }
-            cb.video_filters.push(format!("setpts=PTS/{}", &value));
+            cb.video_filters.push(format!("setpts=PTS/{}", value));
         }
     }
 }

@@ -53,7 +53,7 @@ impl AudioPitch {
         {
             debug!(value, "build_command");
             cb.audio_filters
-                .push(format!("rubberband=pitchq=quality:pitch={}", &value));
+                .push(format!("rubberband=pitchq=quality:pitch={}", value));
         }
     }
 }

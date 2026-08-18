@@ -52,7 +52,7 @@ impl AudioCrystalizer {
             && let Some(value) = select_non_default_custom_value!(data)
         {
             debug!(value, "build_command");
-            cb.audio_filters.push(format!("crystalizer={}", &value));
+            cb.audio_filters.push(format!("crystalizer={}", value));
         }
     }
 }

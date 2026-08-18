@@ -65,7 +65,7 @@ impl VideoScale {
         if value == Self::DEFAULT {
             "original".to_owned()
         } else {
-            format!("{}p", &value)
+            format!("{}p", value)
         }
     }
 
@@ -85,11 +85,11 @@ impl VideoScale {
             #[cfg(target_os = "linux")]
             {
                 if (cb.hwaccel == HWAccel::Nvenc) && (cb.video_filters.is_empty()) {
-                    cb.video_filters.push(format!("scale_cuda=-2:{}", &value));
+                    cb.video_filters.push(format!("scale_cuda=-2:{}", value));
                 } else if cb.hwaccel == HWAccel::Vaapi {
-                    cb.video_filters.push(format!("scale_vaapi=-2:{}", &value));
+                    cb.video_filters.push(format!("scale_vaapi=-2:{}", value));
                 } else {
-                    cb.video_filters.push(format!("scale=-2:{}", &value));
+                    cb.video_filters.push(format!("scale=-2:{}", value));
                 }
             }
 

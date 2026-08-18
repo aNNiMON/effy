@@ -37,8 +37,11 @@ impl OutputFormat {
             options.extend(Self::AUDIO_TYPES);
         }
         if !options.contains(&ext) {
-            selected_index = options.len();
             options.push(ext);
+        }
+        // Prefer the source extension
+        if let Some(index) = options.iter().position(|&o| o == ext) {
+            selected_index = index;
         }
         ParameterData::Select {
             options: options.into_iter().map(SelectOption::from).collect(),

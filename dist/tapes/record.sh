@@ -9,6 +9,11 @@ declare -a REQUIRED_FILES=(
   "$MAIN_TEMPLATE_TAPE"
   "$ASSETS_DIR/in.mp4"
 )
+if [[ ! -d "$RELEASE_DIR" ]]
+then
+  echo "Release build not found. Run 'cargo build --release' first."
+  exit 1
+fi
 for file in "${REQUIRED_FILES[@]}"
 do
   if [[ ! -f "$file" ]]
@@ -23,8 +28,11 @@ function run() {
   envsubst < "$TAPES_DIR/main.tpltape" > "$tape"
   # Run vhs with effy release build
   PATH="$PATH:$RELEASE_DIR" vhs "$tape"
-  # Clean up
-  rm "$ASSETS_DIR/in_out.mp3" "$ASSETS_DIR/in_out.mp4"
+  if [[ $? -eq 0 ]]
+  then
+    # Clean up
+    rm "$ASSETS_DIR/in_out.mp3" "$ASSETS_DIR/in_out.mp4"
+  fi
 }
 
 # relative path only!
@@ -50,7 +58,8 @@ if command -v magick >/dev/null 2>&1
 then
   echo "Optimizing..."
   OPT=".assets/opt"
-  cp -r "$OUT" "$OPT"
+  mkdir -p "$OPT"
+  cp "$OUT"/* "$OPT"
   magick mogrify -dither none -colors 32 "$OPT"/*
   echo "Optimizing done. Results:"
   du -hs "$OPT"/*

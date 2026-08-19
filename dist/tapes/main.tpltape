@@ -65,12 +65,21 @@ Down 2
 Right
 Sleep 200ms
 Down
+Sleep 150ms
+
+# Crop
+Right
+Screenshot "$OUT/crop${TYPE}.png"
+Sleep 350ms
+Enter
+Sleep 150ms
+Down
 Sleep 200ms
+
+# Video params
 Right
 Sleep 300ms
 Enter
-
-# Video params
 Sleep 500ms
 Backspace 3
 Sleep 400ms

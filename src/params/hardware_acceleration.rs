@@ -14,24 +14,31 @@ impl HardwareAcceleration {
     pub(crate) const NAME: &'static str = "HW Acceleration";
     const DEFAULT: &'static str = "none";
 
-    pub fn new_parameter() -> Parameter {
+    pub fn _new_parameter() -> Parameter {
+        Self::new_parameter_ignoring(&[])
+    }
+
+    pub fn new_parameter_ignoring(hidden_options: &[String]) -> Parameter {
+        let mut options = SelectOption::from_pairs(&[
+            ("none", "none"),
+            #[cfg(any(target_os = "windows", target_os = "linux"))]
+            ("nvidia", "nvenc"),
+            #[cfg(any(target_os = "windows", target_os = "linux"))]
+            ("intel", "qsv"),
+            #[cfg(any(target_os = "windows", target_os = "linux"))]
+            ("amd", "amf"),
+            #[cfg(target_os = "linux")]
+            ("vaapi", "vaapi"),
+            #[cfg(target_os = "macos")]
+            ("macos", "videotoolbox"),
+        ]);
+        options.retain(|option| !hidden_options.contains(&option.name));
+
         Parameter::new(
             Self::ID,
             Self::NAME,
             ParameterData::Select {
-                options: SelectOption::from_pairs(&[
-                    ("none", "none"),
-                    #[cfg(any(target_os = "windows", target_os = "linux"))]
-                    ("nvidia", "nvenc"),
-                    #[cfg(any(target_os = "windows", target_os = "linux"))]
-                    ("intel", "qsv"),
-                    #[cfg(any(target_os = "windows", target_os = "linux"))]
-                    ("amd", "amf"),
-                    #[cfg(target_os = "linux")]
-                    ("vaapi", "vaapi"),
-                    #[cfg(target_os = "macos")]
-                    ("macos", "videotoolbox"),
-                ]),
+                options,
                 selected_index: 0,
             },
         )
@@ -113,5 +120,29 @@ impl<'a> PresetParameter<'a> for HardwareAcceleration {
 
     fn save_preset(_ctx: &VisitorContext, data: &'a ParameterData) -> Option<String> {
         select_non_default_option!(data).map(|option| option.value.clone())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{HardwareAcceleration, ParameterData};
+
+    #[test]
+    fn hides_configured_options() {
+        let hidden_options = ["nvidia", "intel", "amd", "vaapi", "macos"]
+            .map(str::to_owned)
+            .to_vec();
+        let parameter = HardwareAcceleration::new_parameter_ignoring(&hidden_options);
+
+        let ParameterData::Select { options, .. } = parameter.data else {
+            panic!("hardware acceleration must be a select parameter");
+        };
+        assert_eq!(
+            options
+                .iter()
+                .map(|option| option.name.as_str())
+                .collect::<Vec<_>>(),
+            ["none"]
+        );
     }
 }

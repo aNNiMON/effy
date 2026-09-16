@@ -353,7 +353,7 @@ mod tests {
     #[test]
     fn hardware_acceleration() {
         let mut cb = CommandBuilder::default();
-        let mut p = HardwareAcceleration::new_parameter();
+        let mut p = HardwareAcceleration::_new_parameter();
         toggle_next(&mut p);
 
         cb.visit_hardware_acceleration(&mut p.data);

@@ -60,7 +60,7 @@ impl<'a> App<'a> {
         info: &'a Info,
         source: Source,
         preset: Option<&str>,
-        _config: &Config,
+        config: &Config,
     ) -> Self {
         let mut list_state = ListState::default();
         list_state.select_first();
@@ -83,7 +83,7 @@ impl<'a> App<'a> {
             modal: None,
             theme,
             // Params
-            params: create_params(info, preset, fileext.as_str()),
+            params: create_params(info, preset, fileext.as_str(), config),
             params_list_state: list_state,
             // Info
             original_filename,

@@ -42,6 +42,7 @@ pub(crate) use video_frame_rate::*;
 pub(crate) use video_scale::*;
 
 use crate::{
+    config::Config,
     info::Info,
     params::macros::select_option,
     visitors::{ParameterVisitor, PresetApplier, PresetSaver, VisitorContext},
@@ -49,7 +50,12 @@ use crate::{
 use tracing::{Level, debug, enabled};
 
 /// Create parameters based on given info and apply the preset
-pub(crate) fn create_params(info: &Info, preset: Option<&str>, source_ext: &str) -> Vec<Parameter> {
+pub(crate) fn create_params(
+    info: &Info,
+    preset: Option<&str>,
+    source_ext: &str,
+    config: &Config,
+) -> Vec<Parameter> {
     let mut params: Vec<Parameter> = Vec::new();
     if info.has_non_empty_duration() {
         params.push(Trim::new_parameter());
@@ -73,7 +79,9 @@ pub(crate) fn create_params(info: &Info, preset: Option<&str>, source_ext: &str)
         params.push(VideoBitrate::new_parameter());
         params.push(VideoFrameRate::new_parameter());
         params.push(VideoScale::new_parameter());
-        params.push(HardwareAcceleration::new_parameter());
+        params.push(HardwareAcceleration::new_parameter_ignoring(
+            &config.hide_hwaccel_options,
+        ));
     }
     params.push(OutputFormat::new_parameter(info, source_ext));
     if let Some(preset_value) = preset {

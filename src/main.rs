@@ -1,5 +1,6 @@
 use std::{
     error::Error,
+    path::PathBuf,
     process,
     sync::mpsc::{self, Sender},
     thread,
@@ -28,6 +29,10 @@ mod visitors;
     about = "A small and friendly terminal FFmpeg helper that simplifies common tasks"
 )]
 struct Cli {
+    /// Load configuration from a specific file.
+    #[arg(long, value_name = "PATH")]
+    config: Option<PathBuf>,
+
     /// Specify parameter values.
     #[arg(short, long)]
     preset: Option<String>,
@@ -44,7 +49,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let _guard = logging::init_tracing();
 
     let cli = Cli::parse();
-    let config = config::Config::load(None)?;
+    let config = config::Config::load(cli.config.as_deref())?;
     let source = Source::new(cli.input);
     source.validate().map_err(|e| {
         eprintln!("Error: {e}");

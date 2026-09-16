@@ -12,6 +12,7 @@ use crossterm::event::{Event, KeyEventKind};
 use crate::{model::AppEvent, source::Source};
 
 mod app;
+mod config;
 mod info;
 mod logging;
 mod model;
@@ -43,6 +44,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let _guard = logging::init_tracing();
 
     let cli = Cli::parse();
+    let config = config::Config::load(None)?;
     let source = Source::new(cli.input);
     source.validate().map_err(|e| {
         eprintln!("Error: {e}");
@@ -59,7 +61,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     if cli.apply {
         let (tx, _) = mpsc::channel();
-        App::new(tx, &ffprobe_info, source, cli.preset.as_deref()).run_cli();
+        App::new(tx, &ffprobe_info, source, cli.preset.as_deref(), &config).run_cli();
         process::exit(0);
     }
 
@@ -67,7 +69,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let (tx, rx) = mpsc::channel();
         let event_tx = tx.clone();
         thread::spawn(move || handle_crossterm_events(&event_tx));
-        App::new(tx, &ffprobe_info, source, cli.preset.as_deref()).run(terminal, &rx)
+        App::new(tx, &ffprobe_info, source, cli.preset.as_deref(), &config).run(terminal, &rx)
     })
 }
 

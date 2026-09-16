@@ -10,6 +10,7 @@ use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::{DefaultTerminal, widgets::ListState};
 use tracing::debug;
 
+use crate::config::Config;
 use crate::info::Info;
 use crate::model::{AppEvent, Pane};
 use crate::params::{
@@ -54,7 +55,13 @@ pub(crate) struct App<'a> {
 }
 
 impl<'a> App<'a> {
-    pub fn new(tx: Sender<AppEvent>, info: &'a Info, source: Source, preset: Option<&str>) -> Self {
+    pub fn new(
+        tx: Sender<AppEvent>,
+        info: &'a Info,
+        source: Source,
+        preset: Option<&str>,
+        _config: &Config,
+    ) -> Self {
         let mut list_state = ListState::default();
         list_state.select_first();
         let folder = source.input_folder();

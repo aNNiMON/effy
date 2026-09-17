@@ -47,6 +47,7 @@ impl Config {
             .map(PathBuf::from)
             .filter(|path| path.is_absolute())
             .or_else(dirs::config_dir)
+            .or_else(|| dirs::home_dir().map(|home| home.join(".config")))
             .ok_or(ConfigError::PathUnavailable)?;
         let app_name = env!("CARGO_PKG_NAME");
 

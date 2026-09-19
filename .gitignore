@@ -2,3 +2,4 @@
 .assets
 *.log
 dist/tapes/*.tape
+dist/aur/*/.SRCINFO

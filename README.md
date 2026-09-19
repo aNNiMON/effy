@@ -20,6 +20,7 @@ A small and friendly terminal FFmpeg helper that simplifies common tasks.
 - apply audio effects (crystalizer)
 - extract or remove audio from the video
 - trim video/audio
+- crop video/image
 - use hardware acceleration
 - apply presets (preload in the UI, or immediately from the CLI)
 
@@ -40,6 +41,14 @@ effy --preset "noaudio=1;scale=250;output=mp4" --apply input.mp4
 ## Install
 
 Download pre-compiled binaries from [Releases](https://github.com/aNNiMON/effy/releases)
+
+Arch Linux [AUR](https://aur.archlinux.org/packages?O=0&SeB=nd&K=effy&outdated=&SB=p&SO=d&PP=50&submit=Go):
+
+```bash
+paru -S effy
+# or
+paru -S effy-bin
+```
 
 Or install using `cargo`:
 

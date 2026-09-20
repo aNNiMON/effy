@@ -27,3 +27,36 @@ procs:
     shell: cargo publish
     autostart: false
 
+  aur:
+    shell: |-
+      echo "effy"
+      cd effy
+      read -p "Update version in effy PKGBUILD, reset pkgrel=1. Press Enter when done"
+      makepkg --geninteg
+      makepkg --geninteg | wl-copy
+      read -p "Update b2sums (copied to clipboard). Press Enter when done"
+      makepkg --verifysource && namcap -i PKGBUILD && makepkg --cleanbuild --syncdeps && namcap *.zst && echo "Verification done"
+      makepkg --printsrcinfo > .SRCINFO
+      echo ".SRCINFO updated"
+      git add .SRCINFO PKGBUILD
+      echo "Verify, commit and push to AUR"
+      rm -f effy-*.tar.gz effy-*.tar.zst
+      rm -rf pkg src
+      echo "AUR effy-bin"
+      cd ../effy-bin
+      read -p "Update version in effy-bin PKGBUILD, reset pkgrel=1. Press Enter when done"
+      makepkg --geninteg
+      makepkg --geninteg | wl-copy
+      read -p "Update b2sums (copied to clipboard). Press Enter when done"
+      makepkg --verifysource && namcap -i PKGBUILD && makepkg --cleanbuild --syncdeps && namcap *.zst && echo "Verification done"
+      makepkg --printsrcinfo > .SRCINFO
+      echo ".SRCINFO updated"
+      git add .SRCINFO PKGBUILD
+      echo "Verify, commit and push to AUR"
+      rm -f effy-*.tar.gz effy-*.tar.zst
+      rm -f effy-*-LICENSE
+      rm -rf pkg src
+      echo "Done"
+    cwd: dist/aur
+    autostart: false
+

@@ -8,6 +8,27 @@ icon: lucide/file-terminal
 
 Download from [:simple-github: GitHub Releases](https://github.com/aNNiMON/effy/releases)
 
+## Packages
+
+
+=== ":simple-archlinux: effy"
+
+    ```bash
+    paru -S effy
+    ```
+    ```bash
+    yay -S effy
+    ```
+
+=== ":simple-archlinux: effy-bin"
+
+    ```bash
+    paru -S effy-bin
+    ```
+    ```bash
+    yay -S effy-bin
+    ```
+
 ## Install using `cargo`
 
 ```bash

@@ -30,6 +30,7 @@ nav = [
     "params/audio-pitch.md",
     "params/audio-volume.md",
     "params/speed.md",
+    "params/crop.md",
     "params/video-bitrate.md",
     "params/video-frame-rate.md",
     "params/video-scale.md",

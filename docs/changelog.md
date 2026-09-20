@@ -6,6 +6,13 @@ icon: lucide/scroll-text
 
 See also [:simple-github: GitHub Releases](https://github.com/aNNiMON/effy/releases)
 
+## 0.10.0 - Crop parameter
+- Added Crop parameter ([docs](params/crop.md))
+- Preselect source format by default
+- Fixed missing Trim and Speed parameters for audio files with cover image
+- ==[Linux]== effy is now available in [AUR](https://aur.archlinux.org/packages?O=0&SeB=nd&K=effy&outdated=&SB=p&SO=d&PP=50&submit=Go)
+
+
 ## 0.9.0 - Trim improvement, Copy modal
 
 - Added percent values support to Trim parameter. Works only if the media duration is known

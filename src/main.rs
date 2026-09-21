@@ -10,7 +10,7 @@ use app::App;
 use clap::{ArgAction, Parser};
 use crossterm::event::{Event, KeyEventKind};
 
-use crate::{model::AppEvent, source::Source};
+use crate::{config::Config, model::AppEvent, source::Source};
 
 mod app;
 mod config;
@@ -54,11 +54,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let _guard = logging::init_tracing();
 
     let cli = Cli::parse();
-    let config = config::Config::load(cli.config.as_deref())?;
     if cli.show_config {
-        config.show();
+        Config::show();
         process::exit(0);
     }
+    let config = Config::load(cli.config.as_deref())?;
     let source = Source::new(
         cli.input
             .expect("input is required unless --show-config is used"),

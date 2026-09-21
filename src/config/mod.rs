@@ -23,6 +23,18 @@ pub(crate) struct Config {
 }
 
 impl Config {
+    pub(crate) fn show() {
+        println!("# Configuration file must be located at:");
+        println!(
+            "#   {}",
+            Self::path()
+                .map(|p| p.display().to_string())
+                .unwrap_or("N/A".to_owned())
+        );
+        println!("#");
+        println!("{}", DEFAULT_CONFIG);
+    }
+
     pub(crate) fn load(path: Option<&Path>) -> Result<Self, ConfigError> {
         let path = path.map(Path::to_owned).map_or_else(Self::path, Ok)?;
         let contents = match fs::read_to_string(&path) {
@@ -40,18 +52,6 @@ impl Config {
         Ok(Self {
             hide_hwaccel_options: parse::hwaccel_options(&raw.hide_hwaccel_options)?,
         })
-    }
-
-    pub(crate) fn show(&self) {
-        println!("# Configuration file must be located at:");
-        println!(
-            "#   {}",
-            Self::path()
-                .map(|p| p.display().to_string())
-                .unwrap_or("N/A".to_owned())
-        );
-        println!("#");
-        println!("{}", DEFAULT_CONFIG);
     }
 
     fn path() -> Result<PathBuf, ConfigError> {

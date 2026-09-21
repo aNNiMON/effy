@@ -1,17 +1,19 @@
 use std::{
     error::Error,
+    path::PathBuf,
     process,
     sync::mpsc::{self, Sender},
     thread,
 };
 
 use app::App;
-use clap::Parser;
+use clap::{ArgAction, Parser};
 use crossterm::event::{Event, KeyEventKind};
 
-use crate::{model::AppEvent, source::Source};
+use crate::{config::Config, model::AppEvent, source::Source};
 
 mod app;
+mod config;
 mod info;
 mod logging;
 mod model;
@@ -27,6 +29,14 @@ mod visitors;
     about = "A small and friendly terminal FFmpeg helper that simplifies common tasks"
 )]
 struct Cli {
+    /// Load configuration from a specific file.
+    #[arg(long, value_name = "PATH")]
+    config: Option<PathBuf>,
+
+    /// Show example configuration.
+    #[arg(long, action = ArgAction::SetTrue)]
+    show_config: bool,
+
     /// Specify parameter values.
     #[arg(short, long)]
     preset: Option<String>,
@@ -36,14 +46,23 @@ struct Cli {
     apply: bool,
 
     /// Media file or URL.
-    input: String,
+    #[arg(required_unless_present = "show_config")]
+    input: Option<String>,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
     let _guard = logging::init_tracing();
 
     let cli = Cli::parse();
-    let source = Source::new(cli.input);
+    if cli.show_config {
+        Config::show();
+        process::exit(0);
+    }
+    let config = Config::load(cli.config.as_deref())?;
+    let source = Source::new(
+        cli.input
+            .expect("input is required unless --show-config is used"),
+    );
     source.validate().map_err(|e| {
         eprintln!("Error: {e}");
         process::exit(1);
@@ -59,7 +78,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     if cli.apply {
         let (tx, _) = mpsc::channel();
-        App::new(tx, &ffprobe_info, source, cli.preset.as_deref()).run_cli();
+        App::new(tx, &ffprobe_info, source, cli.preset.as_deref(), &config).run_cli();
         process::exit(0);
     }
 
@@ -67,7 +86,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let (tx, rx) = mpsc::channel();
         let event_tx = tx.clone();
         thread::spawn(move || handle_crossterm_events(&event_tx));
-        App::new(tx, &ffprobe_info, source, cli.preset.as_deref()).run(terminal, &rx)
+        App::new(tx, &ffprobe_info, source, cli.preset.as_deref(), &config).run(terminal, &rx)
     })
 }
 

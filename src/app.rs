@@ -10,6 +10,7 @@ use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::{DefaultTerminal, widgets::ListState};
 use tracing::debug;
 
+use crate::config::Config;
 use crate::info::Info;
 use crate::model::{AppEvent, Pane};
 use crate::params::{
@@ -54,7 +55,13 @@ pub(crate) struct App<'a> {
 }
 
 impl<'a> App<'a> {
-    pub fn new(tx: Sender<AppEvent>, info: &'a Info, source: Source, preset: Option<&str>) -> Self {
+    pub fn new(
+        tx: Sender<AppEvent>,
+        info: &'a Info,
+        source: Source,
+        preset: Option<&str>,
+        config: &Config,
+    ) -> Self {
         let mut list_state = ListState::default();
         list_state.select_first();
         let folder = source.input_folder();
@@ -76,7 +83,7 @@ impl<'a> App<'a> {
             modal: None,
             theme,
             // Params
-            params: create_params(info, preset, fileext.as_str()),
+            params: create_params(info, preset, fileext.as_str(), config),
             params_list_state: list_state,
             // Info
             original_filename,

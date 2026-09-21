@@ -7,7 +7,7 @@ use std::{
 };
 
 use app::App;
-use clap::Parser;
+use clap::{ArgAction, Parser};
 use crossterm::event::{Event, KeyEventKind};
 
 use crate::{model::AppEvent, source::Source};
@@ -33,6 +33,10 @@ struct Cli {
     #[arg(long, value_name = "PATH")]
     config: Option<PathBuf>,
 
+    /// Show example configuration.
+    #[arg(long, action = ArgAction::SetTrue)]
+    show_config: bool,
+
     /// Specify parameter values.
     #[arg(short, long)]
     preset: Option<String>,
@@ -42,7 +46,8 @@ struct Cli {
     apply: bool,
 
     /// Media file or URL.
-    input: String,
+    #[arg(required_unless_present = "show_config")]
+    input: Option<String>,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -50,7 +55,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let cli = Cli::parse();
     let config = config::Config::load(cli.config.as_deref())?;
-    let source = Source::new(cli.input);
+    if cli.show_config {
+        config.show();
+        process::exit(0);
+    }
+    let source = Source::new(
+        cli.input
+            .expect("input is required unless --show-config is used"),
+    );
     source.validate().map_err(|e| {
         eprintln!("Error: {e}");
         process::exit(1);

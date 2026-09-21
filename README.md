@@ -36,6 +36,10 @@ effy "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckB
 # Presets
 effy --preset "noaudio=1;scale=250;output=mp4" input.mp4
 effy --preset "noaudio=1;scale=250;output=mp4" --apply input.mp4
+
+# Config
+effy --show-config
+effy --config newconfig.toml input.mp4
 ```
 
 ## Install

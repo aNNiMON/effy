@@ -9,7 +9,7 @@ use std::{
 
 use serde::Deserialize;
 
-pub(crate) const _DEFAULT_CONFIG: &str = include_str!("../assets/config-default.toml");
+pub(crate) const DEFAULT_CONFIG: &str = include_str!("../assets/config-default.toml");
 
 #[derive(Debug, Default, Deserialize)]
 #[serde(default)]
@@ -40,6 +40,18 @@ impl Config {
         Ok(Self {
             hide_hwaccel_options: parse::hwaccel_options(&raw.hide_hwaccel_options)?,
         })
+    }
+
+    pub(crate) fn show(&self) {
+        println!("# Configuration file must be located at:");
+        println!(
+            "#   {}",
+            Self::path()
+                .map(|p| p.display().to_string())
+                .unwrap_or("N/A".to_owned())
+        );
+        println!("#");
+        println!("{}", DEFAULT_CONFIG);
     }
 
     fn path() -> Result<PathBuf, ConfigError> {
@@ -102,7 +114,7 @@ mod tests {
         sync::atomic::{AtomicU64, Ordering},
     };
 
-    use super::{_DEFAULT_CONFIG, Config, ConfigError};
+    use super::{Config, ConfigError, DEFAULT_CONFIG};
 
     static NEXT_TEMP_DIR: AtomicU64 = AtomicU64::new(0);
 
@@ -165,7 +177,7 @@ mod tests {
     fn should_load_default_config() {
         let temp = TempDir::new();
         let path = temp.path().join("effy.toml");
-        fs::write(&path, _DEFAULT_CONFIG).unwrap();
+        fs::write(&path, DEFAULT_CONFIG).unwrap();
 
         assert_eq!(Config::load(Some(&path)).unwrap(), Config::default());
     }

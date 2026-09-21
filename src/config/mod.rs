@@ -9,7 +9,7 @@ use std::{
 
 use serde::Deserialize;
 
-pub(crate) const _DEFAULT_CONFIG: &str = include_str!("config-default.toml");
+pub(crate) const _DEFAULT_CONFIG: &str = include_str!("../assets/config-default.toml");
 
 #[derive(Debug, Default, Deserialize)]
 #[serde(default)]

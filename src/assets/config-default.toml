@@ -1,3 +1,6 @@
+# Theme: default, hacky
+theme = "default"
+
 # Comma-separated hardware acceleration options to ignore.
 # Possible values: nvidia, intel, amd, vaapi, macos
 hide_hwaccel_options = ""

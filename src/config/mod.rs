@@ -14,11 +14,13 @@ pub(crate) const DEFAULT_CONFIG: &str = include_str!("../assets/config-default.t
 #[derive(Debug, Default, Deserialize)]
 #[serde(default)]
 struct RawConfig {
+    theme: String,
     hide_hwaccel_options: String,
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct Config {
+    pub(crate) theme: String,
     pub(crate) hide_hwaccel_options: Vec<String>,
 }
 
@@ -44,12 +46,28 @@ impl Config {
             }
             Err(source) => return Err(ConfigError::Read { path, source }),
         };
-        let raw: RawConfig = toml::from_str(&contents).map_err(|source| ConfigError::Parse {
-            path: path.clone(),
-            source,
-        })?;
 
+        let mut merged: toml::Table =
+            toml::from_str(DEFAULT_CONFIG).expect("DEFAULT_CONFIG should be valid TOML");
+        let loaded: toml::Table =
+            toml::from_str(&contents).map_err(|source| ConfigError::Parse {
+                path: path.clone(),
+                source,
+            })?;
+        merged.extend(loaded);
+        let raw = toml::Value::Table(merged)
+            .try_into()
+            .map_err(|source| ConfigError::Parse {
+                path: path.clone(),
+                source,
+            })?;
+
+        Self::from_raw(raw)
+    }
+
+    fn from_raw(raw: RawConfig) -> Result<Self, ConfigError> {
         Ok(Self {
+            theme: raw.theme,
             hide_hwaccel_options: parse::hwaccel_options(&raw.hide_hwaccel_options)?,
         })
     }
@@ -64,6 +82,13 @@ impl Config {
         let app_name = env!("CARGO_PKG_NAME");
 
         Ok(config_dir.join(app_name).join(format!("{app_name}.toml")))
+    }
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        let raw = toml::from_str(DEFAULT_CONFIG).expect("DEFAULT_CONFIG should be valid TOML");
+        Self::from_raw(raw).expect("DEFAULT_CONFIG values should be valid")
     }
 }
 
@@ -169,6 +194,21 @@ mod tests {
 
         assert!(matches!(error, ConfigError::Parse { .. }));
         assert!(error.to_string().contains(path.to_str().unwrap()));
+    }
+
+    #[test]
+    fn should_merge_partial_config_with_defaults() {
+        let temp = TempDir::new();
+        let path = temp.path().join("effy.toml");
+        fs::write(&path, "theme = \"hacky\"").unwrap();
+
+        assert_eq!(
+            Config::load(Some(&path)).unwrap(),
+            Config {
+                theme: "hacky".to_owned(),
+                hide_hwaccel_options: Vec::new(),
+            }
+        );
     }
 
     // Full options config

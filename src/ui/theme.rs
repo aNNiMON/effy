@@ -280,3 +280,18 @@ impl Theme {
         [self.color1, self.color2, self.color3]
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::ui::BUILTIN_THEMES;
+
+    use super::Theme;
+
+    #[test]
+    fn builtin_themes_deserialize() {
+        for (name, content) in BUILTIN_THEMES {
+            let _: Theme = toml::from_str(content)
+                .expect(&format!("Theme {name} should deserialize correctly"));
+        }
+    }
+}

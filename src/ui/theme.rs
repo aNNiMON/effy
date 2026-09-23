@@ -2,8 +2,15 @@ use ratatui::{
     style::{Color, Style, Stylize as _},
     widgets::Block,
 };
+use serde::Deserialize;
 
-#[derive(Debug)]
+pub(crate) const BUILTIN_THEMES: &[(&str, &str)] = &[
+    ("default", include_str!("../assets/theme-default.toml")),
+    ("hacky", include_str!("../assets/theme-hacky.toml")),
+];
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct Theme {
     background: Color,
     background_highlight: Color,
@@ -40,71 +47,18 @@ pub(crate) struct Theme {
     color3: Color,
 }
 
-impl Default for Theme {
-    fn default() -> Self {
-        Self {
-            background: Color::Reset,
-            background_highlight: Color::DarkGray,
-            accent: Color::Blue,
-            accent_light: Color::LightBlue,
-            border_active: Color::White,
-            border_inactive: Color::DarkGray,
-            list_highlight: Color::White,
-            list_highlight_text: Color::Black,
-            text: Color::White,
-            text_input: Color::White,
-            text_muted: Color::Gray,
-            text_param: Color::Yellow,
-            text_param_disabled: Color::DarkGray,
-            keys: Color::Green,
-            info: Color::Blue,
-            info_text: Color::White,
-            warning: Color::Yellow,
-            warning_text: Color::White,
-            error: Color::Red,
-            error_text: Color::White,
-            color1: Color::LightYellow,
-            color2: Color::LightCyan,
-            color3: Color::LightMagenta,
-        }
-    }
-}
-
 impl Theme {
     pub fn from(name: &str) -> Self {
-        match name {
-            "default" => Self::default(),
-            "hacky" => Self::hacky(),
-            _ => Self::default(),
-        }
+        BUILTIN_THEMES
+            .iter()
+            .find(|(n, _)| *n == name)
+            .or_else(|| BUILTIN_THEMES.first())
+            .map(|(_, s)| Self::parse(s))
+            .expect("No themes available")
     }
 
-    fn hacky() -> Self {
-        Self {
-            background: Color::Rgb(0, 20, 0),
-            background_highlight: Color::Rgb(0, 50, 0),
-            accent: Color::Rgb(0, 255, 0),
-            accent_light: Color::Rgb(100, 255, 100),
-            border_active: Color::Rgb(0, 200, 0),
-            border_inactive: Color::Rgb(0, 80, 0),
-            list_highlight: Color::Rgb(0, 255, 0),
-            list_highlight_text: Color::Black,
-            text: Color::Rgb(0, 200, 0),
-            text_input: Color::Rgb(50, 255, 50),
-            text_muted: Color::Rgb(0, 100, 0),
-            text_param: Color::Rgb(100, 255, 100),
-            text_param_disabled: Color::Rgb(0, 80, 0),
-            keys: Color::Rgb(0, 255, 0),
-            info: Color::Rgb(0, 180, 0),
-            info_text: Color::Black,
-            warning: Color::Rgb(150, 255, 50),
-            warning_text: Color::Black,
-            error: Color::Rgb(200, 50, 50),
-            error_text: Color::Black,
-            color1: Color::Rgb(0, 255, 0),
-            color2: Color::Rgb(0, 150, 0),
-            color3: Color::Rgb(50, 200, 50),
-        }
+    fn parse(s: &str) -> Self {
+        toml::from_str(s).expect("Failed to parse theme TOML")
     }
 
     // ----- Getters -----

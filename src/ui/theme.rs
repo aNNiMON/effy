@@ -4,11 +4,6 @@ use ratatui::{
 };
 use serde::Deserialize;
 
-pub(crate) const BUILTIN_THEMES: &[(&str, &str)] = &[
-    ("default", include_str!("../assets/theme-default.toml")),
-    ("hacky", include_str!("../assets/theme-hacky.toml")),
-];
-
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Theme {
@@ -48,19 +43,6 @@ pub(crate) struct Theme {
 }
 
 impl Theme {
-    pub fn from(name: &str) -> Self {
-        BUILTIN_THEMES
-            .iter()
-            .find(|(n, _)| *n == name)
-            .or_else(|| BUILTIN_THEMES.first())
-            .map(|(_, s)| Self::parse(s))
-            .expect("No themes available")
-    }
-
-    fn parse(s: &str) -> Self {
-        toml::from_str(s).expect("Failed to parse theme TOML")
-    }
-
     // ----- Getters -----
 
     #[inline]
@@ -278,20 +260,5 @@ impl Theme {
     #[inline]
     pub fn color_triplet(&self) -> [Color; 3] {
         [self.color1, self.color2, self.color3]
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::ui::BUILTIN_THEMES;
-
-    use super::Theme;
-
-    #[test]
-    fn builtin_themes_deserialize() {
-        for (name, content) in BUILTIN_THEMES {
-            let _: Theme = toml::from_str(content)
-                .expect(&format!("Theme {name} should deserialize correctly"));
-        }
     }
 }

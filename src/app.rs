@@ -61,11 +61,11 @@ impl<'a> App<'a> {
         source: Source,
         preset: Option<&str>,
         config: &Config,
+        theme: Theme,
     ) -> Self {
         let mut list_state = ListState::default();
         list_state.select_first();
         let folder = source.input_folder();
-        let theme = Theme::from(config.theme.as_str());
         let info_state = InfoPaneState::new(info.format(&theme));
         let (filename, fileext) = source.input_name_and_ext(info);
         let original_filename = if source.is_url() {

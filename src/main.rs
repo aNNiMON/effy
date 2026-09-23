@@ -10,7 +10,11 @@ use app::App;
 use clap::{ArgAction, Parser};
 use crossterm::event::{Event, KeyEventKind};
 
-use crate::{config::Config, model::AppEvent, source::Source};
+use crate::{
+    config::{Config, theme_resolver::ThemeResolver},
+    model::AppEvent,
+    source::Source,
+};
 
 mod app;
 mod config;
@@ -58,7 +62,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         Config::show();
         process::exit(0);
     }
+
     let config = Config::load(cli.config.as_deref())?;
+    let config_dir = config.config_dir(cli.config.as_deref())?;
+    let theme = ThemeResolver::try_resolve(&config.theme, &config_dir)?;
+
     let source = Source::new(
         cli.input
             .expect("input is required unless --show-config is used"),
@@ -76,9 +84,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     };
 
+    let preset = cli.preset.as_deref();
+
     if cli.apply {
         let (tx, _) = mpsc::channel();
-        App::new(tx, &ffprobe_info, source, cli.preset.as_deref(), &config).run_cli();
+        App::new(tx, &ffprobe_info, source, preset, &config, theme).run_cli();
         process::exit(0);
     }
 
@@ -86,7 +96,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let (tx, rx) = mpsc::channel();
         let event_tx = tx.clone();
         thread::spawn(move || handle_crossterm_events(&event_tx));
-        App::new(tx, &ffprobe_info, source, cli.preset.as_deref(), &config).run(terminal, &rx)
+        App::new(tx, &ffprobe_info, source, preset, &config, theme).run(terminal, &rx)
     })
 }
 

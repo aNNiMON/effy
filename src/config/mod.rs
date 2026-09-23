@@ -1,4 +1,5 @@
 mod parse;
+pub mod theme_resolver;
 
 use std::{
     error::Error,
@@ -29,7 +30,7 @@ impl Config {
         println!("# Configuration file must be located at:");
         println!(
             "#   {}",
-            Self::path()
+            Self::base_config_path()
                 .map(|p| p.display().to_string())
                 .unwrap_or("N/A".to_owned())
         );
@@ -38,7 +39,9 @@ impl Config {
     }
 
     pub(crate) fn load(path: Option<&Path>) -> Result<Self, ConfigError> {
-        let path = path.map(Path::to_owned).map_or_else(Self::path, Ok)?;
+        let path = path
+            .map(Path::to_owned)
+            .map_or_else(Self::base_config_path, Ok)?;
         let contents = match fs::read_to_string(&path) {
             Ok(contents) => contents,
             Err(source) if source.kind() == io::ErrorKind::NotFound => {
@@ -72,16 +75,26 @@ impl Config {
         })
     }
 
-    fn path() -> Result<PathBuf, ConfigError> {
-        let config_dir = std::env::var_os("XDG_CONFIG_HOME")
+    pub fn config_dir(&self, path: Option<&Path>) -> Result<PathBuf, ConfigError> {
+        let path = path
+            .map(Path::to_owned)
+            .map_or_else(Self::base_config_path, Ok)?;
+        Ok(path.parent().unwrap_or(&path).to_path_buf())
+    }
+
+    fn base_config_path() -> Result<PathBuf, ConfigError> {
+        let config_dir = Self::base_config_dir()?;
+        let app_name = env!("CARGO_PKG_NAME");
+        Ok(config_dir.join(app_name).join(format!("{app_name}.toml")))
+    }
+
+    fn base_config_dir() -> Result<PathBuf, ConfigError> {
+        std::env::var_os("XDG_CONFIG_HOME")
             .map(PathBuf::from)
             .filter(|path| path.is_absolute())
             .or_else(dirs::config_dir)
             .or_else(|| dirs::home_dir().map(|home| home.join(".config")))
-            .ok_or(ConfigError::PathUnavailable)?;
-        let app_name = env!("CARGO_PKG_NAME");
-
-        Ok(config_dir.join(app_name).join(format!("{app_name}.toml")))
+            .ok_or(ConfigError::PathUnavailable)
     }
 }
 

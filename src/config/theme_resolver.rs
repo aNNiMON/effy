@@ -7,6 +7,7 @@ pub struct ThemeResolver;
 pub(crate) const BUILTIN_THEMES: &[(&str, &str)] = &[
     ("default", include_str!("../assets/theme-default.toml")),
     ("hacky", include_str!("../assets/theme-hacky.toml")),
+    ("bloody", include_str!("../assets/theme-bloody.toml")),
 ];
 
 impl ThemeResolver {

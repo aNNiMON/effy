@@ -1,5 +1,5 @@
 use crate::ui::Theme;
-use std::path::Path;
+use std::{io::ErrorKind, path::Path};
 
 /// Resolves user-defined themes or overrides built-in themes.
 pub struct ThemeResolver;
@@ -26,19 +26,29 @@ impl ThemeResolver {
 
         // Try to find a user-defined theme file in the config directory
         let theme_path = config_dir.join(format!("theme-{name}.toml"));
-        if theme_path.exists()
-            && let Ok(theme_content) = std::fs::read_to_string(&theme_path)
-            && let Ok(theme) = toml::from_str::<toml::Table>(&theme_content)
-        {
-            // Merge user-defined theme into the source
-            source.extend(theme);
+        let theme_content = match std::fs::read_to_string(&theme_path) {
+            Ok(content) => Some(content),
+            Err(error) if error.kind() == ErrorKind::NotFound => None,
+            Err(error) => {
+                return Err(format!(
+                    "Failed to read theme {}: {error}",
+                    theme_path.display()
+                ));
+            }
+        };
+
+        if let Some(content) = theme_content {
+            let overrides: toml::Table = toml::from_str(&content).map_err(|error| {
+                format!("Failed to parse theme {}: {error}", theme_path.display())
+            })?;
+            source.extend(overrides);
         } else if built_in_theme.is_none() {
             return Err(format!("Theme {name} not found"));
-        }
+        };
 
-        toml::Value::Table(source)
-            .try_into()
-            .map_err(|_| "Failed to convert theme into the expected format".to_owned())
+        toml::Value::Table(source).try_into().map_err(|error| {
+            format!("Failed to convert theme {name} into the expected format: {error}")
+        })
     }
 
     fn is_valid_name(name: &str) -> bool {
@@ -104,5 +114,54 @@ mod tests {
 
             assert!(ThemeResolver::try_resolve(name, temp.path()).is_ok());
         }
+    }
+
+    #[test]
+    fn malformed_override_reports_its_path_and_parse_error() {
+        let temp = TempDir::new();
+        let path = temp.path().join("theme-default.toml");
+        fs::write(&path, "accent = [").unwrap();
+
+        let error = ThemeResolver::try_resolve("default", temp.path()).unwrap_err();
+
+        assert!(error.contains(&path.display().to_string()));
+        assert!(error.contains("Failed to parse theme"));
+    }
+
+    #[test]
+    fn unreadable_override_reports_its_path_and_read_error() {
+        let temp = TempDir::new();
+        let path = temp.path().join("theme-default.toml");
+        fs::create_dir(&path).unwrap();
+
+        let error = ThemeResolver::try_resolve("default", temp.path()).unwrap_err();
+
+        assert!(error.contains(&path.display().to_string()));
+        assert!(error.contains("Failed to read theme"));
+    }
+
+    #[test]
+    fn invalid_color_reports_its_field_and_theme_name() {
+        let temp = TempDir::new();
+        let path = temp.path().join("theme-default.toml");
+        fs::write(&path, "accent = \"not-a-color\"").unwrap();
+
+        let error = ThemeResolver::try_resolve("default", temp.path()).unwrap_err();
+
+        assert!(error.contains("Failed to convert theme default"));
+        assert!(error.contains("accent"));
+    }
+
+    #[test]
+    fn unknown_field_reports_its_name_and_theme_name() {
+        let temp = TempDir::new();
+        let path = temp.path().join("theme-default.toml");
+        fs::write(&path, "accnet = \"red\"").unwrap();
+
+        let error = ThemeResolver::try_resolve("default", temp.path()).unwrap_err();
+
+        assert!(error.contains("Failed to convert theme default"));
+        assert!(error.contains("accnet"));
+        assert!(error.contains("unknown field"));
     }
 }

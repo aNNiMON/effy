@@ -109,6 +109,7 @@ impl Widget for &mut App<'_> {
                 .borders(Borders::ALL)
                 .border_set(symbols::border::ROUNDED)
                 .border_style(border_style)
+                .fg(self.theme.text_color())
                 .title_top(tabs_line(&tabs, tabs_style).left_aligned());
             if !portrait {
                 block = block.title_top(

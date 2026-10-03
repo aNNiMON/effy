@@ -1,4 +1,4 @@
-# Theme: default, hacky, bloody
+# Theme: default, hacky, bloody, solarized_dark, solarized_light
 theme = "default"
 
 # Comma-separated hardware acceleration options to ignore.

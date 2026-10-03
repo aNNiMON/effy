@@ -11,6 +11,8 @@ use ratatui::{DefaultTerminal, widgets::ListState};
 use tracing::debug;
 
 use crate::config::Config;
+#[cfg(debug_assertions)]
+use crate::config::theme_resolver::BUILTIN_THEMES;
 use crate::info::Info;
 use crate::model::{AppEvent, Pane};
 use crate::params::{
@@ -37,6 +39,8 @@ pub(crate) struct App<'a> {
     pub active_out_pane: Pane,
     modal: Option<Box<dyn UiModal>>,
     pub theme: Theme,
+    #[cfg(debug_assertions)]
+    theme_index: Option<usize>,
     // Params
     pub params: Vec<Parameter>,
     pub params_list_state: ListState,
@@ -82,6 +86,10 @@ impl<'a> App<'a> {
             active_out_pane: Pane::Info,
             modal: None,
             theme,
+            #[cfg(debug_assertions)]
+            theme_index: BUILTIN_THEMES
+                .iter()
+                .position(|(name, _)| *name == config.theme),
             // Params
             params: create_params(info, preset, fileext.as_str(), config),
             params_list_state: list_state,
@@ -214,6 +222,8 @@ impl<'a> App<'a> {
             (Pane::Params, _, KeyCode::Left | KeyCode::Char('h')) => self.prev_option(),
             (Pane::Params, _, KeyCode::Right | KeyCode::Char('l')) => self.next_option(),
             (Pane::Params, _, KeyCode::Enter) => self.open_param_modal(),
+            #[cfg(debug_assertions)]
+            (Pane::Params, KeyModifiers::SHIFT, KeyCode::Char('t' | 'T')) => self.switch_theme(),
             _ => {}
         }
     }
@@ -315,6 +325,18 @@ impl<'a> App<'a> {
         {
             param.open_modal(&self.event_sender);
         }
+    }
+
+    #[cfg(debug_assertions)]
+    fn switch_theme(&mut self) {
+        let index = self
+            .theme_index
+            .map_or(0, |index| (index + 1) % BUILTIN_THEMES.len());
+        let (name, content) = BUILTIN_THEMES[index];
+        self.theme = toml::from_str(content).expect("Built-in theme should deserialize correctly");
+        self.theme_index = Some(index);
+        self.info_state = InfoPaneState::new(self.info.format(&self.theme));
+        debug!("Switched theme to {name}");
     }
 
     fn prev_pane(&mut self) {

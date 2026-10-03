@@ -17,7 +17,8 @@ arboard = { version = "3.6.1", default-features = false }
 clap = { version = "4.6.0", features = ["derive"] }
 crossterm = "0.29"
 dirs = "7"
-ratatui = { version = "0.30.0", features = ["serde"] }
+ratatui = "0.30.0"
+ratatui-core = { version = "0.1", features = ["serde"] }
 regex = { version = "1.12.3", default-features = false, features = ["std"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -25,7 +26,7 @@ toml = "1.0"
 tracing = "0.1"
 tracing-appender = "0.2"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-tui-input = { version = "0.15.0", features = [
+tui-input = { version = "0.15.5", features = [
     "crossterm",
 ], default-features = false }
 

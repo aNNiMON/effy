@@ -1,0 +1,29 @@
+Output $OUT/themes.gif
+Require effy
+
+# Terminal style
+Set Shell zsh
+Set Width 1080
+Set Height 566
+Set FontSize 16
+Set Padding 8
+Set Theme "$THEME"
+
+# run effy in.mp4
+Hide
+Type "effy .assets/in.mp4"
+Enter
+Sleep 0.2s
+Show
+
+# TUI
+Sleep 1s
+Type "T"
+Sleep 1s
+Type "T"
+Sleep 1s
+Type "T"
+Sleep 1s
+Type "T"
+Sleep 1s
+

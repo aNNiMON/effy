@@ -17,7 +17,7 @@ procs:
     shell: cargo build --release
     autostart: false
   vhs:
-    shell: dist/tapes/record.sh
+    shell: dist/tapes/record.sh main themes optimize
     autostart: false
 
   publish dry:
@@ -59,4 +59,3 @@ procs:
       echo "Done"
     cwd: dist/aur
     autostart: false
-

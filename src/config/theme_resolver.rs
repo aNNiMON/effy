@@ -29,7 +29,7 @@ impl ThemeResolver {
         let built_in_theme = BUILTIN_THEMES.iter().find(|(n, _)| *n == name);
         let mut source: toml::Table = built_in_theme
             // Important to load a default theme anyway, it will be either
-            // fully overriden by new theme, or used as fallback (incl. partially)
+            // fully overridden by new theme, or used as fallback (incl. partially)
             .or_else(|| BUILTIN_THEMES.first())
             .and_then(|(_, content)| toml::from_str(content).ok())
             .expect("No themes available");

@@ -4,3 +4,6 @@ theme = "default"
 # Comma-separated hardware acceleration options to ignore.
 # Possible values: nvidia, intel, amd, vaapi, macos
 hide_hwaccel_options = ""
+
+# LUT folder (optional) with .cube and .3dl LUT files.
+# lut_folder = "/path/to/lut/folder".

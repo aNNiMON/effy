@@ -1,5 +1,6 @@
 use std::{
     fmt::{Display, Formatter},
+    path::{Path, PathBuf},
     process::ChildStdin,
     str::FromStr,
     sync::Arc,
@@ -411,6 +412,43 @@ impl Display for CropData {
             self.y.as_deref().unwrap_or("0"),
             self.w.as_deref().unwrap_or("W"),
             self.h.as_deref().unwrap_or("H"),
+        )
+    }
+}
+
+/// Lut parameters
+
+#[derive(Debug, Clone, Default)]
+pub(crate) enum LutFiles {
+    #[default]
+    NotScanned, // not scanned yet
+    Files(Vec<PathBuf>),
+}
+
+#[derive(Debug, Clone, Default)]
+pub(crate) struct LutData {
+    pub(crate) folder: PathBuf,
+    pub(crate) files: LutFiles,
+    pub(crate) selected: Option<PathBuf>,
+}
+
+impl LutData {
+    fn filename(path: &Path) -> String {
+        path.file_name()
+            .unwrap_or(path.as_os_str())
+            .to_string_lossy()
+            .into_owned()
+    }
+}
+
+impl Display for LutData {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            self.selected
+                .as_deref()
+                .map_or_else(|| "none".to_owned(), Self::filename)
         )
     }
 }

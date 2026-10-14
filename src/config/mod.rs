@@ -17,12 +17,14 @@ pub(crate) const DEFAULT_CONFIG: &str = include_str!("../assets/config-default.t
 struct RawConfig {
     theme: String,
     hide_hwaccel_options: String,
+    lut_folder: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct Config {
     pub(crate) theme: String,
     pub(crate) hide_hwaccel_options: Vec<String>,
+    pub(crate) lut_folder: Option<String>,
 }
 
 impl Config {
@@ -72,6 +74,7 @@ impl Config {
         Ok(Self {
             theme: raw.theme,
             hide_hwaccel_options: parse::hwaccel_options(&raw.hide_hwaccel_options)?,
+            lut_folder: raw.lut_folder,
         })
     }
 
@@ -220,6 +223,7 @@ mod tests {
             Config {
                 theme: "hacky".to_owned(),
                 hide_hwaccel_options: Vec::new(),
+                lut_folder: None,
             }
         );
     }

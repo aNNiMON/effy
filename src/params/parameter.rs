@@ -2,8 +2,8 @@ use std::sync::{Arc, mpsc::Sender};
 
 use crate::{
     model::{
-        AppEvent, CropData, CustomSelectData, InputConstraints, TrimData, ValidationCallback,
-        ValueFormatter,
+        AppEvent, CropData, CustomSelectData, InputConstraints, LutData, TrimData,
+        ValidationCallback, ValueFormatter,
     },
     visitors::VisitorContext,
 };
@@ -63,6 +63,7 @@ pub(crate) enum ParameterData {
     },
     Trim(TrimData),
     Crop(CropData),
+    Lut(LutData),
 }
 
 pub(crate) struct Parameter {
@@ -133,7 +134,9 @@ impl Parameter {
                     value.clone_from(&options[*selected_index].value);
                 }
             }
-            ParameterData::Trim(_) | ParameterData::Crop(_) => self.open_modal(event_sender),
+            ParameterData::Trim(_) | ParameterData::Crop(_) | ParameterData::Lut(_) => {
+                self.open_modal(event_sender)
+            }
         }
     }
 
@@ -181,7 +184,9 @@ impl Parameter {
                     value.clone_from(&options[*selected_index].value);
                 }
             }
-            ParameterData::Trim(_) | ParameterData::Crop(_) => self.open_modal(event_sender),
+            ParameterData::Trim(_) | ParameterData::Crop(_) | ParameterData::Lut(_) => {
+                self.open_modal(event_sender)
+            }
         }
     }
 
@@ -206,6 +211,7 @@ impl Parameter {
             }
             ParameterData::Trim(data) => data.to_string(),
             ParameterData::Crop(data) => data.to_string(),
+            ParameterData::Lut(data) => data.to_string(),
         }
     }
 
@@ -236,6 +242,9 @@ impl Parameter {
             }
             ParameterData::Crop(data) => {
                 let _ = event_sender.send(AppEvent::OpenCropModal(data.clone()));
+            }
+            ParameterData::Lut(_data) => {
+                todo!("open_modal for Lut parameter is not implemented yet");
             }
             _ => {}
         }

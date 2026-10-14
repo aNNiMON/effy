@@ -18,6 +18,7 @@ mod crop;
 mod disable_audio;
 mod finalizer;
 mod hardware_acceleration;
+mod lut;
 mod output_format;
 mod speed_factor;
 mod trim;
@@ -33,6 +34,7 @@ pub(crate) use crop::*;
 pub(crate) use disable_audio::*;
 pub(crate) use finalizer::*;
 pub(crate) use hardware_acceleration::*;
+pub(crate) use lut::*;
 pub(crate) use output_format::*;
 pub(crate) use parameter::{Parameter, ParameterData, PresetParameter, SelectOption};
 pub(crate) use speed_factor::*;
@@ -79,6 +81,9 @@ pub(crate) fn create_params(
         params.push(VideoBitrate::new_parameter());
         params.push(VideoFrameRate::new_parameter());
         params.push(VideoScale::new_parameter());
+        if let Some(folder) = &config.lut_folder {
+            params.push(Lut::new_parameter(folder));
+        }
         params.push(HardwareAcceleration::new_parameter_ignoring(
             &config.hide_hwaccel_options,
         ));
@@ -131,6 +136,7 @@ pub(crate) fn recheck_params(params: &mut [Parameter]) {
                 | VideoScale::ID
                 | VideoBitrate::ID
                 | VideoFrameRate::ID
+                | Lut::ID
                 | HardwareAcceleration::ID
         ) {
             param.enabled = !result_is_audio;

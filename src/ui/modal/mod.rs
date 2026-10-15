@@ -13,6 +13,8 @@ pub(crate) enum ModalResult {
     Trim,
     /// Crop modal
     Crop,
+    /// LUT modal
+    Lut(usize),
     /// Modal for custom parameter values
     CustomSelect(String),
     /// Copy command (y y)
@@ -44,6 +46,7 @@ mod copy;
 mod crop;
 mod custom_select;
 mod help;
+mod lut;
 mod save_as_file;
 mod trim;
 
@@ -52,5 +55,6 @@ pub(crate) use copy::CopyModal;
 pub(crate) use crop::CropModal;
 pub(crate) use custom_select::CustomSelectModal;
 pub(crate) use help::HelpModal;
+pub(crate) use lut::LutModal;
 pub(crate) use save_as_file::SaveAsFileModal;
 pub(crate) use trim::TrimModal;

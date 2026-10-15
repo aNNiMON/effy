@@ -134,9 +134,8 @@ impl Parameter {
                     value.clone_from(&options[*selected_index].value);
                 }
             }
-            ParameterData::Trim(_) | ParameterData::Crop(_) | ParameterData::Lut(_) => {
-                self.open_modal(event_sender)
-            }
+            ParameterData::Lut(data) => data.toggle_prev(),
+            ParameterData::Trim(_) | ParameterData::Crop(_) => self.open_modal(event_sender),
         }
     }
 
@@ -184,9 +183,8 @@ impl Parameter {
                     value.clone_from(&options[*selected_index].value);
                 }
             }
-            ParameterData::Trim(_) | ParameterData::Crop(_) | ParameterData::Lut(_) => {
-                self.open_modal(event_sender)
-            }
+            ParameterData::Lut(data) => data.toggle_next(),
+            ParameterData::Trim(_) | ParameterData::Crop(_) => self.open_modal(event_sender),
         }
     }
 

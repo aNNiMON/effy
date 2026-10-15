@@ -1,6 +1,6 @@
 use std::{
     fmt::{Display, Formatter},
-    fs, io,
+    fs, io, iter,
     path::{Path, PathBuf},
     process::ChildStdin,
     str::FromStr,
@@ -517,6 +517,17 @@ impl LutData {
         });
     }
 
+    pub(crate) fn names(&self) -> Vec<String> {
+        iter::once("none".to_owned())
+            .chain(self.files.list().map_or(vec![], |files| {
+                files
+                    .iter()
+                    .map(|path| Self::filename(path))
+                    .collect::<Vec<_>>()
+            }))
+            .collect()
+    }
+
     fn filename(path: &Path) -> String {
         path.file_name()
             .unwrap_or(path.as_os_str())
@@ -621,6 +632,7 @@ pub(crate) enum AppEvent {
     Redraw,
     OpenTrimModal(TrimData),
     OpenCropModal(CropData),
+    OpenLutModal(LutData),
     OpenCustomSelectModal(CustomSelectData),
     RenderStarted(ChildStdin),
 }

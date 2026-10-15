@@ -241,8 +241,8 @@ impl Parameter {
             ParameterData::Crop(data) => {
                 let _ = event_sender.send(AppEvent::OpenCropModal(data.clone()));
             }
-            ParameterData::Lut(_data) => {
-                todo!("open_modal for Lut parameter is not implemented yet");
+            ParameterData::Lut(data) => {
+                let _ = event_sender.send(AppEvent::OpenLutModal(data.clone()));
             }
             _ => {}
         }

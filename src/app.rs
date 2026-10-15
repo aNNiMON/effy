@@ -16,14 +16,14 @@ use crate::config::theme_resolver::BUILTIN_THEMES;
 use crate::info::Info;
 use crate::model::{AppEvent, Pane};
 use crate::params::{
-    Crop, Parameter, ParameterData, Trim, apply_visitor, create_params, get_output_format,
+    Crop, Lut, Parameter, ParameterData, Trim, apply_visitor, create_params, get_output_format,
     recheck_params, save_preset,
 };
 use crate::source::Source;
 use crate::ui::Theme;
 use crate::ui::modal::{
-    AlertKind, AlertModal, CopyModal, CropModal, CustomSelectModal, HelpModal, ModalResult,
-    SaveAsFileModal, TrimModal, UiModal,
+    AlertKind, AlertModal, CopyModal, CropModal, CustomSelectModal, HelpModal, LutModal,
+    ModalResult, SaveAsFileModal, TrimModal, UiModal,
 };
 use crate::ui::state::{InfoPaneState, OutputPaneState};
 
@@ -137,6 +137,9 @@ impl<'a> App<'a> {
                 Ok(AppEvent::OpenCustomSelectModal(data)) => {
                     self.modal = Some(Box::new(CustomSelectModal::from(data)));
                 }
+                Ok(AppEvent::OpenLutModal(data)) => {
+                    self.modal = Some(Box::new(LutModal::new(data.names(), data.selected_index())));
+                }
                 Ok(AppEvent::RenderStarted(stdin)) => self.render_stdin = Some(stdin),
                 Ok(AppEvent::Redraw) | Err(_) => {}
             }
@@ -190,6 +193,15 @@ impl<'a> App<'a> {
                         } = &mut param.data
                     {
                         param_value.clone_from(&value);
+                    }
+                    self.modal = None;
+                }
+
+                ModalResult::Lut(index) => {
+                    if let Some(param) = self.params.iter_mut().find(|p| p.id == Lut::ID)
+                        && let ParameterData::Lut(data) = &mut param.data
+                    {
+                        data.select(index);
                     }
                     self.modal = None;
                 }

@@ -149,6 +149,10 @@ pub(crate) fn recheck_params(params: &mut [Parameter]) {
             param.enabled = !audio_is_disabled;
         }
 
+        if let ParameterData::Lut(data) = &param.data {
+            param.enabled = !result_is_audio && !data.is_unavailable();
+        }
+
         if param.id == OutputFormat::ID {
             OutputFormat::toggle_audio_formats(param, !audio_is_disabled);
         }
@@ -189,6 +193,7 @@ pub(crate) fn apply_visitor(visitor: &mut dyn ParameterVisitor, params: &mut [Pa
             VideoBitrate::ID => visitor.visit_video_bitrate(&mut param.data),
             VideoFrameRate::ID => visitor.visit_video_frame_rate(&mut param.data),
             VideoScale::ID => visitor.visit_video_scale(&mut param.data),
+            Lut::ID => visitor.visit_lut(&mut param.data),
             HardwareAcceleration::ID => visitor.visit_hardware_acceleration(&mut param.data),
             OutputFormat::ID => visitor.visit_output_format(&mut param.data),
             _ => {}

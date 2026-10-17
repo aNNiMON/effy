@@ -451,6 +451,14 @@ impl LutFiles {
         }
     }
 
+    pub(crate) fn unavailable(&self) -> bool {
+        match self {
+            LutFiles::NotScanned => false,
+            LutFiles::Files(files) => files.is_empty(),
+            LutFiles::Error(_) => true,
+        }
+    }
+
     fn collect_files(folder: &Path, files: &mut Vec<PathBuf>) -> io::Result<()> {
         for entry in fs::read_dir(folder)? {
             let entry = entry?;
@@ -515,6 +523,10 @@ impl LutData {
         } else {
             (index + count - 1) % count
         });
+    }
+
+    pub(crate) fn is_unavailable(&self) -> bool {
+        self.files.unavailable()
     }
 
     pub(crate) fn names(&self) -> Vec<String> {

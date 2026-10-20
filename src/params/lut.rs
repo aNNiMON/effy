@@ -39,11 +39,26 @@ impl Lut {
 }
 
 impl<'a> PresetParameter<'a> for Lut {
-    fn apply_preset(_ctx: &VisitorContext, _data: &mut ParameterData, _preset_value: &str) {
-        todo!("apply_preset for Lut parameter is not implemented yet");
+    fn apply_preset(_ctx: &VisitorContext, data: &mut ParameterData, preset_value: &str) {
+        if let ParameterData::Lut(data) = data {
+            if preset_value == "none" {
+                data.selected = None;
+            } else {
+                let path = PathBuf::from(preset_value);
+                if LutFiles::is_lut(&path) && path.is_file() && path.exists() {
+                    data.selected = Some(path);
+                }
+            }
+        }
     }
 
-    fn save_preset(_ctx: &VisitorContext, _data: &'a ParameterData) -> Option<String> {
-        todo!("save_preset for Lut parameter is not implemented yet");
+    fn save_preset(_ctx: &VisitorContext, data: &'a ParameterData) -> Option<String> {
+        if let ParameterData::Lut(data) = data {
+            data.selected
+                .as_ref()
+                .map(|path| path.to_string_lossy().into_owned())
+        } else {
+            None
+        }
     }
 }

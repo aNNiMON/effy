@@ -96,6 +96,12 @@ impl ParameterVisitor for PresetSaver {
         }
     }
 
+    fn visit_lut(&mut self, data: &mut ParameterData) {
+        if let Some(v) = Lut::save_preset(&self.ctx, data) {
+            self.add(Lut::ID, &v);
+        }
+    }
+
     fn visit_hardware_acceleration(&mut self, data: &mut ParameterData) {
         if let Some(v) = HardwareAcceleration::save_preset(&self.ctx, data) {
             self.add(HardwareAcceleration::ID, &v);

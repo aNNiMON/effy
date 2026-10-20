@@ -12,6 +12,7 @@ pub(crate) trait ParameterVisitor {
     fn visit_video_bitrate(&mut self, data: &mut ParameterData);
     fn visit_video_frame_rate(&mut self, data: &mut ParameterData);
     fn visit_video_scale(&mut self, data: &mut ParameterData);
+    fn visit_lut(&mut self, data: &mut ParameterData);
     fn visit_hardware_acceleration(&mut self, data: &mut ParameterData);
     fn visit_output_format(&mut self, data: &mut ParameterData);
     fn visit_last(&mut self);

@@ -92,7 +92,7 @@ impl Parameter {
     }
 
     pub(crate) fn toggle_prev(&mut self, event_sender: &Sender<AppEvent>) {
-        if !self.enabled {
+        if !self.prepare_action() {
             return;
         }
         match &mut self.data {
@@ -140,7 +140,7 @@ impl Parameter {
     }
 
     pub(crate) fn toggle_next(&mut self, event_sender: &Sender<AppEvent>) {
-        if !self.enabled {
+        if !self.prepare_action() {
             return;
         }
         match &mut self.data {
@@ -217,8 +217,8 @@ impl Parameter {
         format!("{}: {}", self.name, self.describe_value())
     }
 
-    pub(crate) fn open_modal(&self, event_sender: &Sender<AppEvent>) {
-        if !self.enabled {
+    pub(crate) fn open_modal(&mut self, event_sender: &Sender<AppEvent>) {
+        if !self.prepare_action() {
             return;
         }
         match &self.data {
@@ -246,6 +246,20 @@ impl Parameter {
             }
             _ => {}
         }
+    }
+
+    fn prepare_action(&mut self) -> bool {
+        if !self.enabled {
+            return false;
+        }
+        if let ParameterData::Lut(data) = &mut self.data {
+            data.files.scan(&data.folder);
+            if data.files.unavailable() {
+                self.enabled = false;
+                return false;
+            }
+        }
+        true
     }
 }
 

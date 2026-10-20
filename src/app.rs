@@ -333,7 +333,7 @@ impl<'a> App<'a> {
 
     fn open_param_modal(&mut self) {
         if let Some(selected) = self.params_list_state.selected()
-            && let Some(param) = self.params.get(selected)
+            && let Some(param) = self.params.get_mut(selected)
         {
             param.open_modal(&self.event_sender);
         }

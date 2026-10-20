@@ -90,6 +90,12 @@ impl ParameterVisitor for PresetApplier<'_> {
         }
     }
 
+    fn visit_lut(&mut self, data: &mut ParameterData) {
+        if let Some(preset_value) = self.preset_map.get(Lut::ID) {
+            Lut::apply_preset(&self.ctx, data, preset_value);
+        }
+    }
+
     fn visit_hardware_acceleration(&mut self, data: &mut ParameterData) {
         if let Some(preset_value) = self.preset_map.get(HardwareAcceleration::ID) {
             HardwareAcceleration::apply_preset(&self.ctx, data, preset_value);

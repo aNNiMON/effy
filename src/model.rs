@@ -470,7 +470,7 @@ impl LutFiles {
         Ok(())
     }
 
-    fn is_lut(path: &Path) -> bool {
+    pub(crate) fn is_lut(path: &Path) -> bool {
         path.extension()
             .and_then(|ext| ext.to_str())
             .is_some_and(|ext| ext.eq_ignore_ascii_case("cube") || ext.eq_ignore_ascii_case("3dl"))

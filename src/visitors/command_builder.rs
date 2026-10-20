@@ -112,6 +112,10 @@ impl ParameterVisitor for CommandBuilder {
         VideoScale::build_command(self, data);
     }
 
+    fn visit_lut(&mut self, data: &mut ParameterData) {
+        Lut::build_command(self, data);
+    }
+
     fn visit_hardware_acceleration(&mut self, data: &mut ParameterData) {
         HardwareAcceleration::build_command(self, data);
     }
@@ -127,6 +131,8 @@ impl ParameterVisitor for CommandBuilder {
 
 #[cfg(test)]
 mod tests {
+    use std::path::PathBuf;
+
     use super::*;
     use crate::info::{Info, InfoFormat};
 
@@ -323,6 +329,18 @@ mod tests {
         assert_eq!(cb.video_filters, vec!["scale=-2:600"]);
     }
 
+    #[test]
+    fn lut() {
+        let mut cb = CommandBuilder::default();
+        let mut p = Lut::new_parameter(".");
+        set_custom_value(&mut p, "test.cube");
+
+        cb.visit_lut(&mut p.data);
+
+        assert_eq!(cb.video_filters, vec!["lut3d=test.cube"]);
+        assert_eq!(cb.pre_output_args, vec!["-pix_fmt", "yuv420p"]);
+    }
+
     // ------ Common ------
 
     #[test]
@@ -433,6 +451,8 @@ mod tests {
     fn set_custom_value(param: &mut Parameter, new_value: &str) {
         if let ParameterData::CustomSelect { value, .. } = &mut param.data {
             *value = new_value.to_owned();
+        } else if let ParameterData::Lut(data) = &mut param.data {
+            data.selected = Some(PathBuf::from(new_value));
         } else {
             panic!(
                 "Unable to set custom value {} to parameter {}.",

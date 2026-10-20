@@ -646,5 +646,6 @@ pub(crate) enum AppEvent {
     OpenCropModal(CropData),
     OpenLutModal(LutData),
     OpenCustomSelectModal(CustomSelectData),
+    ParameterError(&'static str),
     RenderStarted(ChildStdin),
 }

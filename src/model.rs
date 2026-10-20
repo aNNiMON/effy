@@ -436,7 +436,8 @@ impl LutFiles {
     }
 
     pub(crate) fn scan(&mut self, folder: &Path) {
-        if let LutFiles::NotScanned = self {
+        // Scan if not already scanned and rescan on error
+        if !matches!(self, LutFiles::Files(_)) {
             let mut files = Vec::new();
             let result = Self::collect_files(folder, &mut files);
             files.sort();
@@ -515,7 +516,6 @@ impl LutData {
     }
 
     fn step(&mut self, next: bool) {
-        self.files.scan(&self.folder);
         let count = self.files.list().map_or(0, |a| a.len()) + 1;
         let index = self.selected_index();
         self.select(if next {

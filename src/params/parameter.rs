@@ -2,7 +2,7 @@ use std::sync::{Arc, mpsc::Sender};
 
 use crate::{
     model::{
-        AppEvent, CropData, CustomSelectData, InputConstraints, LutData, TrimData,
+        AppEvent, CropData, CustomSelectData, InputConstraints, LutData, LutFiles, TrimData,
         ValidationCallback, ValueFormatter,
     },
     visitors::VisitorContext,
@@ -92,7 +92,7 @@ impl Parameter {
     }
 
     pub(crate) fn toggle_prev(&mut self, event_sender: &Sender<AppEvent>) {
-        if !self.prepare_action() {
+        if !self.prepare_action(event_sender) {
             return;
         }
         match &mut self.data {
@@ -140,7 +140,7 @@ impl Parameter {
     }
 
     pub(crate) fn toggle_next(&mut self, event_sender: &Sender<AppEvent>) {
-        if !self.prepare_action() {
+        if !self.prepare_action(event_sender) {
             return;
         }
         match &mut self.data {
@@ -218,7 +218,7 @@ impl Parameter {
     }
 
     pub(crate) fn open_modal(&mut self, event_sender: &Sender<AppEvent>) {
-        if !self.prepare_action() {
+        if !self.prepare_action(event_sender) {
             return;
         }
         match &self.data {
@@ -248,13 +248,14 @@ impl Parameter {
         }
     }
 
-    fn prepare_action(&mut self) -> bool {
+    fn prepare_action(&mut self, event_sender: &Sender<AppEvent>) -> bool {
         if !self.enabled {
             return false;
         }
         if let ParameterData::Lut(data) = &mut self.data {
             data.files.scan(&data.folder);
-            if data.files.unavailable() {
+            if let LutFiles::Error(error) = &data.files {
+                let _ = event_sender.send(AppEvent::ParameterError(error));
                 self.enabled = false;
                 return false;
             }

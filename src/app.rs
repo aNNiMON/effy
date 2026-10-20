@@ -8,7 +8,7 @@ use std::{mem, thread};
 use arboard::Clipboard;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 use ratatui::{DefaultTerminal, widgets::ListState};
-use tracing::debug;
+use tracing::{debug, error};
 
 use crate::config::Config;
 #[cfg(debug_assertions)]
@@ -141,6 +141,10 @@ impl<'a> App<'a> {
                     self.modal = Some(Box::new(LutModal::new(data.names(), data.selected_index())));
                 }
                 Ok(AppEvent::RenderStarted(stdin)) => self.render_stdin = Some(stdin),
+                Ok(AppEvent::ParameterError(error)) => {
+                    error!("Parameter error: {}", error);
+                    self.modal = Some(Box::new(AlertModal::new(AlertKind::Error, error)));
+                }
                 Ok(AppEvent::Redraw) | Err(_) => {}
             }
         }

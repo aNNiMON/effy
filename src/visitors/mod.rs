@@ -23,7 +23,7 @@ mod preset_applier;
 mod preset_saver;
 mod visitor_context;
 
-pub const PRESET_SEPARATOR: &str = ";";
+pub const PRESET_SEPARATOR: char = ';';
 pub const PRESET_VALUE_SEPARATOR: &str = "=";
 
 pub(crate) use command_builder::*;

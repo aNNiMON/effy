@@ -20,7 +20,7 @@ impl PresetSaver {
     }
 
     pub fn collect(&self) -> String {
-        self.preset.join(PRESET_SEPARATOR)
+        self.preset.join(&PRESET_SEPARATOR.to_string())
     }
 
     fn add(&mut self, id: &str, value: &str) {
@@ -98,7 +98,7 @@ impl ParameterVisitor for PresetSaver {
 
     fn visit_lut(&mut self, data: &mut ParameterData) {
         if let Some(v) = Lut::save_preset(&self.ctx, data) {
-            self.add(Lut::ID, &v);
+            self.add(Lut::ID, &escape_preset_value(&v));
         }
     }
 
@@ -115,4 +115,31 @@ impl ParameterVisitor for PresetSaver {
     }
 
     fn visit_last(&mut self) {}
+}
+
+fn escape_preset_value(value: &str) -> String {
+    value.replace('\\', r"\\").replace(PRESET_SEPARATOR, r"\;")
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::PathBuf;
+
+    use super::PresetSaver;
+    use crate::{
+        model::{LutData, LutFiles},
+        visitors::{ParameterVisitor, VisitorContext},
+    };
+
+    #[test]
+    fn escapes_lut_preset_path() {
+        let mut saver = PresetSaver::new(VisitorContext::default());
+        saver.visit_lut(&mut crate::params::ParameterData::Lut(LutData {
+            folder: PathBuf::from("folder"),
+            files: LutFiles::NotScanned,
+            selected: Some(PathBuf::from(r"folder\aa'bb;cc.cube")),
+        }));
+
+        assert_eq!(saver.collect(), r"lut=folder\\aa'bb\;cc.cube");
+    }
 }

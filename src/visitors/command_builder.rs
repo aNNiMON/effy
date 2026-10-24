@@ -337,7 +337,7 @@ mod tests {
 
         cb.visit_lut(&mut p.data);
 
-        assert_eq!(cb.video_filters, vec!["lut3d=test.cube"]);
+        assert_eq!(cb.video_filters, vec!["lut3d=file='test.cube'"]);
         assert_eq!(cb.pre_output_args, vec!["-pix_fmt", "yuv420p"]);
     }
 

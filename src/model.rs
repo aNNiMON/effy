@@ -435,7 +435,7 @@ impl LutFiles {
         }
     }
 
-    pub(crate) fn scan(&mut self, folder: &Path) {
+    pub(crate) fn scan(&mut self, folder: &Path) -> &Self {
         // Scan if not already scanned and rescan on error
         if !matches!(self, LutFiles::Files(_)) {
             let mut files = Vec::new();
@@ -450,6 +450,7 @@ impl LutFiles {
                 *self = LutFiles::Files(files);
             }
         }
+        self
     }
 
     pub(crate) fn unavailable(&self) -> bool {

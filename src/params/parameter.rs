@@ -253,10 +253,8 @@ impl Parameter {
             return false;
         }
         if let ParameterData::Lut(data) = &mut self.data {
-            data.files.scan(&data.folder);
-            if let LutFiles::Error(error) = &data.files {
+            if let LutFiles::Error(error) = data.files.scan(&data.folder) {
                 let _ = event_sender.send(AppEvent::ParameterError(error));
-                self.enabled = false;
                 return false;
             }
         }

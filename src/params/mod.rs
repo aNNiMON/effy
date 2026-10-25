@@ -149,10 +149,6 @@ pub(crate) fn recheck_params(params: &mut [Parameter]) {
             param.enabled = !audio_is_disabled;
         }
 
-        if let ParameterData::Lut(data) = &param.data {
-            param.enabled = !result_is_audio && !data.is_unavailable();
-        }
-
         if param.id == OutputFormat::ID {
             OutputFormat::toggle_audio_formats(param, !audio_is_disabled);
         }

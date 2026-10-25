@@ -21,6 +21,7 @@ A small and friendly terminal FFmpeg helper that simplifies common tasks.
 - extract or remove audio from the video
 - trim video/audio
 - crop video/image
+- apply LUT color filters
 - use hardware acceleration
 - apply presets (preload in the UI, or immediately from the CLI)
 

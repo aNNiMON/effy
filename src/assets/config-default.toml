@@ -5,5 +5,5 @@ theme = "default"
 # Possible values: nvidia, intel, amd, vaapi, macos
 hide_hwaccel_options = ""
 
-# LUT folder (optional) with .cube and .3dl LUT files.
+# LUT folder (optional) with .cube, .3dl, .csp, .dat and .m3d LUT files.
 # lut_folder = "/path/to/lut/folder".

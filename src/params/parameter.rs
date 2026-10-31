@@ -2,8 +2,10 @@ use std::sync::{Arc, mpsc::Sender};
 
 use crate::{
     model::{
-        AppEvent, CropData, CustomSelectData, InputConstraints, LutData, LutFiles, TrimData,
-        ValidationCallback, ValueFormatter,
+        AppEvent, CustomSelectData, InputConstraints, ValidationCallback, ValueFormatter,
+        crop_model::CropData,
+        lut_model::{LutData, LutFiles},
+        trim_model::TrimData,
     },
     visitors::VisitorContext,
 };

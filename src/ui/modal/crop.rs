@@ -10,7 +10,7 @@ use ratatui::{
 use tui_input::{Input, backend::crossterm::EventHandler as _};
 
 use crate::{
-    model::CropData,
+    model::crop_model::CropData,
     ui::{
         Theme, input_value_and_pos, is_portrait,
         modal::{KeyboardHandler, ModalResult, UiModal},

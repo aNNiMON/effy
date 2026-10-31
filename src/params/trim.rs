@@ -1,7 +1,7 @@
 use tracing::{debug, warn};
 
 use crate::{
-    model::TrimData,
+    model::trim_model::TrimData,
     params::{Parameter, ParameterData, PresetParameter},
     visitors::{CommandBuilder, VisitorContext},
 };
@@ -200,7 +200,7 @@ impl<'a> PresetParameter<'a> for Trim {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::TrimData;
+    use crate::model::trim_model::TrimData;
     use crate::params::ParameterData;
     use crate::visitors::VisitorContext;
 

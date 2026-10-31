@@ -12,7 +12,7 @@ use ratatui::{
 use tui_input::Input;
 use tui_input::backend::crossterm::EventHandler as _;
 
-use crate::model::TrimData;
+use crate::model::trim_model::TrimData;
 use crate::ui::modal::{KeyboardHandler, ModalResult, UiModal};
 use crate::ui::widget::BgClear;
 use crate::ui::{Theme, checkbox_line, input_value_and_pos, is_portrait};

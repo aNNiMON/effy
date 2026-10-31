@@ -127,8 +127,8 @@ mod tests {
 
     use super::PresetSaver;
     use crate::{
-        model::{LutData, LutFiles},
-        visitors::{ParameterVisitor, VisitorContext},
+        model::lut_model::{LutData, LutFiles},
+        visitors::{ParameterVisitor as _, VisitorContext},
     };
 
     #[test]

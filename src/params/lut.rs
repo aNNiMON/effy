@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use tracing::debug;
 
 use crate::{
-    model::{LutData, LutFiles},
+    model::lut_model::{LutData, LutFiles},
     params::{Parameter, ParameterData, PresetParameter},
     visitors::{CommandBuilder, VisitorContext},
 };

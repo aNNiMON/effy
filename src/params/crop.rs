@@ -1,7 +1,7 @@
 use tracing::{debug, warn};
 
 use crate::{
-    model::CropData,
+    model::crop_model::CropData,
     params::{Parameter, ParameterData, PresetParameter},
     visitors::{CommandBuilder, VisitorContext},
 };
